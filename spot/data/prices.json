@@ -1,0 +1,16 @@
+{
+    "aws": {
+        "AWSLambda": {
+            "us-east-1": {
+                "AWS-Lambda-Requests": {
+                    "value": 2e-07,
+                    "timestamp": "2021-11-24T21:39:46.275969+00:00"
+                },
+                "AWS-Lambda-Duration": {
+                    "value": 1.66667e-05,
+                    "timestamp": "2021-11-24T21:39:46.441578+00:00"
+                }
+            }
+        }
+    }
+}
