@@ -15,7 +15,7 @@ class AWSPriceRetriever(PriceRetriever):
         request_price = self._current_price(parameters)
         parameters["type"] = "AWS-Lambda-Duration"
         duration_price = self._current_price(parameters)
-        return {"per_request": request_price, "per_second": duration_price}
+        return {"per_request": request_price, "per_gb_second": duration_price}
 
 if __name__ == "__main__":
     retriever = AWSPriceRetriever()
