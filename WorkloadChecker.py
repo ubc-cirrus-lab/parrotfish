@@ -14,7 +14,7 @@ from GenConfigs import *
 sys.path = [SPOT_ROOT + '/synthetic_workload_invoker'] + sys.path
 from Logger import ScriptLogger
 
-logger_wlch = ScriptLogger('workload_checker', 'SWI.log')
+#logger_wlch = ScriptLogger('workload_checker', 'SWI.log')
 
 supported_distributions = {'Poisson', 'Uniform'}
 
@@ -22,10 +22,10 @@ def CheckWorkloadValidity(workload):
     """
     Checks whether a loaded workload is valid.
     """
-    logger_wlch.info("Started CheckWorkloadValidity")
+    #logger_wlch.info("Started CheckWorkloadValidity")
     # 1 - Check if the workload has been successfully read in ReadJSONConfig
     if workload is None:
-        logger_wlch.info('Workload not valid => Terminating')
+        #logger_wlch.info('Workload not valid => Terminating')
         return False
     # 2 - Check for validity of general field
     print(workload)
@@ -50,7 +50,7 @@ def CheckWorkloadValidity(workload):
         except:
             pass
 
-    logger_wlch.info('Required applications: ' + str(application_set))
+    #logger_wlch.info('Required applications: ' + str(application_set))
     # 4 - Check for supported distributions
     if not distribution_set.issubset(supported_distributions):
         logger_wlch.error(

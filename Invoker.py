@@ -20,17 +20,17 @@ from Auth import getHeader, APIHOST, canonical_uri
 RESULT = 'false'
 
 
-def invoke(endpoint, payload, instance_times):
+def invoke(payload, instance_times):
     st = 0
     after_time, before_time = 0, 0
     session = FuturesSession(max_workers=15)
     # TODO: make it dynamic from user input
     # url = 'https://55gmzhl9w6.execute-api.us-west-1.amazonaws.com/default/test-hw'
-    url = APIHOST + canonical_uri 
+    url = APIHOST + canonical_uri
     # + '/' + endpoint
     parameters = {'blocking': False, 'result': RESULT}
     for t in instance_times:
-        st = t - (after_time - before_time) 
+        st = t - (after_time - before_time)
         if st > 0:
             time.sleep(st)
         before_time = time.time()
@@ -56,7 +56,7 @@ def main(argv):
     if not CheckJSONConfig(options.config_json):
         # logger.error("You should specify a JSON config file using -c option!")
         return False
-    
+
     workload = ReadJSONConfig(options.config_json)
     if not CheckWorkloadValidity(workload=workload):
         return False
@@ -65,18 +65,17 @@ def main(argv):
     threads = []
     for (instance, instance_times) in all_events.items():
         function = workload['instances'][instance]['application']
-        endpoint = workload['instances'][instance]['endpoint']
         payload_file = workload['instances'][instance]['payload']
-        
+
         if payload_file:
             with open(payload_file, 'r') as f:
                 payload = json.load(f)
                 payload = json.dumps(payload)
         else:
             payload = None
-        
+
         if workload['instances'][instance]['distribution'] == 'Poisson':
-            threads.append(threading.Thread(target=invoke, args=[endpoint, payload, instance_times]))
+            threads.append(threading.Thread(target=invoke, args=[payload, instance_times]))
 
     # logger.info("Test started")
     for thread in threads:
