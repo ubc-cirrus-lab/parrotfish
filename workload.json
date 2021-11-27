@@ -9,14 +9,20 @@
             "distribution": "Poisson",
             "rate": 5,
             "activity_window": [5, 10],
-            "payload": "poisson.json"
+            "payload": "poisson.json",
+            "host": "wlbyoedkdf.execute-api.us-west-1.amazonaws.com",
+            "stage":"test",
+            "resource":"helloworld"
         },
         "instance2":{
             "application": "test-hw",
             "distribution": "Uniform",
             "rate": 10,
             "activity_window": [5, 10],
-            "payload": "uniform.json"
+            "payload": "uniform.json",
+            "host": "wlbyoedkdf.execute-api.us-west-1.amazonaws.com",
+            "stage":"test",
+            "resource":"helloworld"
         }
     }
 }
