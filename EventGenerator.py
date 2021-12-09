@@ -3,12 +3,9 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import datetime
-import logging
 import numpy as np
 import random
-
-from Logger import ScriptLogger
+import matplotlib.pyplot as plt
 
 #logger_eg = ScriptLogger('event_generator', 'SWI.log')
 
@@ -34,8 +31,9 @@ def CreateEvents(instance, dist, rate, duration, seed=None):
         # later the EnforceActivityWindow function
         # will cut out of bound samples.
         # Creating inter arrival times using an Exponential process
-        inter_arrivals = list(np.random.exponential(
-            scale=beta, size=int(oversampling_factor*duration*rate)))
+        temp = np.random.exponential(
+            scale=beta, size=int(oversampling_factor*duration*rate))
+        inter_arrivals = list(temp)
 
     return inter_arrivals
 

@@ -3,16 +3,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import datetime
-import logging
-import os
 import sys
 
 # Local imports
 sys.path = ['./', '../'] + sys.path
 from GenConfigs import *
 sys.path = [SPOT_ROOT + '/synthetic_workload_invoker'] + sys.path
-from Logger import ScriptLogger
 
 #logger_wlch = ScriptLogger('workload_checker', 'SWI.log')
 

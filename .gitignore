@@ -4,6 +4,9 @@ GenConfigs.py
 # logs and data archives
 *.log
 *.pkl
+*.out
 
 # compiled bytecode
 __pycache__/
+
+.vscode/

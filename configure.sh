@@ -3,7 +3,7 @@
 
 # Installing some dependencies if needed
 # sudo apt-get install -y moreutils
-#sudo python3 -m pip install -r numpy requests_futures
+sudo python3 -m pip install numpy requests_futures
 
 # Configure path variables used by the platform
 ROOTLINE='SPOT_ROOT="'$(echo $PWD)'"'

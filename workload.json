@@ -5,24 +5,24 @@
     "blocking_cli": false,
     "instances":{
         "instance1":{
-            "application": "test-hw",
+            "application": "chameleon",
             "distribution": "Poisson",
             "rate": 5,
             "activity_window": [5, 10],
             "payload": "poisson.json",
-            "host": "wlbyoedkdf.execute-api.us-west-1.amazonaws.com",
-            "stage":"test",
-            "resource":"helloworld"
+            "host": "ng11cbhnw7.execute-api.us-west-1.amazonaws.com",
+            "stage":"default",
+            "resource":"chameleon"
         },
         "instance2":{
-            "application": "test-hw",
+            "application": "awsyaman-dev-save",
             "distribution": "Uniform",
             "rate": 10,
             "activity_window": [5, 10],
-            "payload": "uniform.json",
-            "host": "wlbyoedkdf.execute-api.us-west-1.amazonaws.com",
-            "stage":"test",
-            "resource":"helloworld"
+            "payload": "s3_pic.json",
+            "host": "ts7p12m27c.execute-api.us-east-2.amazonaws.com",
+            "stage":"default",
+            "resource":"awsyaman-dev-save"
         }
     }
 }
