@@ -1,4 +1,8 @@
 from spot.prices.price_retriever import PriceRetriever
+import os
+import json
+from pymongo import MongoClient
+import time as time
 
 class AWSPriceRetriever(PriceRetriever):
     def __init__(self):
@@ -15,7 +19,16 @@ class AWSPriceRetriever(PriceRetriever):
         request_price = self._current_price(parameters)
         parameters["type"] = "AWS-Lambda-Duration"
         duration_price = self._current_price(parameters)
-        return {"per_request": request_price, "per_gb_second": duration_price}
+        return {"timestamp":int(time.time()),"per_request": request_price, "per_gb_second": duration_price}
+
+    def save_to_db(data):
+        client = MongoClient('localhost', 27017)
+
+        db = client["mydb"]
+        collection = db['aws_prices']
+
+        collection.insert_one(data)
+        client.close()
 
 if __name__ == "__main__":
     retriever = AWSPriceRetriever()
