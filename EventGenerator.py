@@ -5,9 +5,6 @@
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
-
-#logger_eg = ScriptLogger('event_generator', 'SWI.log')
 
 
 def CreateEvents(instance, dist, rate, duration, seed=None):
@@ -104,6 +101,5 @@ def GenericEventGenerator(workload):
         all_events[instance] = instance_events
         event_count += len(instance_events)
 
-    #logger_eg.info("Returning workload event list")
 
     return [all_events, event_count]

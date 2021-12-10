@@ -13,16 +13,6 @@
             "host": "ng11cbhnw7.execute-api.us-west-1.amazonaws.com",
             "stage":"default",
             "resource":"chameleon"
-        },
-        "instance2":{
-            "application": "awsyaman-dev-save",
-            "distribution": "Uniform",
-            "rate": 10,
-            "activity_window": [5, 10],
-            "payload": "s3_pic.json",
-            "host": "ts7p12m27c.execute-api.us-east-2.amazonaws.com",
-            "stage":"default",
-            "resource":"awsyaman-dev-save"
         }
     }
 }
