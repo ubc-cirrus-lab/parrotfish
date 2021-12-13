@@ -28,9 +28,9 @@ class DBClient:
         collection = function_db[collection_name]
         collection.insert_one(document)
         return
-
-my_db_client = DBClient("localhost", 27017)
-my_db_client.create_function_db("aws_test_function")
-my_db_client.add_collection("aws_test_function", "logs")
-my_db_client.add_collection("aws_test_function", "config")
-my_db_client.add_collection("aws_test_function", "prices")
+    def add_document_to_collection_if_not_exists(self, function_name, collection_name, document, criteria, value):
+        client = MongoClient(self.url, self.port)
+        function_db = client[function_name]
+        collection = function_db[collection_name]
+        if not collection.find_one({criteria : value}):
+            collection.insert_one(document)
