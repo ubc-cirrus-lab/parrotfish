@@ -1,3 +1,11 @@
+# local config file
+spot/invocation/GenConfigs.py
+
+# logs and data archives
+*.log
+*.pkl
+*.out
+
 __pycache__/
 *.py[cod]
 *$py.class
