@@ -2,39 +2,31 @@ import os
 import subprocess
 import json 
 import time as time
+from spot.db.db import DBClient
 from pymongo import MongoClient
 
 class AWSConfigRetriever:
     def __init__(self):
         super().__init__()
-    
-    def get_latest_config(self, app_name):
-        #print("This function gets latest configs for the app: ", app_name)
-        pass
 
     def get_previous_config(self, app_name, time):
         pass
         
-    def get_aws_configs(self, function_name = "AWSHelloWorld"):
-        if not os.path.exists("configs/outputs"):
-            os.makedirs("configs/outputs")
+    def get_latest_config(self, function_name = "AWSHelloWorld"):
+        client = DBClient("localhost", 27017) 
 
-        #get config and save it to json
         config = subprocess.check_output(["aws", "lambda", "get-function-configuration", "--function-name", function_name])
         config = json.loads(config)
-        config = json.dumps(config)
-        with open("configs/outputs/" +str(int(time.time())) + ".json", "w") as file:
-            file.write(config)
+        client.add_document_to_collection_if_not_exists(function_name, "config", config, "LastModified", config["LastModified"])
+        
+        #client.disconnect()
+    def print_configs(self, function_name = "AWSHelloWorld"):
+        client = DBClient("localhost", 27017) 
+        iterator = client.get_all_collection_documents(function_name, "config")
+        for config in iterator:
+            print(config)
+        
 
-    def save_to_db(data):
-        client = MongoClient('localhost', 27017)
-
-        db = client["mydb"]
-        collection = db['aws_configs']
-
-        outputs = os.listdir("configs/outputs")
-        for output in outputs:
-            with open("configs/outputs/"+output) as f:
-                file_data = json.load(f)
-                collection.insert_one(file_data)
-        client.close()
+a = AWSConfigRetriever()
+a.get_latest_config()
+a.print_configs()
