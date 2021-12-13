@@ -34,3 +34,10 @@ class AWSLogRetriever:
             client.add_document_to_collection_if_not_exists(function_name, "logs", log, "RequestId",requestId)
 
         #client.close()
+    def print_logs(self, function_name = "AWSHelloWorld"):
+        client = DBClient("localhost", 27017) 
+        iterator = client.get_all_collection_documents(function_name, "logs")
+        for log in iterator:
+            print(log)
+a = AWSLogRetriever()
+a.print_logs()

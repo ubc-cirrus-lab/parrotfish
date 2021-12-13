@@ -26,7 +26,7 @@ class AWSConfigRetriever:
         for config in iterator:
             print(config)
         
-
+""" 
 a = AWSConfigRetriever()
 a.get_latest_config()
-a.print_configs()
+a.print_configs() """
