@@ -29,7 +29,7 @@ class IAMAuth:
         date_stamp = t.strftime('%Y%m%d') # Date w/o time, used in credential scope
 
         canonical_querystring = ''
-        canonical_headers = 'content-type:' + self.content_type + '\n' + 'host:' + self.host + '\n' + 'x-amz-date:' + amz_date + '\n' 
+        canonical_headers = 'content-type:' + self.content_type + '\n' + 'host:' + self.host + '\n' + 'x-amz-date:' + amz_date + '\n'
         signed_headers = 'content-type;host;x-amz-date'
         payload_hash = hashlib.sha256(payload.encode('utf-8')).hexdigest()
         canonical_uri = '/' + self.stage + '/' + self.resource

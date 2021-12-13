@@ -5,19 +5,31 @@ import time
 import threading
 #import requests
 
+from JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
+from WorkloadChecker import CheckWorkloadValidity
 from EventGenerator import GenericEventGenerator
 from GenConfigs import *
-from Auth import IAMAuth
+from iam_auth import IAMAuth
 from config_updater import ConfigUpdater
 
-class Invocator:
+class InvalidWorkloadFileException(Exception):
+    pass
+
+class AWSFunctionInvocator:
     def __init__(self, workload, mem=128):
-        self.workload = workload
+        self.workload = self._read_workload(workload)
         self.config = ConfigUpdater()
-        #self.config.set_mem_size(mem)
         self.threads = []
-        self.all_events, _ = GenericEventGenerator(workload)
-        #(self.all_instances, _) = self.all_events.items()
+        self.all_events, _ = GenericEventGenerator(self.workload)
+
+    def _read_workload(self, path):
+        if not CheckJSONConfig(path):
+            raise InvalidWorkloadFileException
+        workload = ReadJSONConfig(path)
+        if not CheckWorkloadValidity(workload=workload):
+            raise InvalidWorkloadFileException
+        return workload
+
 
     def _append_threads(self, instance, instance_times):
         payload_file = self.workload['instances'][instance]['payload']
@@ -44,6 +56,7 @@ class Invocator:
             thread.start()
 
     def _invoke(self, auth, payload, instance_times):
+        # TODO: store input and invocation info to db
         st = 0
         after_time, before_time = 0, 0
         session = FuturesSession(max_workers=15)
@@ -69,4 +82,6 @@ class Invocator:
             self.config.set_mem_size(mem)
             self._append_threads(instance, instance_times)
         self._start_threads()
+
+
 
