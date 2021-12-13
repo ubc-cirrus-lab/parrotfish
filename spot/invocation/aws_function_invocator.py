@@ -82,6 +82,3 @@ class AWSFunctionInvocator:
             self.config.set_mem_size(mem)
             self._append_threads(instance, instance_times)
         self._start_threads()
-
-
-

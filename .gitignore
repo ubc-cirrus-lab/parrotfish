@@ -1,12 +1,16 @@
 # local config file
-GenConfigs.py
+spot/invocation/GenConfigs.py
 
 # logs and data archives
 *.log
 *.pkl
 *.out
 
-# compiled bytecode
 __pycache__/
+*.py[cod]
+*$py.class
 
-.vscode/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
