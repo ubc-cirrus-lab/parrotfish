@@ -10,9 +10,8 @@ def main():
     config_retriever = AWSConfigRetriever()
 
     
-    #config_retriever.get_aws_configs()
-    #config_retriever.save_to_db()
-    #log_retriever.get_aws_logs()
+    #config_retriever.get_latest_config()
+    #log_retriever.get_logs()
     #print(price_retriever.get_current_prices())
 
 if __name__ == '__main__':
