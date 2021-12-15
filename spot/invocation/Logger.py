@@ -8,7 +8,7 @@ import sys
 
 
 sys.path = ['./', '../'] + sys.path
-from GenConfigs import *
+from spot.invocation.GenConfigs import *
 
 
 def ScriptLogger(loggername, logfile):

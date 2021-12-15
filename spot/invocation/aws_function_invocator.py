@@ -5,12 +5,12 @@ import time
 import threading
 #import requests
 
-from JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
-from WorkloadChecker import CheckWorkloadValidity
-from EventGenerator import GenericEventGenerator
-from GenConfigs import *
-from iam_auth import IAMAuth
-from config_updater import ConfigUpdater
+from spot.invocation.JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
+from spot.invocation.WorkloadChecker import CheckWorkloadValidity
+from spot.invocation.EventGenerator import GenericEventGenerator
+from spot.invocation.GenConfigs import *
+from spot.invocation.iam_auth import IAMAuth
+from spot.invocation.config_updater import ConfigUpdater
 
 class InvalidWorkloadFileException(Exception):
     pass
@@ -18,7 +18,7 @@ class InvalidWorkloadFileException(Exception):
 class AWSFunctionInvocator:
     def __init__(self, workload, mem=128):
         self.workload = self._read_workload(workload)
-        self.config = ConfigUpdater()
+        self.config = ConfigUpdater(region = "us-east-2")#TODO:parametrize this with config file
         self.threads = []
         self.all_events, _ = GenericEventGenerator(self.workload)
 
@@ -37,10 +37,10 @@ class AWSFunctionInvocator:
         stage = self.workload['instances'][instance]['stage']
         resource = self.workload['instances'][instance]['resource']
         auth = IAMAuth(host, stage, resource)
-
+        
         try:
             f = open(payload_file, 'r')
-        except IOExpection:
+        except IOException:
             f = None
 
         if f:

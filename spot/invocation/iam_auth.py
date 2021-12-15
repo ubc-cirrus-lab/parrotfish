@@ -1,5 +1,5 @@
 # adapted from https://docs.aws.amazon.com/general/latest/gr/sigv4-signed-request-examples.html#sig-v4-examples-post
-import hmac, hashlib, datetime, os
+import hmac, hashlib, datetime, os, boto3
 
 class IAMAuth:
     def __init__(self, host, stage, resource, service='execute-api', content='application/x-amz-json-1.0') -> None:
