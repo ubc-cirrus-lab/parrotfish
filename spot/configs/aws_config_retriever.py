@@ -18,7 +18,7 @@ class AWSConfigRetriever:
         config = subprocess.check_output(["aws", "lambda", "get-function-configuration", "--function-name", function_name])
         config = json.loads(config)
         #Fix this
-        client.add_document_to_collection_if_not_exists(function_name, "config", config, "LastModified", config["LastModified"])
+        client.add_new_config_if_changed(function_name, "config", config)
         
         #client.disconnect()
     def print_configs(self, function_name = "AWSHelloWorld"):

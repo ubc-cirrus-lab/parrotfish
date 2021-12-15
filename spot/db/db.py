@@ -2,6 +2,7 @@ import os
 import subprocess
 import json 
 from pymongo import MongoClient
+import pymongo
 
 class DBClient:
     #TODO: Can change creating mongoclient on constructor instead of in every function
@@ -27,6 +28,7 @@ class DBClient:
         function_db = client[function_name]
         collection = function_db[collection_name]
         return collection.find()
+    
 
     def add_document_to_collection(self, function_name, collection_name, document):
         client = MongoClient(self.url, self.port)
@@ -41,4 +43,27 @@ class DBClient:
         collection = function_db[collection_name]
         if not collection.find_one({criteria : value}):
             collection.insert_one(document)
+
+    def add_new_config_if_changed(self, function_name, collection_name, document):
+        client = MongoClient(self.url, self.port)
+        function_db = client[function_name]
+        collection = function_db[collection_name]        
+
+        latest_config = collection.find_one( sort=[( '_id', pymongo.DESCENDING )])
+        del latest_config["_id"]
+        del latest_config["LastModified"]
+        del latest_config["RevisionId"]
+
+        test = document.copy()
+        del test["LastModified"]
+        del test["RevisionId"]
+
+        if not latest_config == test:
+            print("Config changed, inserting the new one")
+            collection.insert_one(document)
+        else:
+            print("No change in config")
+
+        
+
     
