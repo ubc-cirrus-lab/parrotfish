@@ -5,8 +5,7 @@ from spot.db.db import DBClient
 from pymongo import MongoClient
 
 class AWSLogRetriever:
-    def __init__(self):
-        super().__init__()
+   
     def get_logs(self, function_name = "AWSHelloWorld"):
         client = DBClient("localhost", 27017) 
         path = "/aws/lambda/" + function_name

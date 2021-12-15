@@ -17,6 +17,7 @@ class AWSConfigRetriever:
 
         config = subprocess.check_output(["aws", "lambda", "get-function-configuration", "--function-name", function_name])
         config = json.loads(config)
+        #Fix this
         client.add_document_to_collection_if_not_exists(function_name, "config", config, "LastModified", config["LastModified"])
         
         #client.disconnect()
@@ -25,8 +26,3 @@ class AWSConfigRetriever:
         iterator = client.get_all_collection_documents(function_name, "config")
         for config in iterator:
             print(config)
-        
-""" 
-a = AWSConfigRetriever()
-a.get_latest_config()
-a.print_configs() """
