@@ -27,6 +27,11 @@ class AWSLogRetriever:
             request_id_start_pos = log["message"].find(":")+2
             request_id_end_pos = log["message"].find("\t")
             requestId = log["message"][request_id_start_pos:request_id_end_pos]
+            message_sections = log["message"].split("\t")
+            for message_section in message_sections[1:-1]:
+                field_name = message_section.split(":")[0]
+                value = message_section.split(":")[1][1:].split(" ")[0]
+                log[field_name] = value
             log["RequestId"] = requestId
 
             #add log to db
@@ -39,4 +44,4 @@ class AWSLogRetriever:
         for log in iterator:
             print(log)
 a = AWSLogRetriever()
-a.print_logs()
+a.get_logs()
