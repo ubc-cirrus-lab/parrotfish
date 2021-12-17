@@ -45,6 +45,7 @@ class PriceRetriever():
             price = self._fetch_price(parameters)
         return price
 
+    #Change this to db interaction instead of file saving
     def _load_data(self) -> dict:
         try:
             with open(PRICES_PATH, 'r') as file:
