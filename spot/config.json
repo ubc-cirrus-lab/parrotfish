@@ -1,5 +1,7 @@
 {
     "function_name" : "AWSHelloWorld",
+    "DB_URL": "localhost",
+    "DB_PORT": 27017,
     "AWS_ACCESS_KEY_ID": "AKIARVAY5CQTOYGQQAQE",
     "AWS_SECRET_ACCESS_KEY": "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",
     "workload" : {
