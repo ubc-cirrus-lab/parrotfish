@@ -5,10 +5,15 @@ from spot.db.db import DBClient
 from pymongo import MongoClient
 
 class AWSLogRetriever:
+    def __init__(self, function_name, url, port):
+        self.url = url
+        self.port = port
+        self.DBClient = DBClient(self.url, self.port) 
+        
+        self.function_name = function_name
    
-    def get_logs(self, function_name = "AWSHelloWorld"):
-        client = DBClient("localhost", 27017) 
-        path = "/aws/lambda/" + function_name
+    def get_logs(self):
+        path = "/aws/lambda/" + self.function_name
 
         #get log streams
         streams = []
@@ -35,13 +40,10 @@ class AWSLogRetriever:
             log["RequestId"] = requestId
 
             #add log to db
-            client.add_document_to_collection_if_not_exists(function_name, "logs", log, "RequestId",requestId)
+            self.DBClient.add_document_to_collection_if_not_exists(self.function_name, "logs", log, "RequestId",requestId)
 
         #client.close()
-    def print_logs(self, function_name = "AWSHelloWorld"):
-        client = DBClient("localhost", 27017) 
-        iterator = client.get_all_collection_documents(function_name, "logs")
+    def print_logs(self):
+        iterator = self.DBClient.get_all_collection_documents(self.function_name, "logs")
         for log in iterator:
             print(log)
-a = AWSLogRetriever()
-a.get_logs()
