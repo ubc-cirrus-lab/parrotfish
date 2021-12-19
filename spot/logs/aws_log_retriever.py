@@ -40,7 +40,7 @@ class AWSLogRetriever:
             log["RequestId"] = requestId
 
             #add log to db
-            self.DBClient.add_document_to_collection_if_not_exists(self.function_name, "logs", log, "RequestId",requestId)
+            self.DBClient.add_document_to_collection_if_not_exists(self.function_name, "logs", log, {"RequestId" : requestId})
 
         #client.close()
     def print_logs(self):

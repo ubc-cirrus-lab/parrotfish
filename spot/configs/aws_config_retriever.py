@@ -19,6 +19,7 @@ class AWSConfigRetriever:
         date = datetime.datetime.strptime(config["LastModified"], '%Y-%m-%dT%H:%M:%S.%f+0000')
         timestamp = str((date - datetime.datetime(1970, 1, 1)).total_seconds()*1000)
         config["LastModifiedInMs"] = int(timestamp[:-2])
+        config["Architectures"] = config["Architectures"][0]
         self.DBClient.add_new_config_if_changed(self.function_name, "config", config)
         
         #client.disconnect()

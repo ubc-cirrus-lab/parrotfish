@@ -34,11 +34,14 @@ class DBClient:
         collection.insert_one(document)
         return
         
-    def add_document_to_collection_if_not_exists(self, function_name, collection_name, document, criteria, value):
+    def add_document_to_collection_if_not_exists(self, function_name, collection_name, document, criteria):
         function_db = self.client[function_name]
         collection = function_db[collection_name]
-        if not collection.find_one({criteria : value}):
+        if not collection.find_one(criteria):
+            print("Changed, adding the new document")
             collection.insert_one(document)
+        else:
+            print("No change since last document")
 
     def add_new_config_if_changed(self, function_name, collection_name, document):
         function_db = self.client[function_name]
@@ -49,6 +52,7 @@ class DBClient:
             del latest_config["_id"]
             del latest_config["LastModified"]
             del latest_config["RevisionId"]
+            del latest_config["LastModifiedInMs"]
 
         test = document.copy()
         del test["LastModified"]
