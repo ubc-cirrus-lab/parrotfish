@@ -10,8 +10,8 @@ class ConfigUpdater:
         self.instance = ins
         self.client = boto3.client('lambda', region_name=region)
 
-    def set_mem_size(self, mem):
-        self.mem_size = mem
+   # def set_mem_size(self, mem):
+   #     self.mem_size = mem
 
     def get_mem_size(self):
         return self.mem_size
