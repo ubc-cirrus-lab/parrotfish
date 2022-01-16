@@ -1,6 +1,7 @@
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
 from spot.invocation.aws_function_invocator import AWSFunctionInvocator
+from spot.invocation.aws_credentials_fetch import AWSCredentialsFetch
 from spot.configs.aws_config_retriever import AWSConfigRetriever
 from spot.mlModel.linear_regression import LinearRegressionModel
 import json
@@ -32,11 +33,12 @@ def main():
     config = None
     with open('spot/config.json') as f:
         config = json.load(f)
-        os.environ["AWS_ACCESS_KEY_ID"] = config["AWS_ACCESS_KEY_ID"]
-        os.environ["AWS_SECRET_ACCESS_KEY"] = config["AWS_SECRET_ACCESS_KEY"]
         with open('spot/workload.json', 'w') as json_file:
             json.dump(config["workload"], json_file)
 
+    aws_creds = AWSCredentialsFetch()
+    os.environ["AWS_ACCESS_KEY_ID"] = aws_creds.get_access_key_id()
+    os.environ["AWS_SECRET_ACCESS_KEY"] = aws_creds.get_secret_access_key()
     price_retriever = AWSPriceRetriever(config["DB_URL"], config["DB_PORT"])
     log_retriever = AWSLogRetriever(config["function_name"], config["DB_URL"], config["DB_PORT"])
     function_invocator = AWSFunctionInvocator("spot/workload.json", 256)
