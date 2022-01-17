@@ -1,8 +1,11 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import datetime
 
 from spot.db.db import DBClient
 from sklearn.linear_model import LinearRegression
+
 import copy
 
 class LinearRegressionModel:
@@ -21,14 +24,10 @@ class LinearRegressionModel:
             return -1
 
         mid = int((right+left)/2)
-        print(mid, len(list))
-        print(list)
-        print(field)
         if list[mid][field] <= target:
             if mid+1 == len(list):
                 return mid
             else:
-                print(list[mid+1])
                 if list[mid+1][field] > target:
                     return mid
                 else:
@@ -65,13 +64,13 @@ class LinearRegressionModel:
                 new_row["Cost"] = float(current_pricing["duration_price"]) * float(log["Billed Duration"]) * float(int(log["Memory Size"])/128)
 
                 self.df = self.df.append(new_row, ignore_index=True)
-
+            '''
             else:  
                 if current_config == -1:
                     print("No config record found for this log")
                 if current_pricing == -1:
                     print("No pricing record found for this log")
-                
+            '''
         return
         
     
@@ -85,7 +84,7 @@ class LinearRegressionModel:
 
         self.df.Region = pd.Categorical(self.df.Region)
         self.df['Region'] = self.df.Region.cat.codes
-        print(self.df)
+        #print(self.df)
 
         x = self.df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
         y = self.df["Cost"]
@@ -95,11 +94,29 @@ class LinearRegressionModel:
         #save the model as binary?
         print('intercept:', self.model.intercept_)
         print('slope:', self.model.coef_)
+
+        print("Saving the plot as graph")
+        self.show_graph(x["MemorySize"],y)
     
     
     def predict(self, new_x):
         print(self.model.predict(new_x).summary())
 
+    def show_graph(self, x, y):
+        plt.title("Memory Size vs Cost Graph")
+        plt.xlabel("Memory(mB)")
+        plt.ylabel("Cost per mB($)")
+
+        zipped_list = zip(y,x)
+        sorted_zipped_lists = sorted(zipped_list)
+        x = [element for _, element in sorted_zipped_lists]
+        y = [_ for _, element in sorted_zipped_lists]
+
+        plt.scatter(x, y)
+        plt.show()
+        today = datetime.datetime.now()
+        timestamp = today.strftime( '%Y-%m-%dT%H:%M:%S.%f+0000')
+        plt.savefig(self.function_name + "-" + timestamp + ".png")
 '''
 a = LinearRegressionModel("AWSHelloWorld", "localhost", 27017)
 a.fetch_data()
