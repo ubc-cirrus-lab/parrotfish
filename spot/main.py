@@ -46,7 +46,7 @@ def main():
     log_retriever = AWSLogRetriever(config["function_name"], config["DB_URL"], config["DB_PORT"])
     function_invocator = AWSFunctionInvocator("spot/workload.json", config["function_name"], config["mem_size"], config["region"])
     config_retriever = AWSConfigRetriever(config["function_name"], config["DB_URL"], config["DB_PORT"])
-    ml_model = LinearRegressionModel(config["function_name"], config["DB_URL"], config["DB_PORT"])#TODO: Parametrize ML model constructor with factory method
+    ml_model = LinearRegressionModel(config["function_name"], config["vendor"], config["DB_URL"], config["DB_PORT"])#TODO: Parametrize ML model constructor with factory method
 
     print("Invoking function: ", config["function_name"])
     #invoke the indicated function
