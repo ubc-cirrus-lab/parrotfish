@@ -16,10 +16,10 @@ class InvalidWorkloadFileException(Exception):
     pass
 
 class AWSFunctionInvocator:
-    def __init__(self, workload, mem=128):
+    def __init__(self, workload, function_name, mem_size, region):
         self.workload = self._read_workload(workload)
-        self.config = ConfigUpdater(region = "us-east-2")#TODO:parametrize this with config file
-        self.config.set_mem_size(mem)
+        self.config = ConfigUpdater(function_name, mem_size, region)
+        self.config.set_mem_size(mem_size)
         self.threads = []
         self.all_events, _ = GenericEventGenerator(self.workload)
 

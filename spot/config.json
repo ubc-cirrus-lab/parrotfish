@@ -2,8 +2,8 @@
     "function_name" : "AWSHelloWorld",
     "DB_URL": "localhost",
     "DB_PORT": 27017,
-    "AWS_ACCESS_KEY_ID": "AKIARVAY5CQTOYGQQAQE",
-    "AWS_SECRET_ACCESS_KEY": "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",
+    "region": "us-east-2",
+    "mem_size": 128,
     "workload" : {
         "test_name": "IntegrationTest1",
         "test_duration_in_seconds": 15,
