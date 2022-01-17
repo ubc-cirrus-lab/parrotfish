@@ -42,7 +42,7 @@ def main():
     os.environ["AWS_SECRET_ACCESS_KEY"] = aws_creds.get_secret_access_key()
 
     #Instantiate SPOT system components
-    price_retriever = AWSPriceRetriever(config["DB_URL"], config["DB_PORT"])
+    price_retriever = AWSPriceRetriever(config["DB_URL"], config["DB_PORT"], config["region"])
     log_retriever = AWSLogRetriever(config["function_name"], config["DB_URL"], config["DB_PORT"])
     function_invocator = AWSFunctionInvocator("spot/workload.json", config["function_name"], config["mem_size"], config["region"])
     config_retriever = AWSConfigRetriever(config["function_name"], config["DB_URL"], config["DB_PORT"])
