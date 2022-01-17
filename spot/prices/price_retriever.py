@@ -5,11 +5,9 @@ import json
 import datetime
 from spot.definitions import DATA_DIR
 
-PRICES_FILE = "prices.json"
 API_URL = "https://pricing.api.infracost.io/graphql"
 API_KEY_DIR = "spot/prices/credentials.yml"
 CACHE_INVALID_DAYS = 1.0
-PRICES_PATH = os.path.join(DATA_DIR, PRICES_FILE)
 
 class PriceNotFoundException(Exception):
     pass

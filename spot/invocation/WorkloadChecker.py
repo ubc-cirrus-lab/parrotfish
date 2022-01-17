@@ -24,11 +24,11 @@ def CheckWorkloadValidity(workload):
         #logger_wlch.info('Workload not valid => Terminating')
         return False
     # 2 - Check for validity of general field
-    print(workload)
+    #print(workload)
     fields_to_check = [['test_name', str], ['blocking_cli', bool]]
     for field in fields_to_check:
         try:
-            print([field, workload[field[0]]])
+            #print([field, workload[field[0]]])
             if type(workload[field[0]]) is not field[1]:
                 test_name('Input of the ' +
                           field[0] + ' field should be a ' + str(field[1]))
