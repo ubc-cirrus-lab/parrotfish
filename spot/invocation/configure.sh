@@ -17,3 +17,7 @@ echo 'AWS_PATH = "'$(which aws)'"' >> GenConfigs.py
 # Make local directories
 # mkdir logs
 # mkdir data_archive
+
+pip install boto3
+pip install --ignore-installed six
+

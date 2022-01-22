@@ -5,20 +5,21 @@ import time
 import threading
 #import requests
 
-from JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
-from WorkloadChecker import CheckWorkloadValidity
-from EventGenerator import GenericEventGenerator
-from GenConfigs import *
-from iam_auth import IAMAuth
-from config_updater import ConfigUpdater
+from spot.invocation.JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
+from spot.invocation.WorkloadChecker import CheckWorkloadValidity
+from spot.invocation.EventGenerator import GenericEventGenerator
+from spot.invocation.GenConfigs import *
+from spot.invocation.iam_auth import IAMAuth
+from spot.invocation.config_updater import ConfigUpdater
 
 class InvalidWorkloadFileException(Exception):
     pass
 
 class AWSFunctionInvocator:
-    def __init__(self, workload, mem=128):
+    def __init__(self, workload, function_name, mem_size, region):
         self.workload = self._read_workload(workload)
-        self.config = ConfigUpdater()
+        self.config = ConfigUpdater(function_name, mem_size, region)
+        self.config.set_mem_size(mem_size)
         self.threads = []
         self.all_events, _ = GenericEventGenerator(self.workload)
 
@@ -37,10 +38,10 @@ class AWSFunctionInvocator:
         stage = self.workload['instances'][instance]['stage']
         resource = self.workload['instances'][instance]['resource']
         auth = IAMAuth(host, stage, resource)
-
+        
         try:
             f = open(payload_file, 'r')
-        except IOExpection:
+        except IOException:
             f = None
 
         if f:
@@ -76,9 +77,10 @@ class AWSFunctionInvocator:
         return True
 
 
-    def invoke_all(self, mem=128):
+    def invoke_all(self, mem=-1):
         for (instance, instance_times) in self.all_events.items():
             self.config.set_instance(self.workload['instances'][instance]['application'])
-            self.config.set_mem_size(mem)
+            if mem != -1:
+                self.config.set_mem_size(mem)
             self._append_threads(instance, instance_times)
         self._start_threads()
