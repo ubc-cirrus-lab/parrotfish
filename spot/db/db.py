@@ -38,10 +38,7 @@ class DBClient:
         function_db = self.client[function_name]
         collection = function_db[collection_name]
         if not collection.find_one(criteria):
-            print("Changed, adding the new document")
             collection.insert_one(document)
-        else:
-            print("No change since last document")
 
     def add_new_config_if_changed(self, function_name, collection_name, document):
         function_db = self.client[function_name]
@@ -59,10 +56,7 @@ class DBClient:
         del test["RevisionId"]
 
         if not latest_config == test:
-            print("Config changed, inserting the new one")
             collection.insert_one(document)
-        else:
-            print("No change in config")
 
     def execute_query(self, function_name, collection_name, select_fields, display_fields): 
         function_db = self.client[function_name]

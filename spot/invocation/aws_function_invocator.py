@@ -27,9 +27,10 @@ class SetMemoryFailureException(Exception):
     pass
 
 class AWSFunctionInvocator:
-    def __init__(self, workload, mem=128):
+    def __init__(self, workload, function_name, mem_size, region):
         self.workload = self._read_workload(workload)
-        self.config = ConfigUpdater(region = "us-east-2")#TODO:parametrize this with config file
+        self.config = ConfigUpdater(function_name, mem_size, region)
+        self.config.set_mem_size(mem_size)
         self.threads = []
         self.all_events, _ = GenericEventGenerator(self.workload)
 
@@ -118,9 +119,10 @@ class AWSFunctionInvocator:
         return True
 
 
-    def invoke_all(self, mem=128):
+    def invoke_all(self, mem=-1):
         for (instance, instance_times) in self.all_events.items():
             self.config.set_instance(self.workload['instances'][instance]['application'])
-            self.config.set_mem_size(mem)
+            if mem != -1:
+                self.config.set_mem_size(mem)
             self._append_threads(instance, instance_times)
         self._start_threads()

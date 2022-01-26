@@ -6,7 +6,7 @@ class InstanceNotSetException(Exception):
     pass
 
 class ConfigUpdater:
-    def __init__(self, ins=None, region='us-east-2', mem=128):
+    def __init__(self, ins, mem, region):
         self.mem_size = mem
         self.instance = ins
         self.client = boto3.client('lambda', region_name=region)
