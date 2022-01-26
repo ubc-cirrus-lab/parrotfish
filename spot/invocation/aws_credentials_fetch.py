@@ -17,10 +17,11 @@ class AWSCredentialsFetch:
         fields = {}
         try:
             with open(os.path.join(os.path.expanduser("~"), API_KEY_DIR), 'r') as file:
-                for line in file.readlines():
-                    match = re.search(r"(.*)\s*=\s*(.*)", line)
-                    if match:
-                        fields[match.group(1).strip()] = match.group(2).strip()
+                user = file.readline()
+                access_key = file.readline().split('=')
+                secret_key = file.readline().split('=')
+                fields[access_key[0].strip()] = access_key[1].strip()
+                fields[secret_key[0].strip()] = secret_key[1].strip()
         except FileNotFoundError:
             print("Could not find the aws config using the '~/{API_KEY_DIR}' directory")
         return fields
