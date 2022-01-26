@@ -5,6 +5,7 @@
     "DB_PORT": 27017,
     "region": "us-east-2",
     "mem_size": 1536,
+    "workload_path": "spot/benchmarks/HelloWorld/workload.json",
     "workload" : {
         "test_name": "IntegrationTest1",
         "test_duration_in_seconds": 15,
@@ -16,7 +17,7 @@
                 "distribution": "Poisson",
                 "rate": 5,
                 "activity_window": [5, 10],
-                "payload": "spot/invocation/poisson.json",
+                "payload": "spot/benchmarks/HelloWorld/payload.json",
                 "host": "x8siu0es68.execute-api.us-east-2.amazonaws.com",
                 "stage":"default",
                 "resource":"AWSHelloWorld"
