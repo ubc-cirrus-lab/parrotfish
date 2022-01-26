@@ -1,6 +1,3 @@
-# local config file
-spot/invocation/GenConfigs.py
-
 # logs and data archives
 *.log
 *.pkl
@@ -15,5 +12,4 @@ eggs/
 *.egg-info/
 *.egg
 TODO.md
-data/price.json
-workload.json
+spot/benchmarks/*/workload.json

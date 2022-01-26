@@ -106,8 +106,8 @@ class LinearRegressionModel:
         print('intercept:', self.model.intercept_)
         print('slope:', self.model.coef_)
 
-        print("Saving the plot as graph")
-        self.show_graph(x["MemorySize"],y)
+        #print("Saving the plot as graph")
+        #self.show_graph(x["MemorySize"],y)
     
     '''
     Predicts the price outcome of given values in our ML model

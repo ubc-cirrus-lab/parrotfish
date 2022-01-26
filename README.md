@@ -13,5 +13,5 @@ Created by Capstone Group 59
 - Run spot/main.py
 
   ```bash
-  python spot/main.py
+  python3 spot/main.py
   ```
