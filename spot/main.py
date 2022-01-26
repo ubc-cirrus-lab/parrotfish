@@ -24,7 +24,8 @@ def invoke_and_collect_data(config_retriever, log_retriever, price_retriever, fu
     log_retriever.get_logs()
 
     #train ml model
-    ml_model= LinearRegressionModel("AWSHelloWorld", "localhost", 27017)
+    # ml_model= LinearRegressionModel("AWSHelloWorld", "localhost", 27017)
+    ml_model= LinearRegressionModel("formplug-dev-receive", "localhost", 27017)
     ml_model.fetch_data()
     ml_model.train_model()
 

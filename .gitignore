@@ -15,3 +15,5 @@ eggs/
 *.egg-info/
 *.egg
 TODO.md
+data/price.json
+workload.json

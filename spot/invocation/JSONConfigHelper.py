@@ -9,8 +9,6 @@ import sys
 
 # Local imports
 sys.path = ['./', '../'] + sys.path
-from spot.invocation.GenConfigs import *
-
 
 def CheckJSONConfig(json_file):
     """
@@ -35,11 +33,3 @@ def ReadJSONConfig(json_file):
         print("The JSON config file cannot be read")
 
     return workload
-
-
-def WriteJSONConfig(workload, json_file):
-    """
-    Writes the workload description to a json file.
-    """
-    with open(SPOT_ROOT + '/' + json_file, 'w') as outfile:
-        json.dump(workload, outfile)

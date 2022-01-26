@@ -28,7 +28,7 @@ class AWSLogRetriever:
             log = json.loads(log)
 
             #parse and reformat log
-            log = log["events"][2]
+            log = log["events"][3]
             request_id_start_pos = log["message"].find(":")+2
             request_id_end_pos = log["message"].find("\t")
             requestId = log["message"][request_id_start_pos:request_id_end_pos]

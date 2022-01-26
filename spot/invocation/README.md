@@ -38,7 +38,31 @@ Below is an example of workload input to the invocator
 
 `host`, `stage` and `resources` are the three key components to make the HTTP call. All three are from the API endpoint of a function, which has the format of `https://<host>/<stage>/<resource>`. For instance1 in the example, the API endpoint is `https://ng11cbhnw7.execute-api.us-west-1.amazonaws.com/default/chameleon` 
 
+### Intervals
 To use a customized invocation interval, define `interarrival_list` instead of `distribution` as in `instance2`. `interarrival_list` has a higher priority than distribution so if both are specified the customized interarrival time will be used for invocation.
 
-`payload` is the path to a JSON file with cloud function inputs. Can skip if the function does not require any input.
+### Payload file
+`payload` is the path to a JSON file with cloud function inputs. The file should provide an array of invocation details: function input in `data` and configuration parameters in`config` as the example below. The invocator will iterate through the array elements for function call input and set configurations accordingly. If the target function does not require any input the `data` field can be left empty but it is required to have this file with configuration details.
+
+Example payload file:
+``` json
+[
+  {
+    "data": {
+      "key": "val"
+    },
+    "config": {
+      "memory": 256
+    }
+  },
+  {
+    "data": {
+      "key": "val"
+    },
+    "config": {
+      "memory": 128
+    }
+  },
+]
+```
 
