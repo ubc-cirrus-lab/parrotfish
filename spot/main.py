@@ -1,7 +1,7 @@
-from spot.benchmarks.HelloWorld.main import executeHelloWorld
+from spot.benchmarks.AWSHelloWorld.main import executeAWSHelloWorld
 
 def main():
-    executeHelloWorld()
+    executeAWSHelloWorld()
     
 if __name__ == '__main__':
     main()

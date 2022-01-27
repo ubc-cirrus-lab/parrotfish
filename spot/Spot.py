@@ -12,6 +12,8 @@ class Spot:
     def __init__(self, config_file_path = "spot/config.json"):
         #Load configuration values from config.json
         self.config = None
+        self.config_file_path = config_file_path
+        
         with open(config_file_path) as f:
             self.config = json.load(f)
             with open(self.config["workload_path"], 'w') as json_file:
@@ -24,25 +26,28 @@ class Spot:
 
         #Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.config["DB_URL"], self.config["DB_PORT"], self.config["region"])
-        self.log_retriever = AWSLogRetriever(self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"])
+        self.log_retriever = AWSLogRetriever(self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"])
         self.function_invocator = AWSFunctionInvocator(self.config["workload_path"], self.config["function_name"], self.config["mem_size"], self.config["region"])
         self.config_retriever = AWSConfigRetriever(self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"])
-        self.ml_model = LinearRegressionModel(self.config["function_name"], self.config["vendor"], self.config["DB_URL"], self.config["DB_PORT"])#TODO: Parametrize ML model constructor with factory method
+        self.ml_model = LinearRegressionModel(self.config["function_name"], self.config["vendor"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"])#TODO: Parametrize ML model constructor with factory method
 
+    def __del__(self):
+        with open(self.config_file_path, 'w') as f:
+            json.dump(self.config, f)
 
     def execute(self):
-        print("Invoking function: ", self.config["function_name"])
+        print("Invoking function:", self.config["function_name"])
         #invoke the indicated function
         self.invoke_function()
         
-        print("Sleeping for 1 min to allow logs to propogate")
-        #wait 1 min to allow logs to populate in aws
-        time.sleep(60)
+        print("Sleeping to allow logs to propogate")
+        #wait to allow logs to populate in aws
+        time.sleep(15)
 
         print("Retrieving new logs and save in db")
         #collect log data
         self.collect_data()
-
+        
         print("Training ML model")
         #train ML model accordingly
         self.train_model()
@@ -57,9 +62,11 @@ class Spot:
 
     def collect_data(self):
         #retrieve logs
-        self.log_retriever.get_logs()
+        self.config["last_log_timestamp"] = self.log_retriever.get_logs()
 
     def train_model(self):
-        #train ml model
-        self.ml_model.fetch_data()
-        self.ml_model.train_model()
+        # only train the model, if new logs are introduced
+        if self.ml_model.fetch_data():
+            new_configs = self.ml_model.train_model()   
+            for new_config in new_configs:
+                self.config[new_config] = new_configs[new_config]
