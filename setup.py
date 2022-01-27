@@ -12,6 +12,9 @@ setup(name='spot',
       },
       install_requires=[],
       extras_require={},
+      entry_points={
+          'console_scripts': ['spot=spot.main:main']
+          },
       description='Serverless Price Optimization Tool',
       version='0.0.1'
       )
