@@ -14,7 +14,7 @@
       "instance1": {
         "application": "formplug-dev-receive",
         "distribution": "Poisson",
-        "rate": 5,
+        "rate": 1,
         "activity_window": [5, 10],
         "payload": "spot/benchmarks/formplug/payload.json",
         "host": "psihxi4hxi.execute-api.us-east-2.amazonaws.com",

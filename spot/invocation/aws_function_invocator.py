@@ -100,7 +100,7 @@ class AWSFunctionInvocator:
             payload = json.loads(payload)
         for t in instance_times:
             if payload:
-                input_data = self._handle_payload(payload, cnt)
+                input_data = payload[cnt%len(payload)]
                 cnt+=1
             else:
                 input_data = None

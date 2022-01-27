@@ -1,40 +1,18 @@
 [
-    {
-      "data": {
-        "_to": "skylarliang233@gmail.com",
-        "message": "auto invoke 0"
-      },
-      "config": {
-        "memory": 256
-      }
-    },
-  
-    {
-      "data": {
-        "_to": "skylarliang233@gmail.com",
-        "message": "auto invoke 1"
-      },
-      "config": {
-        "memory": 256
-      }
-    },
-    {
-      "data": {
-        "_to": "skylarliang233@gmail.com",
-        "message": "auto invoke 2"
-      },
-      "config": {
-        "memory": 256
-      }
-    },
-    {
-      "data": {
-        "_to": "skylarliang233@gmail.com",
-        "message": "auto invoke 3"
-      },
-      "config": {
-        "memory": 256
-      }
-    }
-  ]
-  
+  {
+    "_to": "skylarliang233@gmail.com",
+    "message": "auto invoke 0"
+  },
+  {
+    "_to": "skylarliang233@gmail.com",
+    "message": "auto invoke 1"
+  },
+  {
+    "_to": "skylarliang233@gmail.com",
+    "message": "auto invoke 2"
+  },
+  {
+    "_to": "skylarliang233@gmail.com",
+    "message": "auto invoke 3"
+  }
+]

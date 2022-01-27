@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
+import pickle
+import sys
 
 from spot.db.db import DBClient
 from sklearn.linear_model import LinearRegression
@@ -9,13 +11,20 @@ from sklearn.linear_model import LinearRegression
 import copy
 
 class LinearRegressionModel:
-    def __init__(self, function_name, vendor, url, port):
+    def __init__(self, function_name, vendor, url, port, last_log_timestamp):
         self.url = url
         self.port = port
         self.DBClient = DBClient(self.url, self.port) 
+        self.last_log_timestamp = last_log_timestamp
         
         self.function_name = function_name
-        self.model = None #try to load the latest ML model here if not exists, asssign None
+        
+        self.ml_model_file_path = "spot/benchmarks/" + self.function_name + "/linear_regression_model.pkl"
+        try:
+            self.model = pickle.load(open(self.ml_model_file_path, 'rb'))
+        except:
+            self.model = None
+
         self.df = pd.DataFrame(columns = ["Runtime", "Timeout", "MemorySize", "Architectures", "Region", "Cost"])
         self.vendor = vendor
 
@@ -59,10 +68,12 @@ class LinearRegressionModel:
             pricings.append(pricing)
 
         # get all logs for this function
-        log_query_result = self.DBClient.execute_query(self.function_name, "logs", {}, {"Billed Duration" : 1,"Memory Size":1, "timestamp": 1, "_id":0})
+        log_query_result = self.DBClient.execute_query(self.function_name, "logs", {"timestamp": {"$gt": self.last_log_timestamp}}, {"Billed Duration" : 1,"Memory Size":1, "timestamp": 1, "_id":0})
         
         #find the config and pricing to associate with for every log of this function
+        new_log_count = 0
         for log in log_query_result:
+            new_log_count += 1
             current_config = self.find_associated_index(configs, "LastModifiedInMs", 0, len(configs)-1, log["timestamp"])
             current_pricing = self.find_associated_index(pricings, "timestamp", 0, len(pricings)-1, log["timestamp"])
 
@@ -78,7 +89,9 @@ class LinearRegressionModel:
                 new_row["Cost"] = float(current_pricing["duration_price"]) * float(log["Billed Duration"]) * float(int(log["Memory Size"])/128)
 
                 self.df = self.df.append(new_row, ignore_index=True)
-        return
+
+        # Return true, if any new logs are introduced
+        return True if new_log_count > 0 else False
         
     
     def train_model(self):
@@ -99,21 +112,49 @@ class LinearRegressionModel:
         #Create and train the model
         self.model = LinearRegression()
         self.model.fit(x, y)
-
-        #TODO: save model to db, save the model as binary?
+        try:
+            pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
+        except:
+            f = open(self.ml_model_file_path, "w")
+            f.close()
+            pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
 
         #Print results and create scatter plot
-        print('intercept:', self.model.intercept_)
-        print('slope:', self.model.coef_)
-
-        #print("Saving the plot as graph")
-        #self.show_graph(x["MemorySize"],y)
+        #print('intercept:', self.model.intercept_)
+        #print('slope:', self.model.coef_)
+        new_configs = {}
+        new_configs["mem_size"] = self.get_best_memory_config(self.get_memory_predictions())
+        return new_configs
+            
+    def get_memory_predictions(self):
+        arr = {}
+        mem_size = 128
+        data = self.df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        data = data.iloc[0]
+       
+        while mem_size < 10240:
+            data["MemorySize"] = mem_size
+            new_x = data.to_numpy()
+            new_x = new_x.reshape(1,-1)
+            arr[mem_size] = self.predict(new_x)[0]
+            mem_size *= 2
+        return arr
+    
+    def get_best_memory_config(self, options):
+        min_cost = sys.float_info.max
+        best_mem_option = 128
+        for mem, price in options.items():
+            if(min_cost < price):
+                best_mem_option = mem
+                min_cost = price
+        
+        return best_mem_option
     
     '''
     Predicts the price outcome of given values in our ML model
     '''
     def predict(self, new_x):
-        print(self.model.predict(new_x).summary())
+        return self.model.predict(new_x)
 
     '''
     Creates and saves scatter plot of Memory Size vs Cost per mB data for the current serverless function
