@@ -6,7 +6,7 @@ import pickle
 import sys
 
 from spot.db.db import DBClient
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import SGDRegressor
 
 import copy
 
@@ -23,7 +23,7 @@ class LinearRegressionModel:
         try:
             self.model = pickle.load(open(self.ml_model_file_path, 'rb'))
         except:
-            self.model = None
+            self.model = SGDRegressor(warm_start=True) #TODO: Check the accuracy of warm_start
 
         self.df = pd.DataFrame(columns = ["Runtime", "Timeout", "MemorySize", "Architectures", "Region", "Cost"])
         self.vendor = vendor
@@ -68,7 +68,7 @@ class LinearRegressionModel:
             pricings.append(pricing)
 
         # get all logs for this function
-        log_query_result = self.DBClient.execute_query(self.function_name, "logs", {"timestamp": {"$gt": self.last_log_timestamp}}, {"Billed Duration" : 1,"Memory Size":1, "timestamp": 1, "_id":0})
+        log_query_result = self.DBClient.execute_query(self.function_name, "logs", {"timestamp": {"$gt": 0}}, {"Billed Duration" : 1,"Memory Size":1, "timestamp": 1, "_id":0})
         
         #find the config and pricing to associate with for every log of this function
         new_log_count = 0
@@ -110,8 +110,7 @@ class LinearRegressionModel:
         y = self.df["Cost"]
 
         #Create and train the model
-        self.model = LinearRegression()
-        self.model.fit(x, y)
+        self.model.fit(x.values, y.values)
         try:
             pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
         except:
@@ -120,8 +119,8 @@ class LinearRegressionModel:
             pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
 
         #Print results and create scatter plot
-        #print('intercept:', self.model.intercept_)
-        #print('slope:', self.model.coef_)
+        print('intercept:', self.model.intercept_)
+        print('slope:', self.model.coef_)
         new_configs = {}
         new_configs["mem_size"] = self.get_best_memory_config(self.get_memory_predictions())
         return new_configs
