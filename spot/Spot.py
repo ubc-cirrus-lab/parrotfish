@@ -13,6 +13,7 @@ class Spot:
         #Load configuration values from config.json
         self.config = None
         self.config_file_path = config_file_path
+        
         with open(config_file_path) as f:
             self.config = json.load(f)
             with open(self.config["workload_path"], 'w') as json_file:
@@ -37,15 +38,15 @@ class Spot:
     def execute(self):
         print("Invoking function:", self.config["function_name"])
         #invoke the indicated function
-        #self.invoke_function()
+        self.invoke_function()
         
         print("Sleeping to allow logs to propogate")
         #wait to allow logs to populate in aws
-        #time.sleep(15)
+        time.sleep(15)
 
         print("Retrieving new logs and save in db")
         #collect log data
-        #self.collect_data()
+        self.collect_data()
         
         print("Training ML model")
         #train ML model accordingly
