@@ -6,7 +6,7 @@ import pickle
 import sys
 
 from spot.db.db import DBClient
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import SGDRegressor
 
 import copy
 
@@ -23,7 +23,7 @@ class LinearRegressionModel:
         try:
             self.model = pickle.load(open(self.ml_model_file_path, 'rb'))
         except:
-            self.model = None
+            self.model = SGDRegressor(warm_start=True) #TODO: Check the accuracy of warm_start
 
         self.df = pd.DataFrame(columns = ["Runtime", "Timeout", "MemorySize", "Architectures", "Region", "Cost"])
         self.vendor = vendor
@@ -68,7 +68,7 @@ class LinearRegressionModel:
             pricings.append(pricing)
 
         # get all logs for this function
-        log_query_result = self.DBClient.execute_query(self.function_name, "logs", {"timestamp": {"$gt": self.last_log_timestamp}}, {"Billed Duration" : 1,"Memory Size":1, "timestamp": 1, "_id":0})
+        log_query_result = self.DBClient.execute_query(self.function_name, "logs", {"timestamp": {"$gt": 0}}, {"Billed Duration" : 1,"Memory Size":1, "timestamp": 1, "_id":0})
         
         #find the config and pricing to associate with for every log of this function
         new_log_count = 0
@@ -110,8 +110,7 @@ class LinearRegressionModel:
         y = self.df["Cost"]
 
         #Create and train the model
-        self.model = LinearRegression()
-        self.model.fit(x, y)
+        self.model.fit(x.values, y.values)
         try:
             pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
         except:
@@ -120,8 +119,8 @@ class LinearRegressionModel:
             pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
 
         #Print results and create scatter plot
-        #print('intercept:', self.model.intercept_)
-        #print('slope:', self.model.coef_)
+        print('intercept:', self.model.intercept_)
+        print('slope:', self.model.coef_)
         new_configs = {}
         new_configs["mem_size"] = self.get_best_memory_config(self.get_memory_predictions())
         return new_configs
@@ -157,20 +156,34 @@ class LinearRegressionModel:
         return self.model.predict(new_x)
 
     '''
-    Creates and saves scatter plot of Memory Size vs Cost per mB data for the current serverless function
+    Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
     '''
-    def show_graph(self, x, y):
-        plt.title("Memory Size vs Cost Graph")
-        plt.xlabel("Memory(mB)")
-        plt.ylabel("Cost per mB($)")
+    def show_graph(self):
+        #Graph Setup
+        plt.title("MemorySize vs Cost Graph for " + self.function_name)
+        plt.xlabel("Memory(mB)", fontsize = 7)
+        plt.ylabel("Cost($)", fontsize = 7)
+        axes = plt.gca()
+        plt.setp(axes.get_xticklabels(), rotation=90, fontsize = 6)
+        plt.setp(axes.get_yticklabels(), fontsize = 6)
 
-        zipped_list = zip(y,x)
-        sorted_zipped_lists = sorted(zipped_list)
-        x = [element for _, element in sorted_zipped_lists]
-        y = [_ for _, element in sorted_zipped_lists]
+        # Format data in ascending memory size order
+        zipped_list = zip(self.df["MemorySize"].values, self.df["Cost"].values)
+        sorted_zipped_lists = sorted(zipped_list, key = lambda x: int(x[0]))
+        x = [_ for _, element in sorted_zipped_lists]
+        y = [element for _, element in sorted_zipped_lists]
 
+        # Plot datapoints
         plt.scatter(x, y)
+
+        # Add linear regression line
+        x_vals = np.array(axes.get_xlim())
+        y_vals = self.model.intercept_ + self.model.coef_[2] * x_vals
+        plt.plot(x_vals, y_vals, 'r-', label= "y = " + str("{:.2E}".format(self.model.coef_[2])) +"x" + " + " + str("{:.2E}".format(self.model.intercept_)))
+        plt.legend()
+        plt.show()
+
+        # Save the plot with current timestamp
         today = datetime.datetime.now()
         timestamp = today.strftime( '%Y-%m-%dT%H:%M:%S.%f+0000')
-        plt.savefig(self.function_name + "-" + timestamp + ".png")
-
+        plt.savefig("spot/benchmarks/"+self.function_name+"/"+self.function_name + "-" + timestamp + ".png")

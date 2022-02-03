@@ -3,15 +3,30 @@ Created by Capstone Group 59
 
 ## Setup
 
-- Clone the repository
-- Change your current directory to the root directory of the repository
-- Install the repository as a package
+### Requirements
+- Python 3
+- AWS CLI (configured with `aws configure`)
+- MongoDB (by default, accessible on `localhost:27017`)
 
-  ```bash
-  pip install -e .
-  ```
-- Run spot/main.py
+### Steps
+1. Create and activate a virtualenv.
+```bash
+python3 -m venv spot-env
+source spot-env/bin/activate
+```
 
-  ```bash
-  python3 spot/main.py
-  ```
+2. Install required packages.
+```
+pip install -r requirements.txt
+```
+
+3. Install SPOT as an editable package.
+```bash
+pip install -e .
+```
+
+4. Run it!
+```bash
+spot
+```
+
