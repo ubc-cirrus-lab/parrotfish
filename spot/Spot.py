@@ -4,6 +4,7 @@ from spot.invocation.aws_function_invocator import AWSFunctionInvocator
 from spot.invocation.aws_credentials_fetch import AWSCredentialsFetch
 from spot.configs.aws_config_retriever import AWSConfigRetriever
 from spot.mlModel.linear_regression import LinearRegressionModel
+from spot.invocation.config_updater import ConfigUpdater
 import json
 import time as time
 import os
@@ -32,8 +33,14 @@ class Spot:
         self.ml_model = LinearRegressionModel(self.config["function_name"], self.config["vendor"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"])#TODO: Parametrize ML model constructor with factory method
 
     def __del__(self):
+
+        #Save the updated configurations
         with open(self.config_file_path, 'w') as f:
             json.dump(self.config, f)
+        
+        # Update the memory config on AWS with the newly suggested memory size
+        config_updater = ConfigUpdater(self.config["function_name"], self.config["mem_size"], self.config["region"])
+        config_updater.set_mem_size(self.config["mem_size"])
 
     def execute(self):
         print("Invoking function:", self.config["function_name"])
