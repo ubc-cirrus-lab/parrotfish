@@ -85,4 +85,3 @@ class AWSFunctionInvocator:
             thread.join()
         for future in self.futures:
             res = future.result()
-            print(res)
