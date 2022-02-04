@@ -11,7 +11,7 @@ from sklearn.linear_model import SGDRegressor
 import copy
 
 class LinearRegressionModel:
-    def __init__(self, function_name, vendor, url, port, last_log_timestamp):
+    def __init__(self, function_name, vendor, url, port, last_log_timestamp, benchmark_dir):
         self.url = url
         self.port = port
         self.DBClient = DBClient(self.url, self.port) 
@@ -19,7 +19,7 @@ class LinearRegressionModel:
         
         self.function_name = function_name
         
-        self.ml_model_file_path = "spot/benchmarks/" + self.function_name + "/linear_regression_model.pkl"
+        self.ml_model_file_path = "spot/benchmarks/" + (benchmark_dir or self.function_name) + "/linear_regression_model.pkl"
         try:
             self.model = pickle.load(open(self.ml_model_file_path, 'rb'))
         except:

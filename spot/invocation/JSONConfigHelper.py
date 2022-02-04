@@ -9,8 +9,6 @@ import sys
 
 # Local imports
 sys.path = ['./', '../'] + sys.path
-from spot.invocation.GenConfigs import *
-
 
 def CheckJSONConfig(json_file):
     """
