@@ -1,5 +1,4 @@
 {
-    "key1": "poisson",
-    "num_of_rows":10,
-    "num_of_cols":10
+    "url": "https://google.com/",
+    "screen": "800,600"
 }
