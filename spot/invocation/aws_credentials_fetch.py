@@ -3,20 +3,21 @@ import re
 
 API_KEY_DIR = ".aws/credentials"
 
+
 class AWSCredentialsFetch:
     def __init__(self):
         self._fields = self._read_credentials_file()
 
     def get_access_key_id(self) -> str:
-        return self._fields['aws_access_key_id']
+        return self._fields["aws_access_key_id"]
 
     def get_secret_access_key(self) -> str:
-        return self._fields['aws_secret_access_key']
+        return self._fields["aws_secret_access_key"]
 
     def _read_credentials_file(self) -> dict:
         fields = {}
         try:
-            with open(os.path.join(os.path.expanduser("~"), API_KEY_DIR), 'r') as file:
+            with open(os.path.join(os.path.expanduser("~"), API_KEY_DIR), "r") as file:
                 for line in file.readlines():
                     match = re.search(r"(.*)\s*=\s*(.*)", line)
                     if match:

@@ -9,12 +9,14 @@ API_URL = "https://pricing.api.infracost.io/graphql"
 API_KEY_DIR = "spot/prices/credentials.yml"
 CACHE_INVALID_DAYS = 1.0
 
+
 class PriceNotFoundException(Exception):
     pass
 
-class PriceRetriever():
+
+class PriceRetriever:
     def __init__(self):
-        self._key = ''
+        self._key = ""
         self._key = self._read_api_key()
 
     def _current_price(self, parameters):
@@ -42,11 +44,13 @@ class PriceRetriever():
             USD
           }}
          }}
-       }}""".format(**parameters)
+       }}""".format(
+            **parameters
+        )
         url = API_URL
         r = requests.post(url, json={"query": query}, headers={"X-Api-Key": self._key})
         if r.status_code != 200:
-            print(f'POST Request failed with status code {r.status_code}')
+            print(f"POST Request failed with status code {r.status_code}")
             raise PriceNotFoundException
         result_json = r.json()
         try:
@@ -57,12 +61,16 @@ class PriceRetriever():
 
     def _read_api_key(self) -> str:
         try:
-            with open(API_KEY_DIR, 'r') as file:
+            with open(API_KEY_DIR, "r") as file:
                 for line in file.readlines():
-                    match = re.search(r'api_key: (.*)', line)
+                    match = re.search(r"api_key: (.*)", line)
                     if match:
                         return match.group(1)
-                print("Could not find the API key in the '~/.config/infracost/credentials.yml' file")
+                print(
+                    "Could not find the API key in the '~/.config/infracost/credentials.yml' file"
+                )
         except FileNotFoundError:
-            print("Could not find Infracost Cloud Pricing API key. Run 'infracost register' to generate a key")
+            print(
+                "Could not find Infracost Cloud Pricing API key. Run 'infracost register' to generate a key"
+            )
         return ""
