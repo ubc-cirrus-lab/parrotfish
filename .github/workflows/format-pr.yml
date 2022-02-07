@@ -23,5 +23,6 @@ jobs:
       run: |
         black .
     - name: Commit formatted code
+      run: |
         git commit -a -m "Format with Black"
         git push
