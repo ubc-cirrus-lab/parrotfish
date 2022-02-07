@@ -11,6 +11,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Configure git
+      run: |
+        git config user.name "Github Actions Bot"
+        git config user.email "<>"
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -24,5 +28,9 @@ jobs:
         black .
     - name: Commit formatted code
       run: |
-        git commit -a -m "Format with Black"
-        git push
+        git update-index --refresh
+        git add .
+        if ! git diff-index --quiet HEAD -- ; then
+          git commit -m "Format with Black"
+          git push
+        fi
