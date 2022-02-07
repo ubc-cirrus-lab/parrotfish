@@ -1,3 +1,4 @@
+import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -30,6 +31,11 @@ class Plot:
                 epochs = list(1, len(config_suggestions))
                 # Plot datapoints
                 plt.scatter(epochs, config_suggestions)
+
+                 # Save the plot with current timestamp
+                today = datetime.datetime.now()
+                timestamp = today.strftime( '%Y-%m-%dT%H:%M:%S.%f+0000')
+                plt.savefig("spot/benchmarks/"+self.function_name+"/"+self.function_name + "-" + "config_vs_epoch_plot" + "-" +  timestamp + ".png")
 
 plotter = Plot("AWSHelloWorld")
 plotter.plot_config_vs_epoch()
