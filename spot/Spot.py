@@ -25,12 +25,17 @@ class Spot:
         os.environ["AWS_ACCESS_KEY_ID"] = aws_creds.get_access_key_id()
         os.environ["AWS_SECRET_ACCESS_KEY"] = aws_creds.get_secret_access_key()
 
+        try:
+            benchmark_dir = self.config["folder_name"]
+        except KeyError:
+            benchmark_dir = None
+
         #Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.config["DB_URL"], self.config["DB_PORT"], self.config["region"])
         self.log_retriever = AWSLogRetriever(self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"])
         self.function_invocator = AWSFunctionInvocator(self.config["workload_path"], self.config["function_name"], self.config["mem_size"], self.config["region"])
         self.config_retriever = AWSConfigRetriever(self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"])
-        self.ml_model = LinearRegressionModel(self.config["function_name"], self.config["vendor"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"])#TODO: Parametrize ML model constructor with factory method
+        self.ml_model = LinearRegressionModel(self.config["function_name"], self.config["vendor"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"], benchmark_dir)#TODO: Parametrize ML model constructor with factory method
 
     def __del__(self):
 

@@ -7,8 +7,7 @@ import sys
 
 # Local imports
 sys.path = ['./', '../'] + sys.path
-from spot.invocation.GenConfigs import *
-sys.path = [SPOT_ROOT + '/synthetic_workload_invoker'] + sys.path
+# sys.path = [SPOT_ROOT + '/synthetic_workload_invoker'] + sys.path
 
 #logger_wlch = ScriptLogger('workload_checker', 'SWI.log')
 

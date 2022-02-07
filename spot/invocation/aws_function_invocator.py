@@ -1,3 +1,4 @@
+from asyncio import futures
 import json
 from requests_futures.sessions import FuturesSession
 import sys
@@ -8,7 +9,6 @@ import threading
 from spot.invocation.JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
 from spot.invocation.WorkloadChecker import CheckWorkloadValidity
 from spot.invocation.EventGenerator import GenericEventGenerator
-from spot.invocation.GenConfigs import *
 from spot.invocation.iam_auth import IAMAuth
 from spot.invocation.config_updater import ConfigUpdater
 
@@ -16,6 +16,7 @@ class InvalidWorkloadFileException(Exception):
     pass
 
 class AWSFunctionInvocator:
+    futures = []
     def __init__(self, workload, function_name, mem_size, region):
         self.workload = self._read_workload(workload)
         self.config = ConfigUpdater(function_name, mem_size, region)
@@ -43,36 +44,31 @@ class AWSFunctionInvocator:
             f = open(payload_file, 'r')
         except IOException:
             f = None
-
-        if f:
-            payload = json.dumps(json.load(f))
-        else:
-            payload = None
+            # raise PayloadFileNotFoundException
+        payload = json.load(f) if f else None
 
         self.threads.append(threading.Thread(target=self._invoke, args=[auth,payload,instance_times]))
 
-
-    def _start_threads(self):
-        for thread in self.threads:
-            thread.start()
 
     def _invoke(self, auth, payload, instance_times):
         # TODO: store input and invocation info to db
         st = 0
         after_time, before_time = 0, 0
         session = FuturesSession(max_workers=15)
+        cnt = 0
 
         url = 'https://' + auth.host + '/' + auth.stage + '/' + auth.resource
         for t in instance_times:
             st = t - (after_time - before_time)
             if st > 0:
                 time.sleep(st)
+            input_data = payload[cnt%len(payload)] if payload else None
+            cnt += 1
             before_time = time.time()
-            future = session.post(url, params=json.loads(payload), data=json.loads(payload), headers=auth.getHeader(payload))
-            #r = requests.post(url, params=json.loads(payload), data=json.loads(payload), headers=auth.getHeader(payload))
-            #print(r.status_code)
-            #print(r.text)
+            future = session.post(url, params=input_data, data=input_data, headers=auth.getHeader(json.dumps(input_data)))
+            self.futures.append(future)
             after_time = time.time()
+
 
         return True
 
@@ -83,4 +79,9 @@ class AWSFunctionInvocator:
             if mem != -1:
                 self.config.set_mem_size(mem)
             self._append_threads(instance, instance_times)
-        self._start_threads()
+        for thread in self.threads:
+            thread.start()
+        for thread in self.threads:
+            thread.join()
+        for future in self.futures:
+            res = future.result()
