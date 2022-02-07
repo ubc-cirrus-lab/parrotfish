@@ -14,7 +14,7 @@ class AWSLogRetriever:
 
     def get_logs(self):
         path = "/aws/lambda/" + self.function_name
-        client = boto3.client('logs')
+        client = boto3.client("logs")
         return_value = self.last_log_timestamp
 
         # get log streams
