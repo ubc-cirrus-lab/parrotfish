@@ -1,6 +1,5 @@
 import os
-import subprocess
-import json
+import boto3
 from spot.db.db import DBClient
 from pymongo import MongoClient
 
@@ -15,14 +14,12 @@ class AWSLogRetriever:
 
     def get_logs(self):
         path = "/aws/lambda/" + self.function_name
+        client = boto3.client('logs')
         return_value = self.last_log_timestamp
 
         # get log streams
         streams = []
-        response = subprocess.check_output(
-            ["aws", "logs", "describe-log-streams", "--log-group-name", path]
-        )
-        response = json.loads(response)
+        response = client.describe_log_streams(logGroupName=path)
         for stream in response["logStreams"]:
             if stream["lastEventTimestamp"] > self.last_log_timestamp:
                 streams.append((stream["logStreamName"]))
@@ -30,18 +27,7 @@ class AWSLogRetriever:
         # get log events and save it to DB
         log_count = 0
         for stream in streams:
-            logs = subprocess.check_output(
-                [
-                    "aws",
-                    "logs",
-                    "get-log-events",
-                    "--log-group-name",
-                    path,
-                    "--log-stream-name",
-                    stream,
-                ]
-            )
-            logs = json.loads(logs)
+            logs = client.get_log_events(logGroupName=path, logStreamName=stream)
 
             # parse and reformat log
             for log in logs["events"]:
