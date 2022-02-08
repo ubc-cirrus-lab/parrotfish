@@ -11,6 +11,7 @@ benchmarks = {
     "chromescreenshot": executeChromeScreenshot,
 }
 
+
 def main():
     arguments = sys.argv[1:]
     options = "hb:"
