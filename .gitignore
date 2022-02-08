@@ -18,3 +18,4 @@ TODO.md
 spot/benchmarks/*/workload.json
 
 spot-env/
+dump/
