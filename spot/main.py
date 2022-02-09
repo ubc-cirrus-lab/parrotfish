@@ -1,10 +1,9 @@
-from spot.benchmarks.AWSHelloWorld.main import executeAWSHelloWorld
-from spot.benchmarks.formplug.main import executeFormplug
+from spot.benchmarks.aes.main import executeAes
 
 
 def main():
     # executeAWSHelloWorld()
-    executeFormplug()
+    executeAes()
 
 
 if __name__ == "__main__":
