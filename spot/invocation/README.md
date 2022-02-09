@@ -5,7 +5,7 @@ The invocator takes a user-defined workload JSON file on initialization and asyn
 ivk = AWSFuncctionInvocator(<path/to/workload>)
 ivk.invoke_all(<memory_size>)
 ```
-The invocator uses IAM Key to authenticate. Make sure you have valid environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` set.
+
 ## Workload Structure
 Below is an example of workload input to the invocator
 ``` json
@@ -36,7 +36,7 @@ Below is an example of workload input to the invocator
 }
 ```
 
-`host`, `stage` and `resources` are the three key components to make the HTTP call. All three are from the API endpoint of a function, which has the format of `https://<host>/<stage>/<resource>`. For instance1 in the example, the API endpoint is `https://ng11cbhnw7.execute-api.us-west-1.amazonaws.com/default/chameleon` 
+`"application"` is the key field which determines which function will be invoked. It should be a full ARN, partial ARN, or the name of the function.
 
 To use a customized invocation interval, define `interarrival_list` instead of `distribution` as in `instance2`. `interarrival_list` has a higher priority than distribution so if both are specified the customized interarrival time will be used for invocation.
 
