@@ -62,10 +62,14 @@ class AWSFunctionInvocator:
                 st = t - (after_time - before_time)
                 if st > 0:
                     time.sleep(st)
-                input_data = payload[cnt % len(payload)] if payload else None
+                input_data = json.dumps(
+                    payload[cnt % len(payload)] if payload else None
+                )
                 cnt += 1
                 before_time = time.time()
-                future = executor.submit(client.invoke, FunctionName=application)
+                future = executor.submit(
+                    client.invoke, FunctionName=application, Payload=input_data
+                )
                 self.futures.append(future)
                 after_time = time.time()
 
