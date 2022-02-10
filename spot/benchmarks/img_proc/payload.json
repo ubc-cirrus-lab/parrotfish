@@ -1,12 +1,5 @@
-[
-    {
-        "input_bucket": "image-processing-storage",
-        "object_key": "animal-dog.jpeg",
-        "output_bucket": "image-processing-storage"
-    },
-    {
-        "input_bucket": "image-processing-storage",
-        "object_key": "image.jpeg",
-        "output_bucket": "image-processing-storage"
-    }
-]
+{
+    "input_bucket": "image-processing-storage",
+    "object_key": "animal-dog.jpeg",
+    "output_bucket": "image-processing-storage"
+}

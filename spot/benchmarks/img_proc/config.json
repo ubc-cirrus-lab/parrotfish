@@ -17,12 +17,12 @@
             "instance1": {
                 "application": "image_processing",
                 "distribution": "Poisson",
-                "rate": 5,
+                "rate": 1,
                 "activity_window": [
-                    40,
-                    50
+                    1,
+                    5
                 ],
-                "payload": "spot/benchmarks/aes/payload.json",
+                "payload": "spot/benchmarks/img_proc/payload.json",
                 "host": "https://ts7p12m27c.execute-api.us-east-2.amazonaws.com",
                 "stage": "default",
                 "resource": "/image_processing?format=json"
