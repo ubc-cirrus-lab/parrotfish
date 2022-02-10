@@ -5,7 +5,7 @@ from PIL import Image
 
 import ops
 
-s3_client = boto3.client('s3')
+s3_client = boto3.client("s3")
 FILE_NAME_INDEX = 2
 
 
@@ -25,17 +25,19 @@ def image_processing(file_name, image_path):
 
 
 def lambda_handler(event, context):
-    input_bucket = event['input_bucket']
-    object_key = event['object_key']
-    output_bucket = event['output_bucket']
+    input_bucket = event["input_bucket"]
+    object_key = event["object_key"]
+    output_bucket = event["output_bucket"]
 
-    download_path = '/tmp/{}{}'.format(uuid.uuid4(), object_key.split('/')[-1])
+    download_path = "/tmp/{}{}".format(uuid.uuid4(), object_key.split("/")[-1])
     print("Looking for object in {}".format(download_path))
     s3_client.download_file(input_bucket, object_key, download_path)
 
     latency, path_list = image_processing(object_key, download_path)
 
     for upload_path in path_list:
-        s3_client.upload_file(upload_path, output_bucket, upload_path.split("/")[FILE_NAME_INDEX])
+        s3_client.upload_file(
+            upload_path, output_bucket, upload_path.split("/")[FILE_NAME_INDEX]
+        )
 
     return latency

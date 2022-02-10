@@ -60,7 +60,7 @@ def filter(image, file_name):
 
 def gray_scale(image, file_name):
     path = TMP + "gray-scale-" + file_name
-    img = image.convert('L')
+    img = image.convert("L")
     img.save(path)
     return [path]
 
