@@ -29,8 +29,8 @@ def lambda_handler(event, context):
     object_key = event['object_key']
     output_bucket = event['output_bucket']
 
-    download_path = '/tmp/{}{}'.format(uuid.uuid4(), object_key)
-
+    download_path = '/tmp/{}{}'.format(uuid.uuid4(), object_key.split('/')[-1])
+    print("Looking for object in {}".format(download_path))
     s3_client.download_file(input_bucket, object_key, download_path)
 
     latency, path_list = image_processing(object_key, download_path)
