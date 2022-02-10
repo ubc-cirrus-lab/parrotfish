@@ -10,7 +10,7 @@
     "mem_size": 512,
     "workload": {
         "test_name": "IntegrationTest1",
-        "test_duration_in_seconds": 30,
+        "test_duration_in_seconds": 5,
         "random_seed": 100,
         "blocking_cli": false,
         "instances": {
