@@ -1,7 +1,6 @@
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
 from spot.invocation.aws_function_invocator import AWSFunctionInvocator
-from spot.invocation.aws_credentials_fetch import AWSCredentialsFetch
 from spot.configs.aws_config_retriever import AWSConfigRetriever
 from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
@@ -20,11 +19,6 @@ class Spot:
             self.config = json.load(f)
             with open(self.config["workload_path"], "w") as json_file:
                 json.dump(self.config["workload"], json_file)
-
-        # Set environment variables
-        aws_creds = AWSCredentialsFetch()
-        os.environ["AWS_ACCESS_KEY_ID"] = aws_creds.get_access_key_id()
-        os.environ["AWS_SECRET_ACCESS_KEY"] = aws_creds.get_secret_access_key()
 
         try:
             benchmark_dir = self.config["folder_name"]
