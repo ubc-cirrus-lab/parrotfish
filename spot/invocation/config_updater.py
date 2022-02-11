@@ -1,17 +1,19 @@
 import requests
 import boto3
 
+
 class InstanceNotSetException(Exception):
     pass
+
 
 class ConfigUpdater:
     def __init__(self, ins, mem, region):
         self.mem_size = mem
         self.instance = ins
-        self.client = boto3.client('lambda', region_name=region)
+        self.client = boto3.client("lambda", region_name=region)
 
-   # def set_mem_size(self, mem):
-   #     self.mem_size = mem
+    # def set_mem_size(self, mem):
+    #     self.mem_size = mem
 
     def get_mem_size(self):
         return self.mem_size
@@ -24,7 +26,6 @@ class ConfigUpdater:
         if not self.instance:
             raise InstanceNotSetException
         res = self.client.update_function_configuration(
-            FunctionName=self.instance,
-            MemorySize=self.mem_size
+            FunctionName=self.instance, MemorySize=self.mem_size
         )
-        #print(res)
+        # print(res)

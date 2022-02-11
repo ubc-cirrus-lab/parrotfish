@@ -8,7 +8,8 @@ import os
 import sys
 
 # Local imports
-sys.path = ['./', '../'] + sys.path
+sys.path = ["./", "../"] + sys.path
+
 
 def CheckJSONConfig(json_file):
     """
@@ -39,5 +40,5 @@ def WriteJSONConfig(workload, json_file):
     """
     Writes the workload description to a json file.
     """
-    with open(SPOT_ROOT + '/' + json_file, 'w') as outfile:
+    with open(SPOT_ROOT + "/" + json_file, "w") as outfile:
         json.dump(workload, outfile)
