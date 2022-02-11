@@ -27,8 +27,8 @@ class Plot:
 
         def plot_config_vs_epoch(self):
                 plt.title("MemorySize Suggestions vs Time for " + self.function_name)
-                plt.xlabel("MemorySize(mB)", fontsize = 7)
-                plt.ylabel("Epoch", fontsize = 7)
+                plt.ylabel("MemorySize(mB)", fontsize = 7)
+                plt.xlabel("Epoch", fontsize = 7)
                 axes = plt.gca()
                 plt.setp(axes.get_xticklabels(), rotation=90, fontsize = 6)
                 plt.setp(axes.get_yticklabels(), fontsize = 6)      
