@@ -31,7 +31,7 @@ jobs:
       run: |
         black . --check
     - name: Commit formatting changes
-      if: failure()
+      if: steps.check-python.conclusion == failure
       run: |
         black .
         git add .
