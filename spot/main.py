@@ -3,12 +3,14 @@ import sys
 from spot.benchmarks.AWSHelloWorld.main import executeAWSHelloWorld
 from spot.benchmarks.formplug.main import executeFormplug
 from spot.benchmarks.ChromeScreenshot.main import executeChromeScreenshot
+from spot.benchmarks.aes.main import executeAes
 
 # List of benchmarks and associated functions. Note: The key should be all lower case!
 benchmarks = {
     "awshelloworld": executeAWSHelloWorld,
     "formplug": executeFormplug,
     "chromescreenshot": executeChromeScreenshot,
+    "aes": executeAes,
 }
 
 
@@ -21,7 +23,6 @@ def main():
         args_vals, _ = getopt(arguments, options, long_options)
 
         for arg, val in args_vals:
-
             if arg in ("-h", "--Help"):
                 print("Sorry, cannot help you. 🇨🇦")
 
