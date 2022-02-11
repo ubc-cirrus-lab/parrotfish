@@ -1,9 +1,8 @@
-from spot.benchmarks.aes.main import executeAes
+from spot.benchmarks.img_proc.main import executeImageProcessing
 
 
 def main():
-    # executeAWSHelloWorld()
-    executeAes()
+    executeImageProcessing()
 
 
 if __name__ == "__main__":
