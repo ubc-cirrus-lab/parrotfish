@@ -69,7 +69,9 @@ class Spot:
         config_updater.set_mem_size(self.config["mem_size"])
 
         # Save model config suggestions
-        self.DBClient.add_document_to_collection(self.config["function_name"], "suggested_configs", self.config)
+        self.DBClient.add_document_to_collection(
+            self.config["function_name"], "suggested_configs", self.config
+        )
 
         # Save model predictions to db for error calculation
         # self.DBClient.add_document_to_collection(self.config["function_name"], "memory_predictions", memory_predictions)
@@ -83,8 +85,8 @@ class Spot:
         self.invoke_function()
 
         print("Sleeping to allow logs to propogate")
-        #wait to allow logs to populate in aws
-        time.sleep(15) # TODO: Change this to waiting all threads to yield
+        # wait to allow logs to populate in aws
+        time.sleep(15)  # TODO: Change this to waiting all threads to yield
 
         print("Retrieving new logs and save in db")
         # collect log data

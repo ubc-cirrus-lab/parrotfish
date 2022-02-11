@@ -8,6 +8,7 @@ import copy
 from spot.db.db import DBClient
 from sklearn.linear_model import SGDRegressor
 
+
 class LinearRegressionModel:
     def __init__(
         self, function_name, vendor, url, port, last_log_timestamp, benchmark_dir
@@ -178,7 +179,7 @@ class LinearRegressionModel:
         mem_predictions = self.get_memory_predictions()
         new_configs["mem_size"] = self.get_best_memory_config(mem_predictions)
         return [new_configs, mem_predictions]
-            
+
     def get_memory_predictions(self):
         arr = {}
         mem_size = 128
