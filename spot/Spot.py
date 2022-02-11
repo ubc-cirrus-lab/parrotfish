@@ -6,6 +6,7 @@ from spot.configs.aws_config_retriever import AWSConfigRetriever
 from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
 from spot.db.db import DBClient
+from spot.visualize.Plot import Plot
 import json
 import time as time
 import os
@@ -37,7 +38,7 @@ class Spot:
         self.function_invocator = AWSFunctionInvocator(self.config["workload_path"], self.config["function_name"], self.config["mem_size"], self.config["region"])
         self.config_retriever = AWSConfigRetriever(self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"])
         self.ml_model = LinearRegressionModel(self.config["function_name"], self.config["vendor"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"], benchmark_dir)#TODO: Parametrize ML model constructor with factory method
-        self.db_client = DBClient(self.config["DB_URL"], self.config["DB_PORT"])
+        self.DBClient = DBClient(self.config["DB_URL"], self.config["DB_PORT"])
 
     def __del__(self):
 
@@ -50,7 +51,13 @@ class Spot:
         config_updater.set_mem_size(self.config["mem_size"])
 
         # Save model config suggestions
-        self.db_client.add_document_to_collection(self.config["function_name"], "suggested_configs", self.config)
+        self.DBClient.add_document_to_collection(self.config["function_name"], "suggested_configs", self.config)
+
+        # Save model predictions to db for error calculation
+        # self.DBClient.add_document_to_collection(self.config["function_name"], "memory_predictions", memory_predictions)
+
+        plotter = Plot(self.config["function_name"], self.DBClient)
+        plotter.plot_config_vs_epoch()
 
     def execute(self):
         print("Invoking function:", self.config["function_name"])
@@ -59,7 +66,7 @@ class Spot:
         
         print("Sleeping to allow logs to propogate")
         #wait to allow logs to populate in aws
-        time.sleep(15)
+        time.sleep(15) # TODO: Change this to waiting all threads to yield
 
         print("Retrieving new logs and save in db")
         #collect log data
@@ -84,6 +91,8 @@ class Spot:
     def train_model(self):
         # only train the model, if new logs are introduced
         if self.ml_model.fetch_data():
-            new_configs = self.ml_model.train_model()   
+            new_configs, memory_predictions = self.ml_model.train_model()
+
+            # update config fields with new configs(currently only mem_size)
             for new_config in new_configs:
                 self.config[new_config] = new_configs[new_config]
