@@ -13,7 +13,7 @@ import os
 
 class Spot:
     def __init__(self, config_file_path="spot/config.json"):
-        # Load configuration values from config.json
+        #Load configuration values from config.json
         self.config = None
         self.config_file_path = config_file_path
 
@@ -31,12 +31,7 @@ class Spot:
         self.price_retriever = AWSPriceRetriever(
             self.config["DB_URL"], self.config["DB_PORT"], self.config["region"]
         )
-        self.log_retriever = AWSLogRetriever(
-            self.config["function_name"],
-            self.config["DB_URL"],
-            self.config["DB_PORT"],
-            self.config["last_log_timestamp"],
-        )
+        self.log_retriever = AWSLogRetriever( self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"], self.config["last_log_timestamp"],)
         self.function_invocator = AWSFunctionInvocator(
             self.config["workload_path"],
             self.config["function_name"],
