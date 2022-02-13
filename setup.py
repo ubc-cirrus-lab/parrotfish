@@ -7,7 +7,9 @@ if sys.version_info.major != 3:
 setup(
     name="spot",
     packages=[package for package in find_packages() if package.startswith("spot")],
-    package_data={"spot": ["py.typed"],},
+    package_data={
+        "spot": ["py.typed"],
+    },    
     install_requires=[],
     extras_require={},
     entry_points={"console_scripts": ["spot=spot.main:main"]},
