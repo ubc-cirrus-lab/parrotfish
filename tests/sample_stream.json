@@ -1,0 +1,16 @@
+{
+  "logStreams": [
+    {
+      "logStreamName": "stream0",
+      "lastEventTimestamp": 10
+    },
+    {
+      "logStreamName": "stream1",
+      "lastEventTimestamp": 20
+    },
+    {
+      "logStreamName": "stream2",
+      "lastEventTimestamp": 30
+    }
+  ]
+}
