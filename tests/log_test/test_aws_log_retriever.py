@@ -45,7 +45,7 @@ class TestLogRetrival(unittest.TestCase):
     def test_get_logs(self, mockBoto3, mockDBAdd) -> None:
         # assert no logs for a certain timestamp in db
         stream = []
-        with open("tests/sample_stream.json") as f:
+        with open("tests/log_test/sample_stream.json") as f:
             stream = json.load(f)
         mockBoto3.client("logs").describe_log_streams.return_value = stream
         mockBoto3.client("logs").get_log_events.new = self.mock_get_log
