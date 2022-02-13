@@ -1,0 +1,82 @@
+{
+    "FunctionName": "string",
+    "FunctionArn": "string",
+    "Runtime": "python3.8",
+    "Role": "string",
+    "Handler": "string",
+    "CodeSize": 123,
+    "Description": "string",
+    "Timeout": 123,
+    "MemorySize": 123,
+    "LastModified": "2022-02-09T21:58:22.000+0000",
+    "CodeSha256": "string",
+    "Version": "string",
+    "VpcConfig": {
+        "SubnetIds": [
+            "string"
+        ],
+        "SecurityGroupIds": [
+            "string"
+        ],
+        "VpcId": "string"
+    },
+    "DeadLetterConfig": {
+        "TargetArn": "string"
+    },
+    "Environment": {
+        "Variables": {
+            "string": "string"
+        },
+        "Error": {
+            "ErrorCode": "string",
+            "Message": "string"
+        }
+    },
+    "KMSKeyArn": "string",
+    "TracingConfig": {
+        "Mode": "Active"
+    },
+    "MasterArn": "string",
+    "RevisionId": "string",
+    "Layers": [
+        {
+            "Arn": "string",
+            "CodeSize": 123,
+            "SigningProfileVersionArn": "string",
+            "SigningJobArn": "string"
+        }
+    ],
+    "State": "Active",
+    "StateReason": "string",
+    "StateReasonCode": "Idle",
+    "LastUpdateStatus": "Successful",
+    "LastUpdateStatusReason": "string",
+    "LastUpdateStatusReasonCode": "EniLimitExceeded",
+    "FileSystemConfigs": [
+        {
+            "Arn": "string",
+            "LocalMountPath": "string"
+        }
+    ],
+    "PackageType": "Zip",
+    "ImageConfigResponse": {
+        "ImageConfig": {
+            "EntryPoint": [
+                "string"
+            ],
+            "Command": [
+                "string"
+            ],
+            "WorkingDirectory": "string"
+        },
+        "Error": {
+            "ErrorCode": "string",
+            "Message": "string"
+        }
+    },
+    "SigningProfileVersionArn": "string",
+    "SigningJobArn": "string",
+    "Architectures": [
+        "x86_64"
+    ]
+}

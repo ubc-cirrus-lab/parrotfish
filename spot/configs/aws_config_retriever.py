@@ -1,9 +1,10 @@
-import os
 import boto3
 import time as time
-from spot.db.db import DBClient
-from pymongo import MongoClient
 import datetime
+
+from spot.logs.aws_log_retriever import AWSLogRetriever
+from spot.db.db import DBClient
+from unittest.mock import patch, call
 
 
 class AWSConfigRetriever:

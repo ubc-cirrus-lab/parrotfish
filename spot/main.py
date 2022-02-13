@@ -1,8 +1,8 @@
 from spot.benchmarks.aes.main import executeAes
 
-
 def main():
     # executeAWSHelloWorld()
+    # executeFormplug()
     executeAes()
 
 

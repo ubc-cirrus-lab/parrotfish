@@ -18,3 +18,6 @@ TODO.md
 spot/benchmarks/*/workload.json
 
 spot-env/
+
+#Unittest Logs
+.coverage
