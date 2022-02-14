@@ -22,4 +22,4 @@ class TestPriceRetrieval(unittest.TestCase):
         priceRetriever = AWSPriceRetriever("test", 3000, "us-east-2")
         price = priceRetriever.fetch_current_pricing()
         self.assertEqual(REQ_PRICE, price["request_price"])
-        self.assertEqual(round(DURATION_PRICE, 8), round(price['duration_price'], 8))
+        self.assertEqual(round(DURATION_PRICE, 8), round(price["duration_price"], 8))
