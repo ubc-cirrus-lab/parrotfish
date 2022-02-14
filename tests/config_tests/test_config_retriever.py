@@ -50,6 +50,10 @@ class TestConfigRetrieval(unittest.TestCase):
             mockDBClient.get_all_collection_documents.return_value = [sample_config]
             self.configRetriever.print_configs()
 
+            # assert a database call to get_all_collection_documents has been made with proper variables
+            callTemp = call(self.function, "config")
+            mockDBClient.assert_has_calls([callTemp])
+
 
 if __name__ == "__main__":
     unittest.main()
