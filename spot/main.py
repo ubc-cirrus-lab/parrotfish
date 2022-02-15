@@ -33,6 +33,7 @@ def main():
                     benchmarks[val.lower()]()
     except error as err:
         print(str(err))
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     main()
