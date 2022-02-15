@@ -4,11 +4,9 @@ import matplotlib.pyplot as plt
 import datetime
 import pickle
 import sys
-
+import copy
 from spot.db.db import DBClient
 from sklearn.linear_model import SGDRegressor
-
-import copy
 
 
 class LinearRegressionModel:
@@ -178,10 +176,9 @@ class LinearRegressionModel:
         print("intercept:", self.model.intercept_)
         print("slope:", self.model.coef_)
         new_configs = {}
-        new_configs["mem_size"] = self.get_best_memory_config(
-            self.get_memory_predictions()
-        )
-        return new_configs
+        mem_predictions = self.get_memory_predictions()
+        new_configs["mem_size"] = self.get_best_memory_config(mem_predictions)
+        return [new_configs, mem_predictions]
 
     def get_memory_predictions(self):
         arr = {}
