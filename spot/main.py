@@ -1,4 +1,3 @@
-
 from getopt import getopt, error
 import sys
 from spot.benchmarks.AWSHelloWorld.main import executeAWSHelloWorld
