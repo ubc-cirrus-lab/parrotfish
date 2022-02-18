@@ -13,11 +13,9 @@ import copy
 
 class LinearRegressionModel:
     def __init__(
-        self, function_name, vendor, url, port, last_log_timestamp, benchmark_dir
+        self, function_name, vendor, db : DBClient, last_log_timestamp, benchmark_dir
     ):
-        self.url = url
-        self.port = port
-        self.DBClient = DBClient(self.url, self.port)
+        self.DBClient = db
         self.last_log_timestamp = last_log_timestamp
 
         self.function_name = function_name

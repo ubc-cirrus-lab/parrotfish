@@ -1,12 +1,12 @@
 from getopt import getopt, error
 import sys
-from spot.benchmarks.AWSHelloWorld.main import executeAWSHelloWorld
+from spot.benchmarks.AWSHelloWorld.main import AWSHelloWorldBenchmark
 from spot.benchmarks.formplug.main import executeFormplug
 from spot.benchmarks.ChromeScreenshot.main import executeChromeScreenshot
 
 # List of benchmarks and associated functions. Note: The key should be all lower case!
 benchmarks = {
-    "awshelloworld": executeAWSHelloWorld,
+    "awshelloworld": AWSHelloWorldBenchmark,
     "formplug": executeFormplug,
     "chromescreenshot": executeChromeScreenshot,
 }

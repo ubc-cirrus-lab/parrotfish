@@ -1,7 +1,8 @@
-from spot.Spot import Spot
+from spot.benchmarks.base_benchmark import BaseBenchmark
 
 
-def executeAWSHelloWorld():
-    file_path = "spot/benchmarks/AWSHelloWorld/config.json"
-    benchmark = Spot(file_path)
-    benchmark.execute()
+class AWSHelloWorldBenchmark(BaseBenchmark):
+    def __init__(self):
+        super().__init__(__file__)
+        self.run()
+

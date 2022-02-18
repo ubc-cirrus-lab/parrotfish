@@ -1,14 +1,10 @@
-import os
 import boto3
 from spot.db.db import DBClient
-from pymongo import MongoClient
 
 
 class AWSLogRetriever:
-    def __init__(self, function_name, url, port, last_log_timestamp):
-        self.url = url
-        self.port = port
-        self.DBClient = DBClient(self.url, self.port)
+    def __init__(self, function_name, db: DBClient, last_log_timestamp):
+        self.DBClient = db
         self.last_log_timestamp = last_log_timestamp
         self.function_name = function_name
 

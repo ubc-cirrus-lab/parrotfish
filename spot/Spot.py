@@ -1,55 +1,63 @@
+import json
+import time as time
+import os
+
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
 from spot.invocation.aws_function_invocator import AWSFunctionInvocator
 from spot.configs.aws_config_retriever import AWSConfigRetriever
 from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
-import json
-import time as time
-import os
+from spot.db.db import DBClient
+from spot.benchmark_config import BenchmarkConfig
+from spot.definitions import ROOT_DIR
 
 
 class Spot:
     def __init__(self, config_file_path="spot/config.json"):
         # Load configuration values from config.json
-        self.config = None
-        self.config_file_path = config_file_path
+        self.config : BenchmarkConfig
+        self.config_file_path : str = config_file_path
+        self.path : str = os.path.dirname(self.config_file_path)
+        self.workload_file_path = os.path.join(self.path, 'workload.json')
+        self.db = DBClient()
+        self.last_log_timestamp = self.db.execute_max_value(self.config.function_name, "logs", "timestamp")
 
         with open(config_file_path) as f:
-            self.config = json.load(f)
+            self.config = BenchmarkConfig(f)
             with open(self.config["workload_path"], "w") as json_file:
-                json.dump(self.config["workload"], json_file)
+                json.dump(self.config.workload, json_file, indent=4)
 
         try:
-            benchmark_dir = self.config["folder_name"]
+            benchmark_dir = self.path
         except KeyError:
             benchmark_dir = None
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(
-            self.config["DB_URL"], self.config["DB_PORT"], self.config["region"]
+            self.db,
+            self.config.region
         )
         self.log_retriever = AWSLogRetriever(
-            self.config["function_name"],
-            self.config["DB_URL"],
-            self.config["DB_PORT"],
-            self.config["last_log_timestamp"],
+            self.config.function_name,
+            self.db,
+            self.last_log_timestamp,
         )
         self.function_invocator = AWSFunctionInvocator(
-            self.config["workload_path"],
-            self.config["function_name"],
-            self.config["mem_size"],
-            self.config["region"],
+            self.workload_file_path,
+            self.config.function_name,
+            self.config.inital_mem_size,
+            self.config.region,
         )
         self.config_retriever = AWSConfigRetriever(
-            self.config["function_name"], self.config["DB_URL"], self.config["DB_PORT"]
+            self.config.function_name,
+            self.db
         )
         self.ml_model = LinearRegressionModel(
-            self.config["function_name"],
-            self.config["vendor"],
-            self.config["DB_URL"],
-            self.config["DB_PORT"],
-            self.config["last_log_timestamp"],
+            self.config.function_name,
+            self.config.vendor,
+            self.db,
+            self.last_log_timestamp,
             benchmark_dir,
         )  # TODO: Parametrize ML model constructor with factory method
 
@@ -57,16 +65,19 @@ class Spot:
 
         # Save the updated configurations
         with open(self.config_file_path, "w") as f:
-            json.dump(self.config, f)
+            json.dump(self.config, f, indent=4)
 
         # Update the memory config on AWS with the newly suggested memory size
         config_updater = ConfigUpdater(
-            self.config["function_name"], self.config["mem_size"], self.config["region"]
+            self.config.function_name,
+            self.config.initial_mem_size, # TODO: Updated mem size
+            self.config.region
         )
-        config_updater.set_mem_size(self.config["mem_size"])
+        config_updater.set_mem_size(self.config.initial_mem_size) # TODO: Updated mem size
+
 
     def execute(self):
-        print("Invoking function:", self.config["function_name"])
+        print("Invoking function:", self.config.function_name)
         # invoke the indicated function
         self.invoke_function()
 
@@ -92,7 +103,7 @@ class Spot:
 
     def collect_data(self):
         # retrieve logs
-        self.config["last_log_timestamp"] = self.log_retriever.get_logs()
+        self.last_log_timestamp = self.log_retriever.get_logs()
 
     def train_model(self):
         # only train the model, if new logs are introduced

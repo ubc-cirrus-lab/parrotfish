@@ -4,15 +4,15 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-API_KEY_DIR	invocation/aws_credentials_fetch.py	/^API_KEY_DIR = ".aws\/credentials"$/;"	v
 API_KEY_DIR	prices/price_retriever.py	/^API_KEY_DIR = "spot\/prices\/credentials.yml"$/;"	v
 API_URL	prices/price_retriever.py	/^API_URL = "https:\/\/pricing.api.infracost.io\/graphql"$/;"	v
 AWSConfigRetriever	configs/aws_config_retriever.py	/^class AWSConfigRetriever:$/;"	c
-AWSCredentialsFetch	invocation/aws_credentials_fetch.py	/^class AWSCredentialsFetch:$/;"	c
 AWSFunctionInvocator	invocation/aws_function_invocator.py	/^class AWSFunctionInvocator:$/;"	c
+AWSHelloWorldBenchmark	benchmarks/AWSHelloWorld/main.py	/^class AWSHelloWorldBenchmark(BaseBenchmark):$/;"	c
 AWSLogRetriever	logs/aws_log_retriever.py	/^class AWSLogRetriever:$/;"	c
 AWSPriceRetriever	prices/aws_price_retriever.py	/^class AWSPriceRetriever(PriceRetriever):$/;"	c
 AWS_PATH	invocation/GenConfigs.py	/^AWS_PATH = "\/usr\/local\/bin\/aws"$/;"	v
+BaseBenchmark	benchmarks/base_benchmark.py	/^class BaseBenchmark:$/;"	c
 CACHE_INVALID_DAYS	prices/price_retriever.py	/^CACHE_INVALID_DAYS = 1.0$/;"	v
 CheckJSONConfig	invocation/JSONConfigHelper.py	/^def CheckJSONConfig(json_file):$/;"	f
 CheckWorkloadValidity	invocation/WorkloadChecker.py	/^def CheckWorkloadValidity(workload):$/;"	f
@@ -22,12 +22,11 @@ DATA_DIR	definitions.py	/^DATA_DIR = os.path.join(ROOT_DIR, "data")$/;"	v
 DBClient	db/db.py	/^class DBClient:$/;"	c
 EnforceActivityWindow	invocation/EventGenerator.py	/^def EnforceActivityWindow(start_time, end_time, instance_events):$/;"	f
 GenericEventGenerator	invocation/EventGenerator.py	/^def GenericEventGenerator(workload):$/;"	f
-IAMAuth	invocation/iam_auth.py	/^class IAMAuth:$/;"	c
 InstanceNotSetException	invocation/config_updater.py	/^class InstanceNotSetException(Exception):$/;"	c
 InvalidWorkloadFileException	invocation/aws_function_invocator.py	/^class InvalidWorkloadFileException(Exception):$/;"	c
 LinearRegressionModel	mlModel/linear_regression.py	/^class LinearRegressionModel:$/;"	c
 PriceNotFoundException	prices/price_retriever.py	/^class PriceNotFoundException(Exception):$/;"	c
-PriceRetriever	prices/price_retriever.py	/^class PriceRetriever():$/;"	c
+PriceRetriever	prices/price_retriever.py	/^class PriceRetriever:$/;"	c
 ROOT_DIR	definitions.py	/^ROOT_DIR = os.path.dirname(os.path.abspath(__file__))$/;"	v
 ReadJSONConfig	invocation/JSONConfigHelper.py	/^def ReadJSONConfig(json_file):$/;"	f
 SPOT_ROOT	invocation/GenConfigs.py	/^SPOT_ROOT="\/home\/erikl\/ubc-SPOT\/spot\/invocation"$/;"	v
@@ -35,59 +34,55 @@ ScriptLogger	invocation/Logger.py	/^def ScriptLogger(loggername, logfile):$/;"	f
 Spot	Spot.py	/^class Spot:$/;"	c
 WriteJSONConfig	invocation/JSONConfigHelper.py	/^def WriteJSONConfig(workload, json_file):$/;"	f
 __del__	Spot.py	/^    def __del__(self):$/;"	m	class:Spot	file:
-__init__	Spot.py	/^    def __init__(self, config_file_path = "spot\/config.json"):$/;"	m	class:Spot
+__init__	Spot.py	/^    def __init__(self, config_file_path="spot\/config.json"):$/;"	m	class:Spot
+__init__	benchmarks/AWSHelloWorld/main.py	/^    def __init__(self):$/;"	m	class:AWSHelloWorldBenchmark
+__init__	benchmarks/base_benchmark.py	/^    def __init__(self, file_name : str, config = "config.json"):$/;"	m	class:BaseBenchmark
 __init__	configs/aws_config_retriever.py	/^    def __init__(self, function_name, url, port):$/;"	m	class:AWSConfigRetriever
 __init__	db/db.py	/^    def __init__(self, url, port):$/;"	m	class:DBClient
-__init__	invocation/aws_credentials_fetch.py	/^    def __init__(self):$/;"	m	class:AWSCredentialsFetch
 __init__	invocation/aws_function_invocator.py	/^    def __init__(self, workload, function_name, mem_size, region):$/;"	m	class:AWSFunctionInvocator
 __init__	invocation/config_updater.py	/^    def __init__(self, ins, mem, region):$/;"	m	class:ConfigUpdater
-__init__	invocation/iam_auth.py	/^    def __init__(self, host, stage, resource, service='execute-api', content='application\/x-amz-json-1.0') -> None:$/;"	m	class:IAMAuth
 __init__	logs/aws_log_retriever.py	/^    def __init__(self, function_name, url, port, last_log_timestamp):$/;"	m	class:AWSLogRetriever
-__init__	mlModel/linear_regression.py	/^    def __init__(self, function_name, vendor, url, port, last_log_timestamp, benchmark_dir):$/;"	m	class:LinearRegressionModel
+__init__	mlModel/linear_regression.py	/^    def __init__($/;"	m	class:LinearRegressionModel
 __init__	prices/aws_price_retriever.py	/^    def __init__(self, url, port, region):$/;"	m	class:AWSPriceRetriever
 __init__	prices/price_retriever.py	/^    def __init__(self):$/;"	m	class:PriceRetriever
 _append_threads	invocation/aws_function_invocator.py	/^    def _append_threads(self, instance, instance_times):$/;"	m	class:AWSFunctionInvocator
 _current_price	prices/price_retriever.py	/^    def _current_price(self, parameters):$/;"	m	class:PriceRetriever
 _fetch_price	prices/price_retriever.py	/^    def _fetch_price(self, parameters: dict) -> float:$/;"	m	class:PriceRetriever
-_getSignatureKey	invocation/iam_auth.py	/^    def _getSignatureKey(self, key, date_stamp, regionName, serviceName):$/;"	m	class:IAMAuth
-_invoke	invocation/aws_function_invocator.py	/^    def _invoke(self, auth, payload, instance_times):$/;"	m	class:AWSFunctionInvocator
+_invoke	invocation/aws_function_invocator.py	/^    def _invoke(self, client, application, payload, instance_times):$/;"	m	class:AWSFunctionInvocator
 _read_api_key	prices/price_retriever.py	/^    def _read_api_key(self) -> str:$/;"	m	class:PriceRetriever
-_read_credentials_file	invocation/aws_credentials_fetch.py	/^    def _read_credentials_file(self) -> dict:$/;"	m	class:AWSCredentialsFetch
 _read_workload	invocation/aws_function_invocator.py	/^    def _read_workload(self, path):$/;"	m	class:AWSFunctionInvocator
-_sign	invocation/iam_auth.py	/^    def _sign(self, key, msg):$/;"	m	class:IAMAuth
 add_collection	db/db.py	/^    def add_collection(self, function_name, collection_name):$/;"	m	class:DBClient
 add_document_to_collection	db/db.py	/^    def add_document_to_collection(self, function_name, collection_name, document):$/;"	m	class:DBClient
-add_document_to_collection_if_not_exists	db/db.py	/^    def add_document_to_collection_if_not_exists(self, function_name, collection_name, document, criteria):$/;"	m	class:DBClient
+add_document_to_collection_if_not_exists	db/db.py	/^    def add_document_to_collection_if_not_exists($/;"	m	class:DBClient
 add_new_config_if_changed	db/db.py	/^    def add_new_config_if_changed(self, function_name, collection_name, document):$/;"	m	class:DBClient
+benchmarks	main.py	/^benchmarks = {$/;"	v
 collect_data	Spot.py	/^    def collect_data(self):$/;"	m	class:Spot
 create_function_db	db/db.py	/^    def create_function_db(self, function_name):$/;"	m	class:DBClient
 execute	Spot.py	/^    def execute(self):$/;"	m	class:Spot
-executeAWSHelloWorld	benchmarks/AWSHelloWorld/main.py	/^def executeAWSHelloWorld():$/;"	f
-executeAWSHelloWorld	benchmarks/ChromeScreenshot/main.py	/^def executeAWSHelloWorld():$/;"	f
+executeChromeScreenshot	benchmarks/ChromeScreenshot/main.py	/^def executeChromeScreenshot():$/;"	f
 executeFormplug	benchmarks/formplug/main.py	/^def executeFormplug():$/;"	f
-execute_query	db/db.py	/^    def execute_query(self, function_name, collection_name, select_fields, display_fields): $/;"	m	class:DBClient
+execute_query	db/db.py	/^    def execute_query($/;"	m	class:DBClient
 fetch_current_pricing	prices/aws_price_retriever.py	/^    def fetch_current_pricing(self) -> dict:$/;"	m	class:AWSPriceRetriever
 fetch_data	mlModel/linear_regression.py	/^    def fetch_data(self):$/;"	m	class:LinearRegressionModel
 find_associated_index	mlModel/linear_regression.py	/^    def find_associated_index(self, list, field, left, right, target):$/;"	m	class:LinearRegressionModel
 futures	invocation/aws_function_invocator.py	/^    futures = []$/;"	v	class:AWSFunctionInvocator
-getHeader	invocation/iam_auth.py	/^    def getHeader(self, payload, method='POST'):$/;"	m	class:IAMAuth
-get_access_key_id	invocation/aws_credentials_fetch.py	/^    def get_access_key_id(self) -> str:$/;"	m	class:AWSCredentialsFetch
 get_all_collection_documents	db/db.py	/^    def get_all_collection_documents(self, function_name, collection_name):$/;"	m	class:DBClient
 get_best_memory_config	mlModel/linear_regression.py	/^    def get_best_memory_config(self, options):$/;"	m	class:LinearRegressionModel
 get_latest_config	configs/aws_config_retriever.py	/^    def get_latest_config(self):$/;"	m	class:AWSConfigRetriever
 get_logs	logs/aws_log_retriever.py	/^    def get_logs(self):$/;"	m	class:AWSLogRetriever
 get_mem_size	invocation/config_updater.py	/^    def get_mem_size(self):$/;"	m	class:ConfigUpdater
 get_memory_predictions	mlModel/linear_regression.py	/^    def get_memory_predictions(self):$/;"	m	class:LinearRegressionModel
-get_secret_access_key	invocation/aws_credentials_fetch.py	/^    def get_secret_access_key(self) -> str:$/;"	m	class:AWSCredentialsFetch
 invoke_all	invocation/aws_function_invocator.py	/^    def invoke_all(self, mem=-1):$/;"	m	class:AWSFunctionInvocator
 invoke_function	Spot.py	/^    def invoke_function(self):$/;"	m	class:Spot
 main	main.py	/^def main():$/;"	f
 predict	mlModel/linear_regression.py	/^    def predict(self, new_x):$/;"	m	class:LinearRegressionModel
 print_configs	configs/aws_config_retriever.py	/^    def print_configs(self):$/;"	m	class:AWSConfigRetriever
 print_logs	logs/aws_log_retriever.py	/^    def print_logs(self):$/;"	m	class:AWSLogRetriever
+run	benchmarks/base_benchmark.py	/^    def run(self):$/;"	m	class:BaseBenchmark
+sample_invocation	benchmarks/base_benchmark.py	/^    def sample_invocation(self):$/;"	m	class:BaseBenchmark
 set_instance	invocation/config_updater.py	/^    def set_instance(self, ins):$/;"	m	class:ConfigUpdater
 set_mem_size	invocation/config_updater.py	/^    def set_mem_size(self, mem):$/;"	m	class:ConfigUpdater
 show_graph	mlModel/linear_regression.py	/^    def show_graph(self):$/;"	m	class:LinearRegressionModel
-supported_distributions	invocation/WorkloadChecker.py	/^supported_distributions = {'Poisson', 'Uniform'}$/;"	v
+supported_distributions	invocation/WorkloadChecker.py	/^supported_distributions = {"Poisson", "Uniform"}$/;"	v
 train_model	Spot.py	/^    def train_model(self):$/;"	m	class:Spot
 train_model	mlModel/linear_regression.py	/^    def train_model(self):$/;"	m	class:LinearRegressionModel

@@ -1,14 +1,12 @@
 from spot.prices.price_retriever import PriceRetriever
-import os
-import json
 import time as time
 from spot.db.db import DBClient
 
 
 class AWSPriceRetriever(PriceRetriever):
-    def __init__(self, url, port, region):
+    def __init__(self, db: DBClient, region):
         super().__init__()
-        self.DBClient = DBClient(url, port)
+        self.DBClient = db
         self.region = region
 
     def fetch_current_pricing(self) -> dict:

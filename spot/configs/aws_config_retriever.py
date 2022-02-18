@@ -2,15 +2,12 @@ import os
 import boto3
 import time as time
 from spot.db.db import DBClient
-from pymongo import MongoClient
 import datetime
 
 
 class AWSConfigRetriever:
-    def __init__(self, function_name, url, port):
-        self.url = url
-        self.port = port
-        self.DBClient = DBClient(self.url, self.port)
+    def __init__(self, function_name, db: DBClient):
+        self.DBClient = db
         self.function_name = function_name
 
     def get_latest_config(self):

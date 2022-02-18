@@ -6,8 +6,7 @@ import pymongo
 
 
 class DBClient:
-    # TODO: Can change creating mongoclient on constructor instead of in every function
-    def __init__(self, url, port):
+    def __init__(self, url="localhost", port="27017"):
         self.url = url
         self.port = port
         self.client = MongoClient(self.url, self.port)
@@ -66,3 +65,9 @@ class DBClient:
         function_db = self.client[function_name]
         collection = function_db[collection_name]
         return collection.find(select_fields, display_fields)
+
+    def execute_max_value(self, function_name : str, collection_name : str, field : str):
+        function_db = self.client[function_name]
+        collection = function_db[collection_name]
+        return collection.find().sort({field:-1}).limit(1)
+        
