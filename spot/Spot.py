@@ -11,6 +11,7 @@ from spot.invocation.config_updater import ConfigUpdater
 from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
 from spot.definitions import ROOT_DIR
+from spot.visualize.Plot import Plot
 
 
 class Spot:
@@ -25,7 +26,7 @@ class Spot:
 
         with open(config_file_path) as f:
             self.config = BenchmarkConfig(f)
-            with open(self.config["workload_path"], "w") as json_file:
+            with open(self.workload_file_path, "w") as json_file:
                 json.dump(self.config.workload, json_file, indent=4)
 
         try:
@@ -46,7 +47,7 @@ class Spot:
         self.function_invocator = AWSFunctionInvocator(
             self.workload_file_path,
             self.config.function_name,
-            self.config.inital_mem_size,
+            self.config.initial_mem_size,
             self.config.region,
         )
         self.config_retriever = AWSConfigRetriever(
@@ -73,8 +74,18 @@ class Spot:
             self.config.initial_mem_size, # TODO: Updated mem size
             self.config.region
         )
-        config_updater.set_mem_size(self.config.initial_mem_size) # TODO: Updated mem size
 
+
+        # Save model config suggestions
+        self.db.add_document_to_collection(
+            self.config.function_name, "suggested_configs", self.config
+        )
+
+        # Save model predictions to db for error calculation
+        # self.db.add_document_to_collection(self.config.function_name, "memory_predictions", memory_predictions)
+
+        plotter = Plot(self.config.function_name, self.db)
+        plotter.plot_config_vs_epoch()
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -83,7 +94,7 @@ class Spot:
 
         print("Sleeping to allow logs to propogate")
         # wait to allow logs to populate in aws
-        time.sleep(15)
+        time.sleep(15)  # TODO: Change this to waiting all threads to yield
 
         print("Retrieving new logs and save in db")
         # collect log data
@@ -108,6 +119,8 @@ class Spot:
     def train_model(self):
         # only train the model, if new logs are introduced
         if self.ml_model.fetch_data():
-            new_configs = self.ml_model.train_model()
-            for new_config in new_configs:
-                self.config[new_config] = new_configs[new_config]
+            new_configs, memory_predictions = self.ml_model.train_model()
+
+            # update config fields with new configs(currently only mem_size) TODO: Update memory config and other parameters
+            #for new_config in new_configs:
+            #    self.config[new_config] = new_configs[new_config]
