@@ -8,9 +8,10 @@ from spot.db.db import DBClient
 
 
 class Plot:
-    def __init__(self, function_name, DBClient):
+    def __init__(self, function_name, DBClient, folder_name):
         self.function_name = function_name
         self.DBClient = DBClient
+        self.folder_name = folder_name
 
     def __fetch_config_vs_epoch_data(self):
         # gets all past configs associated with the current function name
@@ -47,7 +48,7 @@ class Plot:
         timestamp = today.strftime("%Y-%m-%dT%H:%M:%S.%f+0000")
         plt.savefig(
             "spot/benchmarks/"
-            + self.function_name
+            + self.folder_name
             + "/"
             + self.function_name
             + "-"
