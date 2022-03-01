@@ -23,9 +23,9 @@ class Spot:
                 json.dump(self.config["workload"], json_file)
 
         try:
-            benchmark_dir = self.config["folder_name"]
+            self.benchmark_dir = self.config["folder_name"]
         except KeyError:
-            benchmark_dir = None
+            self.benchmark_dir = self.config["function_name"]
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(
@@ -52,7 +52,7 @@ class Spot:
             self.config["DB_URL"],
             self.config["DB_PORT"],
             self.config["last_log_timestamp"],
-            benchmark_dir,
+            self.benchmark_dir,
         )  # TODO: Parametrize ML model constructor with factory method
         self.DBClient = DBClient(self.config["DB_URL"], self.config["DB_PORT"])
 
@@ -76,7 +76,7 @@ class Spot:
         # Save model predictions to db for error calculation
         # self.DBClient.add_document_to_collection(self.config["function_name"], "memory_predictions", memory_predictions)
 
-        plotter = Plot(self.config["function_name"], self.DBClient)
+        plotter = Plot(self.config["function_name"], self.DBClient, self.benchmark_dir)
         plotter.plot_config_vs_epoch()
 
     def execute(self):
