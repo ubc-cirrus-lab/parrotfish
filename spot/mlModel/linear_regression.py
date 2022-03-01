@@ -5,8 +5,14 @@ import datetime
 import pickle
 import sys
 import copy
+
+from datetime import datetime
+
 from spot.db.db import DBClient
 from sklearn.linear_model import SGDRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from tests import config_tests
 
 
 class LinearRegressionModel:
@@ -31,6 +37,7 @@ class LinearRegressionModel:
             self.model = SGDRegressor(
                 warm_start=True
             )  # TODO: Check the accuracy of warm_start
+        self.pipeline = make_pipeline(StandardScaler(), self.model)
 
         self.df = pd.DataFrame(
             columns=[
@@ -44,29 +51,6 @@ class LinearRegressionModel:
         )
         self.vendor = vendor
 
-    """ 
-    Helper function, used for finding the corresponding configuration and pricing 
-    that was in effect when a log is produced on a serverless function trigger
-    """
-
-    def find_associated_index(self, list, field, left, right, target):
-        if left > right:
-            return -1
-
-        mid = int((right + left) / 2)
-        if list[mid][field] <= target:
-            if mid + 1 == len(list):
-                return mid
-            else:
-                if list[mid + 1][field] > target:
-                    return mid
-                else:
-                    return self.find_associated_index(
-                        list, field, mid + 1, right, target
-                    )
-        else:
-            return self.find_associated_index(list, field, left, mid - 1, target)
-
     """
     Fetches config, pricing and log data for the current function
     Associates config, pricing and log files by using timestamping comparison
@@ -74,65 +58,71 @@ class LinearRegressionModel:
     """
 
     def fetch_data(self):
-        # gets all past configs associated with the current function name
-        config_query_result = self.DBClient.execute_query(
-            self.function_name,
-            "config",
-            {},
-            {
-                "Runtime": 1,
-                "Timeout": 1,
-                "MemorySize": 1,
-                "Architectures": 1,
-                "LastModifiedInMs": 1,
-                "_id": 0,
-            },
-        )
-        configs = []
-        for config in config_query_result:
-            configs.append(config)
-
-        # get all prices for the current function's cloud vendor
-        pricing_query_result = self.DBClient.execute_query(
-            "pricing",
-            self.vendor,
-            {},
-            {
-                "request_price": 1,
-                "duration_price": 1,
-                "region": 1,
-                "timestamp": 1,
-                "_id": 0,
-            },
-        )
-        pricings = []
-        for pricing in pricing_query_result:
-            pricings.append(pricing)
-
         # get all logs for this function
         log_query_result = self.DBClient.execute_query(
             self.function_name,
             "logs",
             {"timestamp": {"$gt": 0}},
-            {"Billed Duration": 1, "Memory Size": 1, "timestamp": 1, "_id": 0},
+            {
+                "Billed Duration": 1,
+                "Memory Size": 1,
+                "timestamp": 1,
+                "_id": 0,
+                "ConfigId": 1,
+                "PriceId": 1,
+            },
         )
 
         # find the config and pricing to associate with for every log of this function
         new_log_count = 0
+        config_success = 0
         for log in log_query_result:
             new_log_count += 1
-            current_config = self.find_associated_index(
-                configs, "LastModifiedInMs", 0, len(configs) - 1, log["timestamp"]
+            # current_config = self.find_associated_index(
+            #     configs, "LastModifiedInMs", 0, len(configs) - 1, log["timestamp"]
+            # )
+            try:
+                configId = log["ConfigId"]
+            except KeyError:
+                # print("key error when trying to read config id")
+                continue
+
+            config_success += 1
+
+            try:
+                priceId = log["PriceId"]
+            except KeyError:
+                # print("key error when trying to read price id")
+                continue
+
+            function_db = self.DBClient.client[self.function_name]
+            collection = function_db["config"]
+            current_config = collection.find_one(
+                {"_id": configId},
+                {
+                    "Runtime": 1,
+                    "Timeout": 1,
+                    "MemorySize": 1,
+                    "Architectures": 1,
+                    "LastModifiedInMs": 1,
+                    "_id": 0,
+                },
             )
-            current_pricing = self.find_associated_index(
-                pricings, "timestamp", 0, len(pricings) - 1, log["timestamp"]
+            price_db = self.DBClient.client["pricing"]
+            collection = price_db[self.vendor]
+            current_pricing = collection.find_one(
+                {"_id": priceId},
+                {
+                    "request_price": 1,
+                    "duration_price": 1,
+                    "region": 1,
+                    "timestamp": 1,
+                    "_id": 0,
+                },
             )
 
             # reformat the dataframe
-            if current_config != -1 and current_pricing != -1:
-                current_config = copy.deepcopy(configs[current_config])
-                current_pricing = copy.deepcopy(pricings[current_pricing])
-
+            if current_config and current_pricing:
                 new_row = current_config
                 del new_row["LastModifiedInMs"]
                 new_row["MemorySize"] = log["Memory Size"]
@@ -143,7 +133,12 @@ class LinearRegressionModel:
                     * float(int(log["Memory Size"]) / 128)
                 )
 
-                self.df = self.df.append(new_row, ignore_index=True)
+                # self.df = self.df.append(new_row, ignore_index=True)
+                self.df = pd.concat(
+                    [self.df, pd.DataFrame.from_records([new_row])], ignore_index=True
+                )
+
+        print(f"read {new_log_count} logs from db, {config_success} with a config id")
 
         # Return true, if any new logs are introduced
         return True if new_log_count > 0 else False
@@ -164,7 +159,8 @@ class LinearRegressionModel:
         y = self.df["Cost"]
 
         # Create and train the model
-        self.model.fit(x.values, y.values)
+        # self.model.fit(x.values, y.values)
+        self.pipeline.fit(x.values, y.values)
         try:
             pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
         except:

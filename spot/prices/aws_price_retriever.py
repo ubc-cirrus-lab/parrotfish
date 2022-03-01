@@ -30,7 +30,7 @@ class AWSPriceRetriever(PriceRetriever):
         current_pricing["timestamp"] = int(time.time() * 100)
         current_pricing["region"] = self.region
 
-        self.DBClient.add_document_to_collection_if_not_exists(
+        priceId = self.DBClient.add_document_to_collection_if_not_exists(
             "pricing",
             "AWS",
             current_pricing,
@@ -40,7 +40,7 @@ class AWSPriceRetriever(PriceRetriever):
                 "region": self.region,
             },
         )
-        return current_pricing
+        return current_pricing, priceId
 
 
 """

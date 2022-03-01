@@ -22,7 +22,10 @@ class AWSConfigRetriever:
         timestamp = str((date - datetime.datetime(1970, 1, 1)).total_seconds() * 1000)
         config["LastModifiedInMs"] = int(timestamp[:-2])
         config["Architectures"] = config["Architectures"][0]
-        self.DBClient.add_new_config_if_changed(self.function_name, "config", config)
+        configId = self.DBClient.add_new_config_if_changed(
+            self.function_name, "config", config
+        )
+        return configId
 
     def print_configs(self):
         iterator = self.DBClient.get_all_collection_documents(

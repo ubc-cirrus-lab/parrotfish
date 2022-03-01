@@ -39,8 +39,22 @@ class DBClient:
     ):
         function_db = self.client[function_name]
         collection = function_db[collection_name]
-        if not collection.find_one(criteria):
-            collection.insert_one(document)
+        doc = collection.find_one(criteria)
+        if not doc:
+            doc = collection.insert_one(document)
+            docId = doc.inserted_id
+        else:
+            # if find a document with the same id then compare if all the criteria fields have the same value
+            docId = doc["_id"]
+            # TODO: remove update
+            # update feature only used because the old entries in db do not contain configId and priceId fields,
+            # should not need this for new entries
+            sameDoc = all(doc[field] == document[field] for field in criteria.keys())
+            if not sameDoc:
+                newvalues = {"$set": document}
+                collection.update_one(criteria, newvalues)
+                print("doc already exits but updated")
+        return docId
 
     def add_new_config_if_changed(self, function_name, collection_name, document):
         function_db = self.client[function_name]
@@ -58,7 +72,8 @@ class DBClient:
         del test["RevisionId"]
 
         if not latest_config == test:
-            collection.insert_one(document)
+            docId = collection.insert_one(document).inserted_id
+        return docId
 
     def execute_query(
         self, function_name, collection_name, select_fields, display_fields

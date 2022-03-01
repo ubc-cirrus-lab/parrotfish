@@ -98,15 +98,17 @@ class Spot:
 
     def invoke_function(self):
         # fetch configs and most up to date prices
-        self.config_retriever.get_latest_config()
-        self.price_retriever.fetch_current_pricing()
+        self.lastesConfigId = self.config_retriever.get_latest_config()
+        _, self.lastestPriceId = self.price_retriever.fetch_current_pricing()
 
         # invoke function
         self.function_invocator.invoke_all()
 
     def collect_data(self):
         # retrieve logs
-        self.config["last_log_timestamp"] = self.log_retriever.get_logs()
+        self.config["last_log_timestamp"] = self.log_retriever.get_logs(
+            self.lastesConfigId, self.lastestPriceId
+        )
 
     def train_model(self):
         # only train the model, if new logs are introduced
