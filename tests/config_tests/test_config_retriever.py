@@ -12,7 +12,8 @@ class TestConfigRetrieval(unittest.TestCase):
     def setUp(self) -> None:
         self.function = "AWSHelloWorld"
         self.timestamp = 0
-        self.configRetriever = AWSConfigRetriever(self.function, "localhost", 27017)
+        self.db = DBClient()
+        self.configRetriever = AWSConfigRetriever(self.function, self.db)
 
     @patch.object(
         spot.configs.aws_config_retriever.DBClient, "add_new_config_if_changed"

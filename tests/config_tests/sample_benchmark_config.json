@@ -1,0 +1,9 @@
+{
+    "function_name": "aws_func",
+    "initial_mem_size": 128,
+    "region": "us-west-1",
+    "vendor": "aws",
+    "workload": {
+        "wow": "woah"
+    }
+}
