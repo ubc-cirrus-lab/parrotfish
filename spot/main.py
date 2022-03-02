@@ -16,13 +16,16 @@ benchmarks = {
 
 def main():
     arguments = sys.argv[1:]
-    options = "hb:"
-    long_options = ["Help", "Benchmark"]
+    options = "hb:c:"
+    long_options = ["Help", "Benchmark", "Config"]
 
     try:
         args_vals, _ = getopt(arguments, options, long_options)
+        benchmark = None
+        config_file = "config_new.json"
 
         for arg, val in args_vals:
+            print(f"{arg}, {val}")
             if arg in ("-h", "--Help"):
                 print("Sorry, cannot help you. 🇨🇦")
 
@@ -30,7 +33,14 @@ def main():
                 print(val)
                 if val.lower() in benchmarks:
                     print(f"Running benchmark: {val}")
-                    benchmarks[val.lower()]()
+                    benchmark = benchmarks[val.lower()]
+
+            if arg in ("-c", "--Config"):
+                config_file = val.strip()
+        
+        if benchmark is not None:
+            benchmark(config=config_file)
+
     except error as err:
         print(str(err))
 

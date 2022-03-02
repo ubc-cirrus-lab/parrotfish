@@ -16,7 +16,7 @@ class TestConfigFile(unittest.TestCase):
         expected = """
         {
             "function_name": "aws_func2",
-            "initial_mem_size": 128,
+            "mem_size": 128,
             "region": "us-west-1",
             "vendor": "aws",
             "workload": {
@@ -30,5 +30,6 @@ class TestConfigFile(unittest.TestCase):
         with open(os.path.join(ROOT_DIR, "..", "tests/config_tests/sample_benchmark_config.json")) as f:
             self.config.deserialize(f)
 
-        assert self.config.function_name == "aws_func"
+        assert self.config.function_name == "AWSHelloWorld"
+        assert self.config.region == "us-east-2"
 

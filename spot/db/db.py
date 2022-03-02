@@ -6,7 +6,7 @@ import pymongo
 
 
 class DBClient:
-    def __init__(self, url="localhost", port="27017"):
+    def __init__(self, url="localhost", port=27017):
         self.url = url
         self.port = port
         self.client = MongoClient(self.url, self.port)
@@ -69,5 +69,5 @@ class DBClient:
     def execute_max_value(self, function_name : str, collection_name : str, field : str):
         function_db = self.client[function_name]
         collection = function_db[collection_name]
-        return collection.find().sort({field:-1}).limit(1)
+        return collection.find().sort(f"{field}", -1).limit(1)[0][field]
         

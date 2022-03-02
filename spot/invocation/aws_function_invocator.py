@@ -1,6 +1,6 @@
 import concurrent.futures
 import json
-import sys
+import os
 import time
 import threading
 import boto3
@@ -20,6 +20,7 @@ class AWSFunctionInvocator:
 
     def __init__(self, workload, function_name, mem_size, region):
         self.workload = self._read_workload(workload)
+        self.workload_path : str = os.path.dirname(workload)
         self.config = ConfigUpdater(function_name, mem_size, region)
         self.config.set_mem_size(mem_size)
         self.threads = []
@@ -39,8 +40,8 @@ class AWSFunctionInvocator:
         client = boto3.client("lambda")
 
         try:
-            f = open(payload_file, "r")
-        except IOException:
+            f = open(os.path.join(self.workload_path, payload_file), "r")
+        except IOError:
             f = None
             # raise PayloadFileNotFoundException
         payload = json.load(f) if f else None

@@ -15,17 +15,18 @@ from spot.visualize.Plot import Plot
 
 
 class Spot:
-    def __init__(self, config_file_path="spot/config.json"):
+    def __init__(self, config_file_path="config.json"):
         # Load configuration values from config.json
         self.config : BenchmarkConfig
         self.config_file_path : str = config_file_path
         self.path : str = os.path.dirname(self.config_file_path)
         self.workload_file_path = os.path.join(self.path, 'workload.json')
         self.db = DBClient()
-        self.last_log_timestamp = self.db.execute_max_value(self.config.function_name, "logs", "timestamp")
 
         with open(config_file_path) as f:
-            self.config = BenchmarkConfig(f)
+            print(config_file_path)
+            self.config = BenchmarkConfig()
+            self.config.deserialize(f)
             with open(self.workload_file_path, "w") as json_file:
                 json.dump(self.config.workload, json_file, indent=4)
 
@@ -33,6 +34,9 @@ class Spot:
             benchmark_dir = self.path
         except KeyError:
             benchmark_dir = None
+
+        self.last_log_timestamp = self.db.execute_max_value(self.config.function_name, "logs", "timestamp")
+        print(self.config.serialize())
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(
@@ -47,7 +51,7 @@ class Spot:
         self.function_invocator = AWSFunctionInvocator(
             self.workload_file_path,
             self.config.function_name,
-            self.config.initial_mem_size,
+            self.config.mem_size,
             self.config.region,
         )
         self.config_retriever = AWSConfigRetriever(
@@ -66,19 +70,19 @@ class Spot:
 
         # Save the updated configurations
         with open(self.config_file_path, "w") as f:
-            json.dump(self.config, f, indent=4)
+            f.write(self.config.serialize())
 
         # Update the memory config on AWS with the newly suggested memory size
         config_updater = ConfigUpdater(
             self.config.function_name,
-            self.config.initial_mem_size, # TODO: Updated mem size
+            self.config.mem_size,
             self.config.region
         )
 
 
         # Save model config suggestions
         self.db.add_document_to_collection(
-            self.config.function_name, "suggested_configs", self.config
+            self.config.function_name, "suggested_configs", self.config.get_dict()
         )
 
         # Save model predictions to db for error calculation
@@ -122,5 +126,5 @@ class Spot:
             new_configs, memory_predictions = self.ml_model.train_model()
 
             # update config fields with new configs(currently only mem_size) TODO: Update memory config and other parameters
-            #for new_config in new_configs:
-            #    self.config[new_config] = new_configs[new_config]
+            for new_config in new_configs:
+                self.config[new_config] = new_configs[new_config]

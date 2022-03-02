@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 import datetime
 import pickle
 import sys
@@ -18,10 +19,9 @@ class LinearRegressionModel:
 
         self.function_name = function_name
 
-        self.ml_model_file_path = (
-            "spot/benchmarks/"
-            + (benchmark_dir or self.function_name)
-            + "/linear_regression_model.pkl"
+        self.ml_model_file_path = os.path.join(
+            benchmark_dir,
+            "linear_regression_model.pkl",
         )
         try:
             self.model = pickle.load(open(self.ml_model_file_path, "rb"))
