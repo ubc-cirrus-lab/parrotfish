@@ -1,11 +1,6 @@
 {
     "function_name": "pyaes",
-    "folder_name": "aes",
-    "last_log_timestamp": 1644444006734,
     "vendor": "AWS",
-    "DB_URL": "localhost",
-    "DB_PORT": 27017,
-    "workload_path": "spot/benchmarks/aes/workload.json",
     "region": "us-east-2",
     "mem_size": 128,
     "workload": {
@@ -22,7 +17,7 @@
                     5,
                     10
                 ],
-                "payload": "spot/benchmarks/aes/payload.json",
+                "payload": "payload.json",
                 "host": "x8siu0es68.execute-api.us-east-2.amazonaws.com",
                 "stage": "default",
                 "resource": "/pyaes?format=json"

@@ -22,7 +22,7 @@ def main():
     try:
         args_vals, _ = getopt(arguments, options, long_options)
         benchmark = None
-        config_file = "config_new.json"
+        config_file = "config.json"
 
         for arg, val in args_vals:
             print(f"{arg}, {val}")

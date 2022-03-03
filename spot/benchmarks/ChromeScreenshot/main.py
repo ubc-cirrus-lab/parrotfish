@@ -1,6 +1,6 @@
-from spot.Spot import Spot
+from spot.benchmarks.base_benchmark import BaseBenchmark
 
-def executeChromeScreenshot():
-    file_path = "spot/benchmarks/ChromeScreenshot/config.json"
-    benchmark = Spot(file_path)
-    benchmark.execute()
+class executeChromeScreenshot(BaseBenchmark):
+    def __init__(self, config="config.json"):
+        super().__init__(__file__, config=config)
+        self.run()

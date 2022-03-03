@@ -1,8 +1,6 @@
-from spot.Spot import Spot
-import os
+from spot.benchmarks.base_benchmark import BaseBenchmark
 
-
-def executeImageProcessing():
-    file_path = os.path.join(os.path.dirname(__file__), "config.json")
-    benchmark = Spot(file_path)
-    benchmark.execute()
+class executeImageProcessing(BaseBenchmark):
+    def __init__(self, config="config.json"):
+        super().__init__(__file__, config=config)
+        self.run()

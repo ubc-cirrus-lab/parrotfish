@@ -1,11 +1,6 @@
 {
     "function_name": "image_processing",
-    "folder_name": "img_proc",
-    "last_log_timestamp": 0,
     "vendor": "AWS",
-    "DB_URL": "localhost",
-    "DB_PORT": 27017,
-    "workload_path": "spot/benchmarks/img_proc/workload.json",
     "region": "us-east-2",
     "mem_size": 512,
     "workload": {
@@ -22,8 +17,8 @@
                     1,
                     5
                 ],
-                "payload": "spot/benchmarks/img_proc/payload.json",
-                "host": "https://ts7p12m27c.execute-api.us-east-2.amazonaws.com",
+                "payload": "payload.json",
+                "host": "ts7p12m27c.execute-api.us-east-2.amazonaws.com",
                 "stage": "default",
                 "resource": "/image_processing?format=json"
             }
