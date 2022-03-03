@@ -47,7 +47,12 @@ class Plot:
         # Save the plot with current timestamp
         today = datetime.datetime.now()
         timestamp = today.strftime("%Y-%m-%dT%H:%M:%S.%f+0000")
-        plt.savefig(os.path.join(self.directory,f"{self.function_name}-config_vs_epoch_plot-{timestamp}.png"))
+        plt.savefig(
+            os.path.join(
+                self.directory,
+                f"{self.function_name}-config_vs_epoch_plot-{timestamp}.png",
+            )
+        )
 
     """ def plot_error_vs_epoch(self):   
                 plt.title("Error vs Time for " + self.function_name)
