@@ -33,7 +33,7 @@ class Spot:
         try:
             benchmark_dir = self.path
         except KeyError:
-            benchmark_dir = None
+            self.benchmark_dir = self.config["function_name"]
 
         self.last_log_timestamp = self.db.execute_max_value(self.config.function_name, "logs", "timestamp")
         print(self.config.serialize())
