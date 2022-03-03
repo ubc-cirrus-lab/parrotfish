@@ -20,7 +20,7 @@ class AWSFunctionInvocator:
 
     def __init__(self, workload, function_name, mem_size, region):
         self.workload = self._read_workload(workload)
-        self.workload_path : str = os.path.dirname(workload)
+        self.workload_path: str = os.path.dirname(workload)
         self.config = ConfigUpdater(function_name, mem_size, region)
         self.config.set_mem_size(mem_size)
         self.threads = []

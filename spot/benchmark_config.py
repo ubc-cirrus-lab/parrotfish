@@ -1,12 +1,13 @@
 import json
 
+
 class BenchmarkConfig:
     def __init__(self, f=None):
-        self.function_name : str
-        self.vendor : str
-        self.region : str
-        self.mem_size : int
-        self.workload : dict
+        self.function_name: str
+        self.vendor: str
+        self.region: str
+        self.mem_size: int
+        self.workload: dict
 
         if f is not None:
             self.deserialize(f)
@@ -17,7 +18,14 @@ class BenchmarkConfig:
     def get_dict(self):
         return self.__dict__
 
-    def _set_properties(self, function_name: str, vendor: str, region : str, mem_size: int, workload: dict):
+    def _set_properties(
+        self,
+        function_name: str,
+        vendor: str,
+        region: str,
+        mem_size: int,
+        workload: dict,
+    ):
         self.function_name = function_name
         self.vendor = vendor
         self.region = region

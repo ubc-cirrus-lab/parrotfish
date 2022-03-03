@@ -2,8 +2,8 @@ import unittest
 import bson
 from spot.db.db import DBClient
 
+
 class TestDB(unittest.TestCase):
-    
     def setUp(self) -> None:
         self.db = DBClient()
 

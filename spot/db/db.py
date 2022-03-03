@@ -66,8 +66,7 @@ class DBClient:
         collection = function_db[collection_name]
         return collection.find(select_fields, display_fields)
 
-    def execute_max_value(self, function_name : str, collection_name : str, field : str):
+    def execute_max_value(self, function_name: str, collection_name: str, field: str):
         function_db = self.client[function_name]
         collection = function_db[collection_name]
         return collection.find().sort(f"{field}", -1).limit(1)[0][field]
-        

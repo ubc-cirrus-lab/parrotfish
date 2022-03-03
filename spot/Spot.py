@@ -17,10 +17,10 @@ from spot.visualize.Plot import Plot
 class Spot:
     def __init__(self, config_file_path="config.json"):
         # Load configuration values from config.json
-        self.config : BenchmarkConfig
-        self.config_file_path : str = config_file_path
-        self.path : str = os.path.dirname(self.config_file_path)
-        self.workload_file_path = os.path.join(self.path, 'workload.json')
+        self.config: BenchmarkConfig
+        self.config_file_path: str = config_file_path
+        self.path: str = os.path.dirname(self.config_file_path)
+        self.workload_file_path = os.path.join(self.path, "workload.json")
         self.db = DBClient()
 
         with open(config_file_path) as f:
@@ -35,14 +35,13 @@ class Spot:
         except KeyError:
             self.benchmark_dir = self.config["function_name"]
 
-        self.last_log_timestamp = self.db.execute_max_value(self.config.function_name, "logs", "timestamp")
+        self.last_log_timestamp = self.db.execute_max_value(
+            self.config.function_name, "logs", "timestamp"
+        )
         print(self.config.serialize())
 
         # Instantiate SPOT system components
-        self.price_retriever = AWSPriceRetriever(
-            self.db,
-            self.config.region
-        )
+        self.price_retriever = AWSPriceRetriever(self.db, self.config.region)
         self.log_retriever = AWSLogRetriever(
             self.config.function_name,
             self.db,
@@ -54,10 +53,7 @@ class Spot:
             self.config.mem_size,
             self.config.region,
         )
-        self.config_retriever = AWSConfigRetriever(
-            self.config.function_name,
-            self.db
-        )
+        self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
         self.ml_model = LinearRegressionModel(
             self.config.function_name,
             self.config.vendor,
@@ -74,11 +70,8 @@ class Spot:
 
         # Update the memory config on AWS with the newly suggested memory size
         config_updater = ConfigUpdater(
-            self.config.function_name,
-            self.config.mem_size,
-            self.config.region
+            self.config.function_name, self.config.mem_size, self.config.region
         )
-
 
         # Save model config suggestions
         self.db.add_document_to_collection(

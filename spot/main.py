@@ -37,7 +37,7 @@ def main():
 
             if arg in ("-c", "--Config"):
                 config_file = val.strip()
-        
+
         if benchmark is not None:
             benchmark(config=config_file)
 

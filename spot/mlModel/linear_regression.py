@@ -12,7 +12,7 @@ from sklearn.linear_model import SGDRegressor
 
 class LinearRegressionModel:
     def __init__(
-        self, function_name, vendor, db : DBClient, last_log_timestamp, benchmark_dir
+        self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir
     ):
         self.DBClient = db
         self.last_log_timestamp = last_log_timestamp
