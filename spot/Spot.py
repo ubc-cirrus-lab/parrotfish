@@ -30,10 +30,7 @@ class Spot:
             with open(self.workload_file_path, "w") as json_file:
                 json.dump(self.config.workload, json_file, indent=4)
 
-        try:
-            benchmark_dir = self.path
-        except KeyError:
-            self.benchmark_dir = self.config["function_name"]
+        benchmark_dir = self.path
 
         self.last_log_timestamp = self.db.execute_max_value(
             self.config.function_name, "logs", "timestamp"
@@ -81,7 +78,7 @@ class Spot:
         # Save model predictions to db for error calculation
         # self.db.add_document_to_collection(self.config.function_name, "memory_predictions", memory_predictions)
 
-        plotter = Plot(self.config.function_name, self.db)
+        plotter = Plot(self.config.function_name, self.db, directory=self.path)
         plotter.plot_config_vs_epoch()
 
     def execute(self):

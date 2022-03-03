@@ -33,7 +33,11 @@ class BenchmarkConfig:
         self.workload = workload
 
     def deserialize(self, f):
-        j_dict = json.load(f)
+        try:
+            j_dict = json.load(f)
+        except:
+            print("Failed to deserialize the given file")
+            raise IOError
         self._set_properties(**j_dict)
 
     def serialize(self):
