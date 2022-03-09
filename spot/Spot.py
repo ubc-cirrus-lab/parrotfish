@@ -15,7 +15,7 @@ from spot.visualize.Plot import Plot
 
 
 class Spot:
-    def __init__(self, config_dir : str, model: str):
+    def __init__(self, config_dir: str, model: str):
         # Load configuration values from config.json
         self.config: BenchmarkConfig
         self.path: str = config_dir
