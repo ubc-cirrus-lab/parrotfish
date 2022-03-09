@@ -1,0 +1,21 @@
+{
+    "blocking_cli": false,
+    "instances": {
+        "instance1": {
+            "activity_window": [
+                0,
+                1
+            ],
+            "application": "AWSHelloWorld",
+            "distribution": "Poisson",
+            "host": "x8siu0es68.execute-api.us-east-2.amazonaws.com",
+            "payload": "payload.json",
+            "rate": 10,
+            "resource": "AWSHelloWorld",
+            "stage": "default"
+        }
+    },
+    "random_seed": 100,
+    "test_duration_in_seconds": 15,
+    "test_name": "IntegrationTest1"
+}

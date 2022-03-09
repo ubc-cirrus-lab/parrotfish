@@ -15,16 +15,15 @@ from spot.visualize.Plot import Plot
 
 
 class Spot:
-    def __init__(self, config_file_path="config.json"):
+    def __init__(self, config_dir : str, model: str):
         # Load configuration values from config.json
         self.config: BenchmarkConfig
-        self.config_file_path: str = config_file_path
-        self.path: str = os.path.dirname(self.config_file_path)
+        self.path: str = config_dir
         self.workload_file_path = os.path.join(self.path, "workload.json")
+        self.config_file_path = os.path.join(self.path, "config.json")
         self.db = DBClient()
 
-        with open(config_file_path) as f:
-            print(config_file_path)
+        with open(self.config_file_path) as f:
             self.config = BenchmarkConfig()
             self.config.deserialize(f)
             with open(self.workload_file_path, "w") as json_file:
@@ -84,7 +83,7 @@ class Spot:
     def execute(self):
         print("Invoking function:", self.config.function_name)
         # invoke the indicated function
-        self.invoke_function()
+        self.invoke()
 
         print("Sleeping to allow logs to propogate")
         # wait to allow logs to populate in aws
@@ -98,7 +97,7 @@ class Spot:
         # train ML model accordingly
         self.train_model()
 
-    def invoke_function(self):
+    def invoke(self):
         # fetch configs and most up to date prices
         self.config_retriever.get_latest_config()
         self.price_retriever.fetch_current_pricing()
