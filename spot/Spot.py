@@ -29,12 +29,11 @@ class Spot:
             with open(self.workload_file_path, "w") as json_file:
                 json.dump(self.config.workload, json_file, indent=4)
 
-        benchmark_dir = self.path
+        self.benchmark_dir = self.path
 
         self.last_log_timestamp = self.db.execute_max_value(
             self.config.function_name, "logs", "timestamp"
         )
-        print(self.config.serialize())
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.db, self.config.region)
@@ -50,15 +49,9 @@ class Spot:
             self.config.region,
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
-        self.ml_model = LinearRegressionModel(
-            self.config.function_name,
-            self.config.vendor,
-            self.db,
-            self.last_log_timestamp,
-            benchmark_dir,
-        )  # TODO: Parametrize ML model constructor with factory method
-
-    def __del__(self):
+        self.ml_model = self.select_model(model)
+    # TODO: Move this to recommendation engine
+    def update_config(self):
 
         # Save the updated configurations
         with open(self.config_file_path, "w") as f:
@@ -77,8 +70,8 @@ class Spot:
         # Save model predictions to db for error calculation
         # self.db.add_document_to_collection(self.config.function_name, "memory_predictions", memory_predictions)
 
-        plotter = Plot(self.config.function_name, self.db, directory=self.path)
-        plotter.plot_config_vs_epoch()
+        #plotter = Plot(self.config.function_name, self.db, directory=self.path)
+        #plotter.plot_config_vs_epoch()
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -117,3 +110,13 @@ class Spot:
             # update config fields with new configs(currently only mem_size) TODO: Update memory config and other parameters
             for new_config in new_configs:
                 self.config[new_config] = new_configs[new_config]
+
+    def select_model(self, model):
+        if(model == "LinearRegression"):
+            return LinearRegressionModel(
+            self.config.function_name,
+            self.config.vendor,
+            self.db,
+            self.last_log_timestamp,
+            self.benchmark_dir,
+        )
