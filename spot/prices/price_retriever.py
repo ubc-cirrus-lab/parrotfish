@@ -3,10 +3,10 @@ import re
 import os
 import json
 import datetime
-from spot.definitions import DATA_DIR
+from spot.definitions import ROOT_DIR
 
 API_URL = "https://pricing.api.infracost.io/graphql"
-API_KEY_DIR = "spot/prices/credentials.yml"
+API_KEY_DIR = os.path.join(ROOT_DIR, "prices/credentials.yml")
 CACHE_INVALID_DAYS = 1.0
 
 

@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 import datetime
 import pickle
 import sys
@@ -11,19 +12,16 @@ from sklearn.linear_model import SGDRegressor
 
 class LinearRegressionModel:
     def __init__(
-        self, function_name, vendor, url, port, last_log_timestamp, benchmark_dir
+        self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir
     ):
-        self.url = url
-        self.port = port
-        self.DBClient = DBClient(self.url, self.port)
+        self.DBClient = db
         self.last_log_timestamp = last_log_timestamp
 
         self.function_name = function_name
 
-        self.ml_model_file_path = (
-            "spot/benchmarks/"
-            + (benchmark_dir or self.function_name)
-            + "/linear_regression_model.pkl"
+        self.ml_model_file_path = os.path.join(
+            benchmark_dir,
+            "linear_regression_model.pkl",
         )
         try:
             self.model = pickle.load(open(self.ml_model_file_path, "rb"))
