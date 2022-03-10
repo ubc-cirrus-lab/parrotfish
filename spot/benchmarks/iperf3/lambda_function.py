@@ -15,19 +15,22 @@ def network_test(server_ip, server_port, test_time, reverse):
     if reverse:
         reverse_option = "R"
 
-    sp = subprocess.Popen(["./iperf3",
-                           "-c",
-                           server_ip,
-                           "-p",
-                           str(server_port),
-                           reverse_option,
-                           "-t",
-                           test_time,
-                           "-Z",
-                           "-J"
-                           ],
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
+    sp = subprocess.Popen(
+        [
+            "./iperf3",
+            "-c",
+            server_ip,
+            "-p",
+            str(server_port),
+            reverse_option,
+            "-t",
+            test_time,
+            "-Z",
+            "-J",
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
 
     out, err = sp.communicate()
 
@@ -43,11 +46,11 @@ def network_test(server_ip, server_port, test_time, reverse):
 
 
 def lambda_handler(event, context):
-    server_ip = event['server_ip']
-    server_port = event['server_port']
-    test_time = event['test_time']
-    reverse = event['reverse']
+    server_ip = event["server_ip"]
+    server_port = event["server_port"]
+    test_time = event["test_time"]
+    reverse = event["reverse"]
 
     send_mbit_s, recv_mbit_s = network_test(server_ip, server_port, test_time, reverse)
 
-    return {'send_mbit_s': send_mbit_s, 'recv_mbit_s': recv_mbit_s}
+    return {"send_mbit_s": send_mbit_s, "recv_mbit_s": recv_mbit_s}
