@@ -1,7 +1,6 @@
 import unittest
 import json
 
-from black import assert_equivalent
 import spot
 
 from unittest.mock import patch, call
