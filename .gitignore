@@ -6,6 +6,9 @@ spot/invocation/GenConfigs.py
 *.pkl
 *.out
 
+# exlude plots
+*.png
+
 #vim
 *.swp
 tags

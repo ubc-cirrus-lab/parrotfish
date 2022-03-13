@@ -2,11 +2,12 @@ import pandas as pd
 import copy
 from spot.db.db import DBClient
 
+
 class MlModelBaseClass:
     def __init__(self, function_name, vendor, db: DBClient, last_log_timestamp):
         self._DBClient = db
         self._last_log_timestamp = last_log_timestamp
-        self._function_name = function_name # TODO: folder name update
+        self._function_name = function_name  # TODO: folder name update
         self._df = pd.DataFrame(
             columns=[
                 "Runtime",
@@ -30,6 +31,7 @@ class MlModelBaseClass:
     that was in effect when a log is produced on a serverless function trigger
     Runtime: O(log n)
     """
+
     def _find_associated_index(self, list, field, left, right, target):
         if left > right:
             return -1
@@ -63,12 +65,10 @@ class MlModelBaseClass:
                 "_id": 0,
             },
         )
-        self._configs = []
-        for config in config_query_result:
-            self._configs.append(config)
+        self._configs = [config for config in config_query_result]
 
     def _fetch_pricings(self):
-         # get all prices for the current function's cloud vendor
+        # get all prices for the current function's cloud vendor
         pricing_query_result = self._DBClient.execute_query(
             "pricing",
             self._vendor,
@@ -90,25 +90,36 @@ class MlModelBaseClass:
         self._log_query_result = self._DBClient.execute_query(
             self._function_name,
             "logs",
-            {"timestamp": {"$gt": self._last_log_timestamp}}, # To process only unprocessed logs(aka iterative training)
+            {
+                "timestamp": {"$gt": self._last_log_timestamp}
+            },  # To process only unprocessed logs(aka iterative training)
             {"Billed Duration": 1, "Memory Size": 1, "timestamp": 1, "_id": 0},
         )
-    
+
     """
     Find the config and pricing to associate with for every log of this function
     TODO: Rewrite reformatting section
     """
+
     def _associate_logs_with_config_and_pricing(self):
         for log in self._log_query_result:
             config_document_index = self._find_associated_index(
-                self._configs, "LastModifiedInMs", 0, len(self._configs) - 1, log["timestamp"]
+                self._configs,
+                "LastModifiedInMs",
+                0,
+                len(self._configs) - 1,
+                log["timestamp"],
             )
             pricing_document_index = self._find_associated_index(
-                self._pricings, "timestamp", 0, len(self._pricings) - 1, log["timestamp"]
+                self._pricings,
+                "timestamp",
+                0,
+                len(self._pricings) - 1,
+                log["timestamp"],
             )
 
             # reformat the dataframe
-            if current_config != -1 and current_pricing != -1:
+            if config_document_index != -1 and pricing_document_index != -1:
                 current_config = copy.deepcopy(self._configs[config_document_index])
                 current_pricing = copy.deepcopy(self._pricings[pricing_document_index])
 
@@ -132,8 +143,10 @@ class MlModelBaseClass:
     Associates config, pricing and log files by using timestamping comparison
     Fills dataframe via reformatting the fetched data
     """
+
     def fetch_data(self):
         self._fetch_configs()
         self._fetch_pricings()
         self._fetch_logs()
         self._associate_logs_with_config_and_pricing()
+        return self._log_query_result != 0

@@ -5,8 +5,11 @@ import os
 import datetime
 import pickle
 import sys
+
 from spot.db.db import DBClient
 from sklearn.linear_model import SGDRegressor
+from sklearn.model_selection import train_test_split 
+
 from spot.mlModel.ml_model_base_class import MlModelBaseClass
 
 
@@ -15,10 +18,12 @@ class LinearRegressionModel(MlModelBaseClass):
         super().__init__(function_name, vendor, db, last_log_timestamp)
         self._benchmark_dir = benchmark_dir
         self._ml_model_file_path = os.path.join(self._benchmark_dir, "linear_regression_model.pkl")
-        try:
-            self._model = pickle.load(open(self._ml_model_file_path, "rb"))
-        except:
-            self._model = SGDRegressor(warm_start=True)
+        # try:
+        #     self._model = pickle.load(open(self._ml_model_file_path, "rb"))
+        # except:
+        #     self._model = SGDRegressor(warm_start=True)
+        
+        self._model = SGDRegressor(warm_start=True)
 
     def _preprocess(self):
         # Transform numerical columns to categorical
@@ -33,12 +38,33 @@ class LinearRegressionModel(MlModelBaseClass):
 
         # Create X matrix and Y vector for ML training
         self._x = self._df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        # self._x = self._df["MemorySize"]
         self._y = self._df["Cost"]
 
     def train_model(self):
         self._preprocess()
-        self._model.fit(self._x.values, self._y.values)
+        X = self._x.values
+        y = self._y.values
+
+        X_mem = self._x["MemorySize"].values
+        X_labels = np.unique(X_mem)
+        mmap = {}
+        for x in X_labels:
+            idx = np.where(X_mem==x)
+            mmap[x] = np.median(y[idx])
+        X = X_labels.reshape(-1, 1)
+        y = np.array(list(mmap.values()))
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+        self._model.fit(X_train, y_train)
+        test_err = self._model.score(X_test, y_test)
+        print(f"model trained with testing error {test_err}")
         self._save_updated_model()
+        
+
+        plt.clf()
+        plt.scatter(X, y, color='red')
+        # plt.plot(X, self._model.predict(X), color='blue')
+        plt.savefig("./linear.png")
 
     def _save_updated_model(self):
         try:
@@ -83,7 +109,7 @@ class LinearRegressionModel(MlModelBaseClass):
     Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
     """
 
-    def show_graph(self):
+    def _plot_memory_size_vs_cost(self):
         # Graph Setup
         plt.title("MemorySize vs Cost Graph for " + self._function_name)
         plt.xlabel("Memory(mB)", fontsize=7)
