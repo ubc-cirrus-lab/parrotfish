@@ -1,6 +1,7 @@
 import json
 import time as time
 import os
+from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
@@ -34,6 +35,7 @@ class Spot:
         self.last_log_timestamp = self.db.execute_max_value(
             self.config.function_name, "logs", "timestamp"
         )
+        self.last_log_timestamp = 0
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.db, self.config.region)
@@ -70,8 +72,8 @@ class Spot:
         # Save model predictions to db for error calculation
         # self.db.add_document_to_collection(self.config.function_name, "memory_predictions", memory_predictions)
 
-        #plotter = Plot(self.config.function_name, self.db, directory=self.path)
-        #plotter.plot_config_vs_epoch()
+        # plotter = Plot(self.config.function_name, self.db, directory=self.path)
+        # plotter.plot_config_vs_epoch()
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -103,20 +105,23 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs()
 
     def train_model(self):
-        # only train the model, if new logs are introduced
-        if self.ml_model.fetch_data():
-            new_configs, memory_predictions = self.ml_model.train_model()
-
-            # update config fields with new configs(currently only mem_size) TODO: Update memory config and other parameters
-            for new_config in new_configs:
-                self.config[new_config] = new_configs[new_config]
+        self.ml_model.fetch_data()
+        self.ml_model.train_model()
 
     def select_model(self, model):
-        if(model == "LinearRegression"):
+        if model == "LinearRegression":
             return LinearRegressionModel(
-            self.config.function_name,
-            self.config.vendor,
-            self.db,
-            self.last_log_timestamp,
-            self.benchmark_dir,
-        )
+                self.config.function_name,
+                self.config.vendor,
+                self.db,
+                self.last_log_timestamp,
+                self.benchmark_dir,
+            )
+        if model == "polynomial":
+            return PolynomialRegressionModel(
+                self.config.function_name,
+                self.config.vendor,
+                self.db,
+                self.last_log_timestamp,
+                self.benchmark_dir,
+            )
