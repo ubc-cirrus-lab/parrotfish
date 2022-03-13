@@ -77,6 +77,7 @@ class AWSFunctionInvocator:
         return True
 
     def invoke_all(self, mem=-1):
+        self.threads = []
         for (instance, instance_times) in self.all_events.items():
             self.config.set_instance(
                 self.workload["instances"][instance]["application"]
@@ -90,3 +91,13 @@ class AWSFunctionInvocator:
             thread.join()
         for future in self.futures:
             res = future.result()
+
+    # Runs the workload with different configs to profile the serverless function
+    def profile(self):
+        SMALLEST_MEM_SIZE = 128
+        LARGEST_MEM_SIZE = 10240
+        mem_size = SMALLEST_MEM_SIZE
+        while mem_size <= LARGEST_MEM_SIZE:
+            print("invoking: ", mem_size)
+            self.invoke_all(mem_size)
+            mem_size *= 2

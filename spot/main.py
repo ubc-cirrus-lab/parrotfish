@@ -65,7 +65,7 @@ def main():
             if args.recommend:
                 pass  # TODO: Recommend something if flag is set
             if args.profile:
-                pass  # TODO: Run multiple configurations if flag is set
+                function.profile()
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"

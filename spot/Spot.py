@@ -125,3 +125,5 @@ class Spot:
                 self.last_log_timestamp,
                 self.benchmark_dir,
             )
+    def profile(self):
+        self.function_invocator.profile()
