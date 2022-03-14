@@ -1,6 +1,7 @@
 import json
 import time as time
 import os
+import sys
 
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
@@ -31,9 +32,17 @@ class Spot:
 
         benchmark_dir = self.path
 
-        self.last_log_timestamp = self.db.execute_max_value(
-            self.config.function_name, "logs", "timestamp"
-        )
+        try:
+            self.last_log_timestamp = self.db.execute_max_value(
+                self.config.function_name, "logs", "timestamp"
+            )
+        except:
+            print(
+                sys.exc_info()[0],
+                "occured. No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
+            )
+            self.last_log_timestamp = 0
+
         print(self.config.serialize())
 
         # Instantiate SPOT system components
