@@ -37,7 +37,10 @@ class Spot:
                 self.config.function_name, "logs", "timestamp"
             )
         except:
-            print(sys.exc_info()[0], "occured. No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.")
+            print(
+                sys.exc_info()[0],
+                "occured. No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
+            )
             self.last_log_timestamp = 0
 
         print(self.config.serialize())
