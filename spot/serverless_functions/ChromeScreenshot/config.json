@@ -1,6 +1,6 @@
 {
     "function_name": "screenshot-service-dev-capture",
-    "mem_size": 128,
+    "mem_size": 256,
     "region": "us-east-2",
     "vendor": "AWS",
     "workload": {

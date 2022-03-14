@@ -4,19 +4,27 @@ import os
 
 from spot.invocation.config_updater import ConfigUpdater
 from spot.visualize.Plot import Plot
+from spot.constants import *
 
 class RecommendationEngine:
-    def __init__(self, config_file_path, config, model, db):
+    def __init__(self, config_file_path, config, model, db, benchmark_dir):
         self.config_file_path = config_file_path
         self._model = model
         self.new_config = config
         self.db = db
+        self.plotter = Plot(self.new_config.function_name, self.db, benchmark_dir)
+        self.x_min = None
+        self.y_min = None
+
 
     def recommend(self):
         """get optimal mem config from the model"""
-        x_min, y_min = self._model.get_optimal_config()
-        print("Best memory config: ", x_min, "  ", "Cost: ", y_min)
-        return x_min
+        self.x_min, self.y_min = self._model.get_optimal_config()
+        print("Best memory config: ", self.x_min, "  ", "Cost: ", self.y_min)
+        return self.x_min
+        
+    def get_pred_cost(self):
+        return self.y_min
 
     def update_config(self):
 
@@ -61,7 +69,9 @@ class RecommendationEngine:
         #plot
 
     def plot_config_vs_epoch(self):
-        plotter = Plot(self.new_config.function_name, self.db, os.path.dirname(os.path.realpath(__file__)))
-        plotter.plot_config_vs_epoch()
+        self.plotter.plot_config_vs_epoch()
+
+    def plot_error_vs_epoch(self):
+        self.plotter.plot_error_vs_epoch()
 
     

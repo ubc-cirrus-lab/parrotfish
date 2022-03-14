@@ -1,7 +1,8 @@
 import pandas as pd
 import copy
-from spot.db.db import DBClient
 
+from spot.db.db import DBClient
+from spot.constants import *
 
 class MlModelBaseClass:
     def __init__(self, function_name, vendor, db: DBClient, last_log_timestamp):
@@ -17,6 +18,14 @@ class MlModelBaseClass:
                 "Region",
                 "Cost",
             ]
+            # columns=[
+            #     RUNTIME,
+            #     TIMEOUT,
+            #     MEM_SIZE,
+            #     ARCH,
+            #     REGION,
+            #     COST
+            # ]
         )
         self._vendor = vendor
         self._x = None
@@ -91,7 +100,7 @@ class MlModelBaseClass:
             self._function_name,
             "logs",
             {
-                "timestamp": {"$gt": self._last_log_timestamp}
+                "timestamp": {"$gt": 0}
             },  # To process only unprocessed logs(aka iterative training)
             {"Billed Duration": 1, "Memory Size": 1, "timestamp": 1, "_id": 0},
         )
@@ -144,12 +153,15 @@ class MlModelBaseClass:
     Fills dataframe via reformatting the fetched data
     """
 
-    def fetch_data(self):
+    def fetch_data(self, log_cnt=None) -> None:
         self._fetch_configs()
         self._fetch_pricings()
-        self._fetch_logs()
+        self._get_top_logs(log_cnt) if log_cnt else self._fetch_logs()
         self._associate_logs_with_config_and_pricing()
-        return self._log_query_result != 0
+        # return self._log_query_result != 0
 
     def get_optimal_config(self):
         pass
+
+    def _get_top_logs(self, log_cnt: int) -> None:
+        self._log_query_result = self._DBClient.get_top_docs(self._function_name, "logs", log_cnt)

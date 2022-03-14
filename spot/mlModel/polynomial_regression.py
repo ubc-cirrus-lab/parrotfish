@@ -38,8 +38,11 @@ class PolynomialRegressionModel(MlModelBaseClass):
         for x in X_labels:
             idx = np.where(X_mem == x)
             mmap[x] = np.median(y[idx])
+        
         self._x = X_labels
         self._y = np.array(list(mmap.values()))
+        print(self._x)
+        print(self._y)
 
     def _save_model(self):
         try:
@@ -53,6 +56,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         self._preprocess()
         self._model = np.polyfit(self._x, self._y, 4)
         self._save_model()
+        self.plot_memory_size_vs_cost()
 
     """
     Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
@@ -125,7 +129,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
     # Compute global minima including range boundaries
     def get_optimal_config(self):
         c = np.poly1d(self._model)
-        bounds = [128, 10280]
+        bounds = [256, 10280]
 
         crit = c.deriv().r
         r_crit = crit[crit.imag == 0].real

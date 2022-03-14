@@ -4,6 +4,7 @@ import time as time
 import os
 from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 import numpy as np
+from datetime import datetime
 
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
@@ -16,6 +17,7 @@ from spot.benchmark_config import BenchmarkConfig
 from spot.definitions import ROOT_DIR
 from spot.visualize.Plot import Plot
 from spot.recommendation_engine.recommendation_engine import RecommendationEngine
+from spot.constants import *
 
 
 class Spot:
@@ -35,10 +37,15 @@ class Spot:
 
         self.benchmark_dir = self.path
 
-        self.last_log_timestamp = self.db.execute_max_value(
-            self.config.function_name, "logs", "timestamp"
-        )
-        self.last_log_timestamp = 0
+        try:
+            self.last_log_timestamp = self.db.execute_max_value(
+                self.config.function_name, "logs", "timestamp"
+            )
+        except:
+            self.last_log_timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
+
+        # Create function db if not exists
+        self.db.create_function_db(self.config.function_name)
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.db, self.config.region)
@@ -55,9 +62,7 @@ class Spot:
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
         self.ml_model = self.select_model(model)
-        self.recommendation_engine = RecommendationEngine(
-            self.config_file_path, self.config, self.ml_model, self.db
-        )
+        self.recommendation_engine = RecommendationEngine(self.config_file_path, self.config, self.ml_model, self.db, self.benchmark_dir)
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -110,8 +115,18 @@ class Spot:
                 self.benchmark_dir,
             )
 
+    # Runs the workload with different configs to profile the serverless function
     def profile(self):
-        self.function_invocator.profile()
+        SMALLEST_MEM_SIZE = 256
+        LARGEST_MEM_SIZE = 10240
+        mem_size = SMALLEST_MEM_SIZE
+        while mem_size <= LARGEST_MEM_SIZE:
+            print("Invoking sample workload with mem_size: ", mem_size)
+            # fetch configs and most up to date prices
+            self.config_retriever.get_latest_config()
+            self.price_retriever.fetch_current_pricing()
+            self.function_invocator.invoke_all(mem_size)
+            mem_size *= 2
 
     def update_config(self):
         self.recommendation_engine.update_config()
@@ -122,26 +137,24 @@ class Spot:
     def get_prediction_error_rate(self):
         # TODO: ensure it's called after update_config
         self.invoke()
-        time.sleep(60)
+        time.sleep(60)   # TODO:Turn this into async if you can
         # self.log_retriever.get_logs()
         self.collect_data()
 
         log_cnt = len(self.function_invocator.payload)
-        top_logs_from_db = self.db.get_top_docs(
-            self.config.function_name, "logs", log_cnt
-        )
-        logs = [log for log in top_logs_from_db]
-        costs = []
-        self.ml_model.fetch_data()
-        for log in logs:
-            cost = (
-                float(self.ml_model._pricings[0]["duration_price"])
-                * float(log["Billed Duration"])
-                * float(int(log["Memory Size"]) / 128)
-            )
-            costs.append(cost)
-        costs = np.array(costs)
+        self.ml_model.fetch_data(log_cnt)
+        # top_logs_from_db = self.db.get_top_docs(
+        #     self.config.function_name, "logs", log_cnt
+        # )
+        # logs = [log for log in top_logs_from_db]
+        costs = self.ml_model._df["Cost"].values
+        print(costs)
+        # costs = np.array(costs)
         print(f"average: {np.mean(costs)}")
         print(f"median: {np.median(costs)}")
+        err = abs(self.recommendation_engine.get_pred_cost() - np.median(costs)) / np.median(costs) * 100
+        print(err)
+        self.db.add_document_to_collection(self.config.function_name, DB_NAME_ERROR, {ERR_VAL: err})
         self.recommendation_engine.plot_config_vs_epoch()
-        return self.recommendation_engine.recommend() - np.median(costs)
+        self.recommendation_engine.plot_error_vs_epoch()
+        # return self.recommendation_engine.recommend() - np.median(costs)
