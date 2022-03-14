@@ -4,7 +4,7 @@ from time import time
 
 
 def lambda_handler(event, context):
-    link = event['link']  # https://github.com/jdorfman/awesome-json-datasets
+    link = event["link"]  # https://github.com/jdorfman/awesome-json-datasets
 
     start = time()
     f = urlopen(link, timeout=2)
@@ -18,4 +18,3 @@ def lambda_handler(event, context):
 
     print(str_json)
     return {"network": network, "serialization": latency}
-
