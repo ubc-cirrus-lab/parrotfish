@@ -40,9 +40,9 @@ class Plot:
         config_suggestions = self.__fetch_config_vs_epoch_data()
         epochs = list(range(1, len(config_suggestions) + 1))
 
-        print(config_suggestions)
         # Plot datapoints
         plt.scatter(epochs, config_suggestions)
+        plt.plot(epochs, config_suggestions)
 
         # Save the plot with current timestamp
         today = datetime.datetime.now()

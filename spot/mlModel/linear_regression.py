@@ -64,7 +64,6 @@ class LinearRegressionModel(MlModelBaseClass):
         plt.clf()
         plt.scatter(X, y, color='red')
         # plt.plot(X, self._model.predict(X), color='blue')
-        plt.savefig("./linear.png")
 
     def _save_updated_model(self):
         try:

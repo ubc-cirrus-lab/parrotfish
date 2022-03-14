@@ -45,6 +45,7 @@ class AWSFunctionInvocator:
             f = None
             # raise PayloadFileNotFoundException
         payload = json.load(f) if f else None
+        self.payload = payload
 
         self.threads.append(
             threading.Thread(

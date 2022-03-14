@@ -122,7 +122,7 @@ class MlModelBaseClass:
             if config_document_index != -1 and pricing_document_index != -1:
                 current_config = copy.deepcopy(self._configs[config_document_index])
                 current_pricing = copy.deepcopy(self._pricings[pricing_document_index])
-
+                self.current_pricing = current_pricing
                 new_row = current_config
                 del new_row["LastModifiedInMs"]
                 new_row["MemorySize"] = int(log["Memory Size"])
@@ -150,3 +150,6 @@ class MlModelBaseClass:
         self._fetch_logs()
         self._associate_logs_with_config_and_pricing()
         return self._log_query_result != 0
+
+    def get_optimal_config(self):
+        pass

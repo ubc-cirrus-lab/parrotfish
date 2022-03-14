@@ -1,7 +1,9 @@
+from cmath import cos
 import json
 import time as time
 import os
 from spot.mlModel.polynomial_regression import PolynomialRegressionModel
+import numpy as np
 
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
@@ -13,6 +15,7 @@ from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
 from spot.definitions import ROOT_DIR
 from spot.visualize.Plot import Plot
+from spot.recommendation_engine.recommendation_engine import RecommendationEngine
 
 
 class Spot:
@@ -52,28 +55,9 @@ class Spot:
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
         self.ml_model = self.select_model(model)
-    # TODO: Move this to recommendation engine
-    def update_config(self):
-
-        # Save the updated configurations
-        with open(self.config_file_path, "w") as f:
-            f.write(self.config.serialize())
-
-        # Update the memory config on AWS with the newly suggested memory size
-        config_updater = ConfigUpdater(
-            self.config.function_name, self.config.mem_size, self.config.region
+        self.recommendation_engine = RecommendationEngine(
+            self.config_file_path, self.config, self.ml_model, self.db
         )
-
-        # Save model config suggestions
-        self.db.add_document_to_collection(
-            self.config.function_name, "suggested_configs", self.config.get_dict()
-        )
-
-        # Save model predictions to db for error calculation
-        # self.db.add_document_to_collection(self.config.function_name, "memory_predictions", memory_predictions)
-
-        # plotter = Plot(self.config.function_name, self.db, directory=self.path)
-        # plotter.plot_config_vs_epoch()
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -125,5 +109,39 @@ class Spot:
                 self.last_log_timestamp,
                 self.benchmark_dir,
             )
+
     def profile(self):
         self.function_invocator.profile()
+
+    def update_config(self):
+        self.recommendation_engine.update_config()
+
+    def recommend(self):
+        self.recommendation = self.recommendation_engine.recommend()
+
+    def get_prediction_error_rate(self):
+        # TODO: ensure it's called after update_config
+        self.invoke()
+        time.sleep(60)
+        # self.log_retriever.get_logs()
+        self.collect_data()
+
+        log_cnt = len(self.function_invocator.payload)
+        top_logs_from_db = self.db.get_top_docs(
+            self.config.function_name, "logs", log_cnt
+        )
+        logs = [log for log in top_logs_from_db]
+        costs = []
+        self.ml_model.fetch_data()
+        for log in logs:
+            cost = (
+                float(self.ml_model._pricings[0]["duration_price"])
+                * float(log["Billed Duration"])
+                * float(int(log["Memory Size"]) / 128)
+            )
+            costs.append(cost)
+        costs = np.array(costs)
+        print(f"average: {np.mean(costs)}")
+        print(f"median: {np.median(costs)}")
+        self.recommendation_engine.plot_config_vs_epoch()
+        return self.recommendation_engine.recommend() - np.median(costs)

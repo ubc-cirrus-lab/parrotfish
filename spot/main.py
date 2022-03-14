@@ -11,7 +11,9 @@ def main():
     parser = argparse.ArgumentParser(description="Serverless Price Optimization Tool")
 
     parser.add_argument(
-        "function", type=str, help="Name of the serverless function to use"
+        "function", 
+        type=str, 
+        help="Name of the serverless function to use"
     )
     parser.add_argument(
         "--invoke",
@@ -20,7 +22,10 @@ def main():
         help="Run the function with the given workload",
     )
     parser.add_argument(
-        "--fetch", "-f", action="store_true", help="Fetch log and config data from AWS"
+        "--fetch", 
+        "-f", 
+        action="store_true", 
+        help="Fetch log and config data from AWS"
     )
     parser.add_argument(
         "--train",
@@ -47,6 +52,12 @@ def main():
         default="linear",
         help="The ML model to use to train the model (default: linear)",
     )
+    parser.add_argument(
+        "--update_config",
+        "-u",
+        action="store_true",
+        help="Update lambda function config with the optimal config current model suggests",
+    )
 
     args = parser.parse_args()
 
@@ -63,9 +74,12 @@ def main():
             if args.train:
                 function.train_model()
             if args.recommend:
-                pass  # TODO: Recommend something if flag is set
+                function.recommend()
             if args.profile:
                 function.profile()
+            if args.update_config:
+                function.update_config()
+                function.get_prediction_error_rate()
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
