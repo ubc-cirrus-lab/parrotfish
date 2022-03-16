@@ -4,6 +4,7 @@ import copy
 from spot.db.db import DBClient
 from spot.constants import *
 
+
 class MlModelBaseClass:
     def __init__(self, function_name, vendor, db: DBClient, last_log_timestamp):
         self._DBClient = db
@@ -18,14 +19,7 @@ class MlModelBaseClass:
             #     REGION,
             #     COST,
             # ]
-            columns=[
-                RUNTIME,
-                TIMEOUT,
-                MEM_SIZE,
-                ARCH,
-                REGION,
-                COST
-            ]
+            columns=[RUNTIME, TIMEOUT, MEM_SIZE, ARCH, REGION, COST]
         )
         self._vendor = vendor
         self._x = None
@@ -164,4 +158,6 @@ class MlModelBaseClass:
         pass
 
     def _get_top_logs(self, log_cnt: int) -> None:
-        self._log_query_result = self._DBClient.get_top_docs(self._function_name, DB_NAME_LOGS, log_cnt)
+        self._log_query_result = self._DBClient.get_top_docs(
+            self._function_name, DB_NAME_LOGS, log_cnt
+        )

@@ -2,6 +2,7 @@ import boto3
 from spot.db.db import DBClient
 from spot.constants import *
 
+
 class AWSLogRetriever:
     def __init__(self, function_name, db: DBClient, last_log_timestamp):
         self.DBClient = db
@@ -13,8 +14,7 @@ class AWSLogRetriever:
         client = boto3.client("logs")
         new_timestamp = self.last_log_timestamp
 
-
-        #TODO: determine how many log streams to read, boto3 client by default returns 50
+        # TODO: determine how many log streams to read, boto3 client by default returns 50
         # get log streams
         streams = []
         response = client.describe_log_streams(

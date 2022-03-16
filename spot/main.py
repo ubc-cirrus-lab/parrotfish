@@ -11,9 +11,7 @@ def main():
     parser = argparse.ArgumentParser(description="Serverless Price Optimization Tool")
 
     parser.add_argument(
-        "function", 
-        type=str, 
-        help="Name of the serverless function to use"
+        "function", type=str, help="Name of the serverless function to use"
     )
     parser.add_argument(
         "--invoke",
@@ -22,10 +20,7 @@ def main():
         help="Run the function with the given workload",
     )
     parser.add_argument(
-        "--fetch", 
-        "-f", 
-        action="store_true", 
-        help="Fetch log and config data from AWS"
+        "--fetch", "-f", action="store_true", help="Fetch log and config data from AWS"
     )
     parser.add_argument(
         "--train",

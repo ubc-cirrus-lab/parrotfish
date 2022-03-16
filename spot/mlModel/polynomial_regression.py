@@ -14,6 +14,7 @@ from spot.mlModel.ml_model_base_class import MlModelBaseClass
 from spot.constants import *
 from spot.db.db import DBClient
 
+
 class PolynomialRegressionModel(MlModelBaseClass):
     def __init__(
         self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir
@@ -39,7 +40,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         for x in X_labels:
             idx = np.where(X_mem == x)
             mmap[x] = np.median(y[idx])
-        
+
         self._x = X_labels
         self._y = np.array(list(mmap.values()))
         print(self._x)

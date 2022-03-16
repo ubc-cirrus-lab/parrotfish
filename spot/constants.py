@@ -22,4 +22,3 @@ DB_NAME_RECOMMENDATION = "recommendation"
 DB_NAME_ERROR = "error"
 DB_NAME_CONFIG_SUGGESTION = "suggested_config"
 DB_ID = "_id"
-

@@ -9,5 +9,7 @@ class TestDB(unittest.TestCase):
         self.db = DBClient()
 
     def test_execute_max_value(self):
-        max_timestamp = self.db.execute_max_value("AWSHelloWorld", DB_NAME_LOGS, "timestamp")
+        max_timestamp = self.db.execute_max_value(
+            "AWSHelloWorld", DB_NAME_LOGS, "timestamp"
+        )
         assert type(max_timestamp) is bson.Int64

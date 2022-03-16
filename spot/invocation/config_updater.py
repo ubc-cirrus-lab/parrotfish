@@ -19,13 +19,12 @@ class ConfigUpdater:
 
     def set_mem_size(self, mem):
         if self.mem_size == mem:
-            return 
+            return
         self.mem_size = mem
         if not self._function_name:
             raise InstanceNotSetException
         self.client.update_function_configuration(
             FunctionName=self._function_name, MemorySize=self.mem_size
         )
-        waiter = self.client.get_waiter('function_updated')
+        waiter = self.client.get_waiter("function_updated")
         waiter.wait(FunctionName=self._function_name)
-
