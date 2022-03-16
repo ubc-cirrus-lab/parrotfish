@@ -1,4 +1,5 @@
 THIS README FILE IS TAKEN FROM https://github.com/kmu-bigdata/serverless-faas-workbench/wiki/image-processing
+Originally Written by: Jeongchul Kim and Kyungyong Lee
 ## Image Processing
 **Library** : (boto3 / azure.functions, azure.storage.file / google.cloud.storage), time, uuid, Pillow
  - aws : build your deployment package

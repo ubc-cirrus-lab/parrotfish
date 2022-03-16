@@ -1,4 +1,4 @@
-from cmath import cos
+import sys
 import json
 import time as time
 import os
@@ -42,8 +42,12 @@ class Spot:
                 self.config.function_name, DB_NAME_LOGS, "timestamp"
             )
         except:
-            self.last_log_timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
-
+            # self.last_log_timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
+            print(
+                sys.exc_info()[0],
+                "occured. No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
+            )
+            self.last_log_timestamp = 0
         # Create function db if not exists
         self.db.create_function_db(self.config.function_name)
 
@@ -62,7 +66,13 @@ class Spot:
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
         self.ml_model = self.select_model(model)
-        self.recommendation_engine = RecommendationEngine(self.config_file_path, self.config, self.ml_model, self.db, self.benchmark_dir)
+        self.recommendation_engine = RecommendationEngine(
+            self.config_file_path,
+            self.config,
+            self.ml_model,
+            self.db,
+            self.benchmark_dir,
+        )
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -117,6 +127,7 @@ class Spot:
 
     # Runs the workload with different configs to profile the serverless function
     def profile(self):
+        # TODO: memory boundaries should be user config
         SMALLEST_MEM_SIZE = 256
         LARGEST_MEM_SIZE = 10240
         mem_size = SMALLEST_MEM_SIZE
@@ -137,21 +148,27 @@ class Spot:
     def get_prediction_error_rate(self):
         # TODO: ensure it's called after update_config
         self.invoke()
-        time.sleep(60)   # TODO:Turn this into async if you can
+        time.sleep(60)  # TODO:Turn this into async if you can
         # self.log_retriever.get_logs()
         self.collect_data()
 
         log_cnt = len(self.function_invocator.payload)
         self.ml_model.fetch_data(log_cnt)
-        
+
         costs = self.ml_model._df["Cost"].values
         print(costs)
         # costs = np.array(costs)
         print(f"average: {np.mean(costs)}")
         print(f"median: {np.median(costs)}")
-        err = abs(self.recommendation_engine.get_pred_cost() - np.median(costs)) / np.median(costs) * 100
+        err = (
+            abs(self.recommendation_engine.get_pred_cost() - np.median(costs))
+            / np.median(costs)
+            * 100
+        )
         print(err)
-        self.db.add_document_to_collection(self.config.function_name, DB_NAME_ERROR, {ERR_VAL: err})
+        self.db.add_document_to_collection(
+            self.config.function_name, DB_NAME_ERROR, {ERR_VAL: err}
+        )
         self.recommendation_engine.plot_config_vs_epoch()
         self.recommendation_engine.plot_error_vs_epoch()
         # return self.recommendation_engine.recommend() - np.median(costs)
