@@ -1,6 +1,8 @@
 from spot.prices.price_retriever import PriceRetriever
 import time as time
+
 from spot.db.db import DBClient
+from spot.constants import *
 
 
 class AWSPriceRetriever(PriceRetriever):
@@ -21,21 +23,21 @@ class AWSPriceRetriever(PriceRetriever):
             "purchaseOption": "on_demand",
         }
         request_price = self._current_price(parameters)
-        current_pricing["request_price"] = request_price
+        current_pricing[REQUEST_PRICE] = request_price
         parameters["type"] = "AWS-Lambda-Duration"
         duration_price = self._current_price(parameters)
-        current_pricing["duration_price"] = duration_price
-        current_pricing["timestamp"] = int(time.time() * 100)
-        current_pricing["region"] = self.region
+        current_pricing[DURATION_PRICE] = duration_price
+        current_pricing[TIMESTAMP] = int(time.time() * 100)
+        current_pricing[REGION] = self.region
 
         self.DBClient.add_document_to_collection_if_not_exists(
-            "pricing",
+            DB_NAME_PRICING,
             "AWS",
             current_pricing,
             {
-                "request_price": request_price,
-                "duration_price": duration_price,
-                "region": self.region,
+                REQUEST_PRICE: request_price,
+                DURATION_PRICE: duration_price,
+                REGION: self.region,
             },
         )
         return current_pricing

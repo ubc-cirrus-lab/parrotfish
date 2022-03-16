@@ -5,13 +5,14 @@ import os
 import datetime
 import pickle
 import sys
-from spot.db.db import DBClient
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from matplotlib.ticker import ScalarFormatter
 from spot.mlModel.ml_model_base_class import MlModelBaseClass
-
+from spot.constants import *
+from spot.db.db import DBClient
 
 class PolynomialRegressionModel(MlModelBaseClass):
     def __init__(
@@ -30,9 +31,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
             self._model = None
 
     def _preprocess(self):
-        self._df["MemorySize"] = self._df["MemorySize"].astype(int)
-        X_mem = self._df["MemorySize"].values
-        y = self._df["Cost"].values
+        self._df[MEM_SIZE] = self._df[MEM_SIZE].astype(int)
+        X_mem = self._df[MEM_SIZE].values
+        y = self._df[COST].values
         X_labels = np.unique(X_mem)
         mmap = {}
         for x in X_labels:
@@ -135,7 +136,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         r_crit = crit[crit.imag == 0].real
         test = c.deriv(2)(r_crit)
 
-        x_min = r_crit[test > 0][0]
+        x_min = max(r_crit[test > 0][0], bounds[0])
         y_min = c(x_min)
         left_boundary_cost = c(bounds[0])
         right_boundary_cost = c(bounds[1])

@@ -5,6 +5,7 @@ import os
 import datetime
 import pickle
 import sys
+from spot.constants import COST, MEM_SIZE, REGION, RUNTIME, TIMEOUT, ARCH
 
 from spot.db.db import DBClient
 from sklearn.linear_model import SGDRegressor
@@ -37,16 +38,17 @@ class LinearRegressionModel(MlModelBaseClass):
         self._df["Region"] = self._df.Region.cat.codes
 
         # Create X matrix and Y vector for ML training
-        self._x = self._df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        # self._x = self._df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        self._x = self._df[[RUNTIME, TIMEOUT, MEM_SIZE, ARCH, REGION]]
         # self._x = self._df["MemorySize"]
-        self._y = self._df["Cost"]
+        self._y = self._df[COST]
 
     def train_model(self):
         self._preprocess()
         X = self._x.values
         y = self._y.values
 
-        X_mem = self._x["MemorySize"].values
+        X_mem = self._x[MEM_SIZE].values
         X_labels = np.unique(X_mem)
         mmap = {}
         for x in X_labels:
@@ -76,11 +78,12 @@ class LinearRegressionModel(MlModelBaseClass):
     def get_memory_predictions(self):
         arr = {}
         mem_size = 128
-        data = self._df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        data = self._df[[RUNTIME, TIMEOUT, MEM_SIZE, ARCH, REGION]]
+
         data = data.iloc[0]
 
         while mem_size < 10240:
-            data["MemorySize"] = mem_size
+            data[MEM_SIZE] = mem_size
             new_x = data.to_numpy()
             new_x = new_x.reshape(1, -1)
             arr[mem_size] = self.predict(new_x)[0]
@@ -118,7 +121,7 @@ class LinearRegressionModel(MlModelBaseClass):
         plt.setp(axes.get_yticklabels(), fontsize=6)
 
         # Format data in ascending memory size order
-        zipped_list = zip(self._df["MemorySize"].values, self._df["Cost"].values)
+        zipped_list = zip(self._df[MEM_SIZE].values, self._df[COST].values)
         sorted_zipped_lists = sorted(zipped_list, key=lambda x: int(x[0]))
         x = [_ for _, element in sorted_zipped_lists]
         y = [element for _, element in sorted_zipped_lists]

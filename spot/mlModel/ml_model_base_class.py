@@ -10,22 +10,22 @@ class MlModelBaseClass:
         self._last_log_timestamp = last_log_timestamp
         self._function_name = function_name  # TODO: folder name update
         self._df = pd.DataFrame(
-            columns=[
-                "Runtime",
-                "Timeout",
-                "MemorySize",
-                "Architectures",
-                "Region",
-                "Cost",
-            ]
             # columns=[
-            #     RUNTIME,
-            #     TIMEOUT,
+            #     "Runtime",
+            #     "Timeout",
             #     MEM_SIZE,
-            #     ARCH,
+            #     "Architectures",
             #     REGION,
-            #     COST
+            #     COST,
             # ]
+            columns=[
+                RUNTIME,
+                TIMEOUT,
+                MEM_SIZE,
+                ARCH,
+                REGION,
+                COST
+            ]
         )
         self._vendor = vendor
         self._x = None
@@ -63,15 +63,15 @@ class MlModelBaseClass:
         # gets all past configs associated with the current function name
         config_query_result = self._DBClient.execute_query(
             self._function_name,
-            "config",
+            DB_NAME_CONFIG,
             {},
             {
-                "Runtime": 1,
-                "Timeout": 1,
-                "MemorySize": 1,
-                "Architectures": 1,
-                "LastModifiedInMs": 1,
-                "_id": 0,
+                RUNTIME: 1,
+                TIMEOUT: 1,
+                MEM_SIZE: 1,
+                ARCH: 1,
+                LAST_MODIFIED_MS: 1,
+                DB_ID: 0,
             },
         )
         self._configs = [config for config in config_query_result]
@@ -79,15 +79,15 @@ class MlModelBaseClass:
     def _fetch_pricings(self):
         # get all prices for the current function's cloud vendor
         pricing_query_result = self._DBClient.execute_query(
-            "pricing",
+            DB_NAME_PRICING,
             self._vendor,
             {},
             {
-                "request_price": 1,
-                "duration_price": 1,
-                "region": 1,
-                "timestamp": 1,
-                "_id": 0,
+                REQUEST_PRICE: 1,
+                DURATION_PRICE: 1,
+                REGION: 1,
+                TIMESTAMP: 1,
+                DB_ID: 0,
             },
         )
         self._pricings = []
@@ -98,11 +98,11 @@ class MlModelBaseClass:
         # get all logs for this function
         self._log_query_result = self._DBClient.execute_query(
             self._function_name,
-            "logs",
+            DB_NAME_LOGS,
             {
                 "timestamp": {"$gt": 0}
             },  # To process only unprocessed logs(aka iterative training)
-            {"Billed Duration": 1, "Memory Size": 1, "timestamp": 1, "_id": 0},
+            {BILLED_DURATION: 1, MEM_SIZE: 1, TIMESTAMP: 1, DB_ID: 0},
         )
 
     """
@@ -114,17 +114,17 @@ class MlModelBaseClass:
         for log in self._log_query_result:
             config_document_index = self._find_associated_index(
                 self._configs,
-                "LastModifiedInMs",
+                LAST_MODIFIED_MS,
                 0,
                 len(self._configs) - 1,
-                log["timestamp"],
+                log[TIMESTAMP],
             )
             pricing_document_index = self._find_associated_index(
                 self._pricings,
-                "timestamp",
+                TIMESTAMP,
                 0,
                 len(self._pricings) - 1,
-                log["timestamp"],
+                log[TIMESTAMP],
             )
 
             # reformat the dataframe
@@ -133,13 +133,13 @@ class MlModelBaseClass:
                 current_pricing = copy.deepcopy(self._pricings[pricing_document_index])
                 self.current_pricing = current_pricing
                 new_row = current_config
-                del new_row["LastModifiedInMs"]
-                new_row["MemorySize"] = int(log["Memory Size"])
-                new_row["Region"] = current_pricing["region"]
-                new_row["Cost"] = (
-                    float(current_pricing["duration_price"])
-                    * float(log["Billed Duration"])
-                    * float(int(log["Memory Size"]) / 128)
+                del new_row[LAST_MODIFIED_MS]
+                new_row[MEM_SIZE] = int(log[MEM_SIZE])
+                new_row[REGION] = current_pricing[REGION]
+                new_row[COST] = (
+                    float(current_pricing[DURATION_PRICE])
+                    * float(log[BILLED_DURATION])
+                    * float(int(log[MEM_SIZE]) / 128)
                 )
 
                 # self._df = self._df.append(new_row, ignore_index=True)
@@ -164,4 +164,4 @@ class MlModelBaseClass:
         pass
 
     def _get_top_logs(self, log_cnt: int) -> None:
-        self._log_query_result = self._DBClient.get_top_docs(self._function_name, "logs", log_cnt)
+        self._log_query_result = self._DBClient.get_top_docs(self._function_name, DB_NAME_LOGS, log_cnt)

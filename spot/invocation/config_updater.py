@@ -18,6 +18,8 @@ class ConfigUpdater:
         self._function_name = ins
 
     def set_mem_size(self, mem):
+        if self.mem_size == mem:
+            return 
         self.mem_size = mem
         if not self._function_name:
             raise InstanceNotSetException

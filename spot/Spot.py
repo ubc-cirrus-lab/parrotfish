@@ -39,7 +39,7 @@ class Spot:
 
         try:
             self.last_log_timestamp = self.db.execute_max_value(
-                self.config.function_name, "logs", "timestamp"
+                self.config.function_name, DB_NAME_LOGS, "timestamp"
             )
         except:
             self.last_log_timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds()
@@ -143,10 +143,7 @@ class Spot:
 
         log_cnt = len(self.function_invocator.payload)
         self.ml_model.fetch_data(log_cnt)
-        # top_logs_from_db = self.db.get_top_docs(
-        #     self.config.function_name, "logs", log_cnt
-        # )
-        # logs = [log for log in top_logs_from_db]
+        
         costs = self.ml_model._df["Cost"].values
         print(costs)
         # costs = np.array(costs)

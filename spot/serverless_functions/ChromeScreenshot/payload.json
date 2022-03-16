@@ -26,7 +26,7 @@
     {
         "queryStringParameters": {
             "url": "https://mshahrad.github.io/",
-            "screen": "800,600000000"
+            "screen": "800,25"
         }
     }
 ]

@@ -1,6 +1,6 @@
 import boto3
 from spot.db.db import DBClient
-
+from spot.constants import *
 
 class AWSLogRetriever:
     def __init__(self, function_name, db: DBClient, last_log_timestamp):
@@ -39,19 +39,19 @@ class AWSLogRetriever:
                         field_name = message_section.split(":")[0]
                         value = message_section.split(":")[1][1:].split(" ")[0]
                         log[field_name] = value
-                    log["RequestId"] = requestId
+                    log[REQUEST_ID] = requestId
 
                     # add log to db
-                    new_timestamp = max(log["timestamp"], new_timestamp)
+                    new_timestamp = max(log[TIMESTAMP], new_timestamp)
                     self.DBClient.add_document_to_collection_if_not_exists(
-                        self.function_name, "logs", log, {"RequestId": requestId}
+                        self.function_name, DB_NAME_LOGS, log, {REQUEST_ID: requestId}
                     )
 
         return new_timestamp
 
     def print_logs(self):
         iterator = self.DBClient.get_all_collection_documents(
-            self.function_name, "logs"
+            self.function_name, DB_NAME_LOGS
         )
         for log in iterator:
             print(log)
