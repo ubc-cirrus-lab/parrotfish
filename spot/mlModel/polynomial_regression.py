@@ -58,13 +58,12 @@ class PolynomialRegressionModel(MlModelBaseClass):
         self._preprocess()
         self._model = np.polyfit(self._x, self._y, 4)
         self._save_model()
-        self.plot_memory_size_vs_cost()
 
     """
     Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
     """
 
-    def plot_memory_size_vs_cost(self):
+    def plot_memsize_vs_cost(self):
         # Graph Setup
         plt.title("MemorySize vs Cost Graph for " + self._function_name)
         plt.xlabel("Memory(mB)", fontsize=7)

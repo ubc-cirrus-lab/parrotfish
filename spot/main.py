@@ -53,6 +53,24 @@ def main():
         action="store_true",
         help="Update lambda function config with the optimal config current model suggests",
     )
+    parser.add_argument(
+        "--plot_error_vs_epoch",
+        "-ee",
+        action="store_true",
+        help="Plot error vs epoch",
+    )
+    parser.add_argument(
+        "--plot_config_vs_epoch",
+        "-ce",
+        action="store_true",
+        help="Plot config vs epoch",
+    )
+    parser.add_argument(
+        "--plot_memsize_vs_cost",
+        "-mc",
+        action="store_true",
+        help="Plot Memory Size vs Cost",
+    )
 
     args = parser.parse_args()
 
@@ -75,6 +93,13 @@ def main():
             if args.update_config:
                 function.update_config()
                 function.get_prediction_error_rate()
+            if args.plot_error_vs_epoch:
+                function.plot_error_vs_epoch()
+            if args.plot_config_vs_epoch:
+                function.plot_config_vs_epoch()
+            if args.plot_memsize_vs_cost:
+                #function.plot_memsize_vs_cost()
+                print("Currently under development")
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
