@@ -98,7 +98,7 @@ def main():
             if args.plot_config_vs_epoch:
                 function.plot_config_vs_epoch()
             if args.plot_memsize_vs_cost:
-                #function.plot_memsize_vs_cost()
+                # function.plot_memsize_vs_cost()
                 print("Currently under development")
         else:
             print(

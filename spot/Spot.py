@@ -141,10 +141,10 @@ class Spot:
 
     def update_config(self):
         self.recommendation_engine.update_config()
-    
+
     def plot_error_vs_epoch(self):
         self.recommendation_engine.plot_error_vs_epoch()
-    
+
     def plot_config_vs_epoch(self):
         self.recommendation_engine.plot_config_vs_epoch()
 
