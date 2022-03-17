@@ -44,7 +44,6 @@ def main():
         "--model",
         "-m",
         type=str,
-        default="linear",
         help="The ML model to use to train the model (default: linear)",
     )
     parser.add_argument(
@@ -85,21 +84,35 @@ def main():
                     time.sleep(15)  # TODO: Change this to waiting all threads to yield
                 function.collect_data()
             if args.train:
-                function.train_model()
+                if args.model:
+                    function.train_model()
+                else:
+                    print("Please specify model")
+                    exit()
             if args.recommend:
-                function.recommend()
+                if args.model:
+                    function.recommend()
+                else:
+                    print("Please specify model")
+                    exit()
             if args.profile:
                 function.profile()
             if args.update_config:
-                function.update_config()
-                function.get_prediction_error_rate()
+                if args.model:
+                    function.update_config()
+                    function.get_prediction_error_rate()
+                else:
+                    print("Please specify model")
+                    exit()
             if args.plot_error_vs_epoch:
                 function.plot_error_vs_epoch()
             if args.plot_config_vs_epoch:
                 function.plot_config_vs_epoch()
             if args.plot_memsize_vs_cost:
-                #function.plot_memsize_vs_cost()
-                print("Currently under development")
+                if args.train and args.model:
+                    function.plot_memsize_vs_cost()
+                else:
+                    print("Memsize vs Cost plot can be generated only after training")
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"

@@ -46,7 +46,7 @@ class Spot:
                "No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
             )
             self.last_log_timestamp = 0
-            exit() #If no data found, we can terminate because no future training, prediction, recommendaion be done
+
         # Create function db if not exists
         self.db.create_function_db(self.config.function_name)
 
