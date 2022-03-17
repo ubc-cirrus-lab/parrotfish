@@ -55,6 +55,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         self._model = np.polyfit(self._x, self._y, 4)
         self._save_model()
+        self.plot_memsize_vs_cost()
 
     """
     Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
@@ -96,16 +97,16 @@ class PolynomialRegressionModel(MlModelBaseClass):
         # Save the plot with current timestamp
         today = datetime.datetime.now()
         timestamp = today.strftime("%Y-%m-%dT%H:%M:%S.%f+0000")
+        save_dir = os.path.join(self._benchmark_dir, "memsize_vs_cost")
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
         plt.savefig(
-            self._benchmark_dir
-            + "/"
-            + self._function_name
-            + "-"
-            + "polynomial_regression"
-            + "-"
-            + timestamp
-            + ".png"
+            os.path.join(
+                save_dir,
+                f"{self._function_name}-memsize_vs_cost_graph_polynomial-{timestamp}.png",
+            )
         )
+        plt.clf()
 
     def get_polynomial_equation_string(self):
         ret_val = ""
@@ -138,6 +139,12 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         x_min = max(r_crit[test > 0][0], bounds[0])
         y_min = c(x_min)
+        
+        # Check if model suggest mathematically possible config
+        if x_min < bounds[0] or x_min > bounds[1] or y_min < 0:
+            print("Model can't suggest mathematically possible solution")
+            exit()
+
         left_boundary_cost = c(bounds[0])
         right_boundary_cost = c(bounds[1])
         if left_boundary_cost >= 0 and left_boundary_cost < y_min:
