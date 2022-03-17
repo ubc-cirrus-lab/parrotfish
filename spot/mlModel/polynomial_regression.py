@@ -4,11 +4,6 @@ import matplotlib.pyplot as plt
 import os
 import datetime
 import pickle
-import sys
-
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
 from matplotlib.ticker import ScalarFormatter
 from spot.mlModel.ml_model_base_class import MlModelBaseClass
 from spot.constants import *
@@ -43,8 +38,6 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         self._x = X_labels
         self._y = np.array(list(mmap.values()))
-        print(self._x)
-        print(self._y)
 
     def _save_model(self):
         try:
@@ -56,6 +49,10 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     def train_model(self):
         self._preprocess()
+        if self._x.size == 0 or self._y.size == 0:
+            print("No data available to train the model")
+            exit()
+
         self._model = np.polyfit(self._x, self._y, 4)
         self._save_model()
 
@@ -129,6 +126,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     # Compute global minima including range boundaries
     def get_optimal_config(self):
+        if self._model is None:
+            print("ML model not trained yet, thus can't recommend optimal config")
+            exit()
         c = np.poly1d(self._model)
         bounds = [256, 10280]
 

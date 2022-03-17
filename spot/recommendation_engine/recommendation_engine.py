@@ -1,7 +1,4 @@
-import boto3
 import datetime
-import os
-
 from spot.invocation.config_updater import ConfigUpdater
 from spot.visualize.Plot import Plot
 from spot.constants import *
@@ -49,24 +46,6 @@ class RecommendationEngine:
             "suggested_configs",
             self.new_config.get_dict(),
         )
-
-        # Save model predictions to db for error calculation
-        # self.db.add_document_to_collection(self.new_config.function_name, "memory_predictions", {"mem_size": self.new_config.mem_size})
-        # self.plot_config_vs_epoch()
-
-        # invoke
-
-        # fetch new data
-
-        # run query, as in mlmodel base class fetch data, to get the new logs after the timestamp
-
-        # get the median cost of these new logs
-
-        # compare this cost with predicted
-
-        # save it into db
-
-        # plot
 
     def plot_config_vs_epoch(self):
         self.plotter.plot_config_vs_epoch()
