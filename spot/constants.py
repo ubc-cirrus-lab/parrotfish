@@ -1,3 +1,5 @@
+import os
+
 MEM_SIZE = "Memory Size"
 BILLED_DURATION = "Billed Duration"
 TIMESTAMP = "timestamp"
@@ -22,3 +24,6 @@ DB_NAME_RECOMMENDATION = "recommendation"
 DB_NAME_ERROR = "error"
 DB_NAME_CONFIG_SUGGESTION = "suggested_config"
 DB_ID = "_id"
+
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(ROOT_DIR, "data")

@@ -13,7 +13,15 @@ from spot.db.db import DBClient
 
 class PolynomialRegressionModel(MlModelBaseClass):
     def __init__(
-        self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir, polynomial_degree = 4):
+        self,
+        function_name: str,
+        vendor: str,
+        db: DBClient,
+        last_log_timestamp: int,
+        benchmark_dir: str,
+        mem_bounds: list,
+        polynomial_degree = 2
+    ):
         super().__init__(function_name, vendor, db, last_log_timestamp)
         self._degree = polynomial_degree
         self._benchmark_dir = benchmark_dir
@@ -25,6 +33,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
             self._model = pickle.load(open(self._ml_model_file_path, "rb"))
         except:
             self._model = None
+        self.mem_bounds = mem_bounds
 
     def _preprocess(self):
         self._df[MEM_SIZE] = self._df[MEM_SIZE].astype(int)
@@ -130,7 +139,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
             print("ML model not trained yet, thus can't recommend optimal config")
             exit()
         c = np.poly1d(self._model)
-        bounds = [128, 10280]
+        bounds = self.mem_bounds
 
         x_min = None
         y_min = None

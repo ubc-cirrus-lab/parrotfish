@@ -3,7 +3,7 @@ import re
 import os
 import json
 import datetime
-from spot.definitions import ROOT_DIR
+from spot.constants import ROOT_DIR
 
 API_URL = "https://pricing.api.infracost.io/graphql"
 API_KEY_DIR = os.path.join(ROOT_DIR, "prices/credentials.yml")

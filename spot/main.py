@@ -1,7 +1,7 @@
 import time
 import argparse
 import os
-from spot.definitions import ROOT_DIR
+from spot.constants import ROOT_DIR
 from spot.Spot import Spot
 
 FUNCTION_DIR = "serverless_functions"
