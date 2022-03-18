@@ -29,13 +29,12 @@ class TestConfigRetrieval(unittest.TestCase):
             self.configRetriever.get_latest_config()
 
             # assert a database call has been made with function add_new_config_if_changed with appropriate variables
-            date = datetime.datetime.strptime(
-                sample_config["LastModified"], "%Y-%m-%dT%H:%M:%S.%f+0000"
+            last_modified = datetime.datetime.strptime(
+                sample_config["LastModified"], "%Y-%m-%dT%H:%M:%S.%f%z"
             )
-            timestamp = str(
-                (date - datetime.datetime(1970, 1, 1)).total_seconds() * 1000
-            )
-            sample_config["LastModifiedInMs"] = int(timestamp[:-2])
+            last_modified_ms = int(last_modified.timestamp() * 1000)
+            sample_config["LastModifiedInMs"] = str(last_modified_ms)
+
             sample_config["Architectures"] = sample_config["Architectures"][0]
             callTemp = call(self.function, "config", sample_config)
             mockDBClient.assert_has_calls([callTemp])
