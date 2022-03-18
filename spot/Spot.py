@@ -123,15 +123,13 @@ class Spot:
                 self.db,
                 self.last_log_timestamp,
                 self.benchmark_dir,
+                self.config.mem_bounds
             )
 
     # Runs the workload with different configs to profile the serverless function
     def profile(self):
-        # TODO: memory boundaries should be user config
-        SMALLEST_MEM_SIZE = 256
-        LARGEST_MEM_SIZE = 10240
-        mem_size = SMALLEST_MEM_SIZE
-        while mem_size <= LARGEST_MEM_SIZE:
+        mem_size = self.config.mem_bounds[0]
+        while mem_size <= self.config.mem_bounds[1]:
             print("Invoking sample workload with mem_size: ", mem_size)
             # fetch configs and most up to date prices
             self.config_retriever.get_latest_config()

@@ -17,7 +17,13 @@ from spot.db.db import DBClient
 
 class PolynomialRegressionModel(MlModelBaseClass):
     def __init__(
-        self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir
+        self,
+        function_name: str,
+        vendor: str,
+        db: DBClient,
+        last_log_timestamp: int,
+        benchmark_dir: str,
+        mem_bounds: list,
     ):
         super().__init__(function_name, vendor, db, last_log_timestamp)
         self._benchmark_dir = benchmark_dir
@@ -30,6 +36,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
             self._model = pickle.load(open(self._ml_model_file_path, "rb"))
         except:
             self._model = None
+        self.mem_bounds = mem_bounds
 
     def _preprocess(self):
         self._df[MEM_SIZE] = self._df[MEM_SIZE].astype(int)
@@ -131,7 +138,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
     # Compute global minima including range boundaries
     def get_optimal_config(self):
         c = np.poly1d(self._model)
-        bounds = [256, 10280]
+        bounds = self.mem_bounds
 
         crit = c.deriv().r
         r_crit = crit[crit.imag == 0].real

@@ -8,6 +8,7 @@ class BenchmarkConfig:
         self.region: str
         self.mem_size: int
         self.workload: dict
+        self.mem_bounds: list
 
         if f is not None:
             self.deserialize(f)
@@ -25,12 +26,14 @@ class BenchmarkConfig:
         region: str,
         mem_size: int,
         workload: dict,
+        mem_bounds: list = [128, 10280],
     ):
         self.function_name = function_name
         self.vendor = vendor
         self.region = region
         self.mem_size = mem_size
         self.workload = workload
+        self.mem_bounds = mem_bounds
 
     def deserialize(self, f):
         try:
