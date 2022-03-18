@@ -157,6 +157,9 @@ class MlModelBaseClass:
     def get_optimal_config(self):
         pass
 
+    def plot_memsize_vs_cost(self):
+        pass
+
     def _get_top_logs(self, log_cnt: int) -> None:
         self._log_query_result = self._DBClient.get_top_docs(
             self._function_name, DB_NAME_LOGS, log_cnt

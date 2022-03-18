@@ -140,6 +140,15 @@ class Spot:
     def update_config(self):
         self.recommendation_engine.update_config()
 
+    def plot_error_vs_epoch(self):
+        self.recommendation_engine.plot_error_vs_epoch()
+
+    def plot_config_vs_epoch(self):
+        self.recommendation_engine.plot_config_vs_epoch()
+
+    def plot_memsize_vs_cost(self):
+        self.ml_model.plot_memsize_vs_cost()
+
     def recommend(self):
         self.recommendation = self.recommendation_engine.recommend()
 
