@@ -43,7 +43,7 @@ class Spot:
             )
         except:
             print(
-               "No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
+                "No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
             )
             self.last_log_timestamp = 0
 
@@ -163,14 +163,14 @@ class Spot:
 
         costs = self.ml_model._df["Cost"].values
         # costs = np.array(costs)
-        #print(f"average: {np.mean(costs)}")
-        #print(f"median: {np.median(costs)}")
+        # print(f"average: {np.mean(costs)}")
+        # print(f"median: {np.median(costs)}")
         err = (
             abs(self.recommendation_engine.get_pred_cost() - np.median(costs))
             / np.median(costs)
             * 100
         )
-        #print(err)
+        # print(err)
         self.db.add_document_to_collection(
             self.config.function_name, DB_NAME_ERROR, {ERR_VAL: err}
         )

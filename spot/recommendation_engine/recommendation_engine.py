@@ -15,6 +15,7 @@ class RecommendationEngine:
         self.y_min = None
 
     """get optimal mem config from the model"""
+
     def recommend(self):
         self.x_min, self.y_min = self._model.get_optimal_config()
         print("Best memory config: ", self.x_min, "  ", "Cost: ", self.y_min)

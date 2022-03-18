@@ -20,13 +20,19 @@ class PolynomialRegressionModel(MlModelBaseClass):
         last_log_timestamp: int,
         benchmark_dir: str,
         mem_bounds: list,
-        polynomial_degree = 2
+        polynomial_degree=2,
     ):
         super().__init__(function_name, vendor, db, last_log_timestamp)
         self._degree = polynomial_degree
         self._benchmark_dir = benchmark_dir
-        self._ml_model_file_path = self._benchmark_dir + "/poly_regression_model-" + "degree_" + str(self._degree) + ".pkl"
-    
+        self._ml_model_file_path = (
+            self._benchmark_dir
+            + "/poly_regression_model-"
+            + "degree_"
+            + str(self._degree)
+            + ".pkl"
+        )
+
         self._x = None
         self._y = None
         try:
@@ -143,7 +149,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         x_min = None
         y_min = None
-        crit_points = bounds + [x for x in c.deriv().r if x.imag == 0 and bounds[0] < x.real < bounds[1]]
+        crit_points = bounds + [
+            x for x in c.deriv().r if x.imag == 0 and bounds[0] < x.real < bounds[1]
+        ]
         for x in crit_points:
             if y_min is None:
                 y_min = c(x)
