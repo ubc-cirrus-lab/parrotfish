@@ -5,187 +5,90 @@ import os
 import datetime
 import pickle
 import sys
-import copy
+from spot.constants import COST, MEM_SIZE, REGION, RUNTIME, TIMEOUT, ARCH
+
 from spot.db.db import DBClient
 from sklearn.linear_model import SGDRegressor
+from sklearn.model_selection import train_test_split
+
+from spot.mlModel.ml_model_base_class import MlModelBaseClass
 
 
-class LinearRegressionModel:
+class LinearRegressionModel(MlModelBaseClass):
     def __init__(
         self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir
     ):
-        self.DBClient = db
-        self.last_log_timestamp = last_log_timestamp
-
-        self.function_name = function_name
-
-        self.ml_model_file_path = os.path.join(
-            benchmark_dir,
-            "linear_regression_model.pkl",
+        super().__init__(function_name, vendor, db, last_log_timestamp)
+        self._benchmark_dir = benchmark_dir
+        self._ml_model_file_path = os.path.join(
+            self._benchmark_dir, "linear_regression_model.pkl"
         )
-        try:
-            self.model = pickle.load(open(self.ml_model_file_path, "rb"))
-        except:
-            self.model = SGDRegressor(
-                warm_start=True
-            )  # TODO: Check the accuracy of warm_start
+        # try:
+        #     self._model = pickle.load(open(self._ml_model_file_path, "rb"))
+        # except:
+        #     self._model = SGDRegressor(warm_start=True)
 
-        self.df = pd.DataFrame(
-            columns=[
-                "Runtime",
-                "Timeout",
-                "MemorySize",
-                "Architectures",
-                "Region",
-                "Cost",
-            ]
-        )
-        self.vendor = vendor
+        self._model = SGDRegressor(warm_start=True)
 
-    """ 
-    Helper function, used for finding the corresponding configuration and pricing 
-    that was in effect when a log is produced on a serverless function trigger
-    """
-
-    def find_associated_index(self, list, field, left, right, target):
-        if left > right:
-            return -1
-
-        mid = int((right + left) / 2)
-        if list[mid][field] <= target:
-            if mid + 1 == len(list):
-                return mid
-            else:
-                if list[mid + 1][field] > target:
-                    return mid
-                else:
-                    return self.find_associated_index(
-                        list, field, mid + 1, right, target
-                    )
-        else:
-            return self.find_associated_index(list, field, left, mid - 1, target)
-
-    """
-    Fetches config, pricing and log data for the current function
-    Associates config, pricing and log files by using timestamping comparison
-    Fills dataframe via reformatting the fetched data
-    """
-
-    def fetch_data(self):
-        # gets all past configs associated with the current function name
-        config_query_result = self.DBClient.execute_query(
-            self.function_name,
-            "config",
-            {},
-            {
-                "Runtime": 1,
-                "Timeout": 1,
-                "MemorySize": 1,
-                "Architectures": 1,
-                "LastModifiedInMs": 1,
-                "_id": 0,
-            },
-        )
-        configs = []
-        for config in config_query_result:
-            configs.append(config)
-
-        # get all prices for the current function's cloud vendor
-        pricing_query_result = self.DBClient.execute_query(
-            "pricing",
-            self.vendor,
-            {},
-            {
-                "request_price": 1,
-                "duration_price": 1,
-                "region": 1,
-                "timestamp": 1,
-                "_id": 0,
-            },
-        )
-        pricings = []
-        for pricing in pricing_query_result:
-            pricings.append(pricing)
-
-        # get all logs for this function
-        log_query_result = self.DBClient.execute_query(
-            self.function_name,
-            "logs",
-            {"timestamp": {"$gt": 0}},
-            {"Billed Duration": 1, "Memory Size": 1, "timestamp": 1, "_id": 0},
-        )
-
-        # find the config and pricing to associate with for every log of this function
-        new_log_count = 0
-        for log in log_query_result:
-            new_log_count += 1
-            current_config = self.find_associated_index(
-                configs, "LastModifiedInMs", 0, len(configs) - 1, log["timestamp"]
-            )
-            current_pricing = self.find_associated_index(
-                pricings, "timestamp", 0, len(pricings) - 1, log["timestamp"]
-            )
-
-            # reformat the dataframe
-            if current_config != -1 and current_pricing != -1:
-                current_config = copy.deepcopy(configs[current_config])
-                current_pricing = copy.deepcopy(pricings[current_pricing])
-
-                new_row = current_config
-                del new_row["LastModifiedInMs"]
-                new_row["MemorySize"] = log["Memory Size"]
-                new_row["Region"] = current_pricing["region"]
-                new_row["Cost"] = (
-                    float(current_pricing["duration_price"])
-                    * float(log["Billed Duration"])
-                    * float(int(log["Memory Size"]) / 128)
-                )
-
-                self.df = self.df.append(new_row, ignore_index=True)
-
-        # Return true, if any new logs are introduced
-        return True if new_log_count > 0 else False
-
-    def train_model(self):
+    def _preprocess(self):
         # Transform numerical columns to categorical
-        self.df.Runtime = pd.Categorical(self.df.Runtime)
-        self.df["Runtime"] = self.df.Runtime.cat.codes
+        self._df.Runtime = pd.Categorical(self._df.Runtime)
+        self._df["Runtime"] = self._df.Runtime.cat.codes
 
-        self.df.Architectures = pd.Categorical(self.df.Architectures)
-        self.df["Architectures"] = self.df.Architectures.cat.codes
+        self._df.Architectures = pd.Categorical(self._df.Architectures)
+        self._df["Architectures"] = self._df.Architectures.cat.codes
 
-        self.df.Region = pd.Categorical(self.df.Region)
-        self.df["Region"] = self.df.Region.cat.codes
+        self._df.Region = pd.Categorical(self._df.Region)
+        self._df["Region"] = self._df.Region.cat.codes
 
         # Create X matrix and Y vector for ML training
-        x = self.df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
-        y = self.df["Cost"]
+        # self._x = self._df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        self._x = self._df[[RUNTIME, TIMEOUT, MEM_SIZE, ARCH, REGION]]
+        # self._x = self._df["MemorySize"]
+        self._y = self._df[COST]
 
-        # Create and train the model
-        self.model.fit(x.values, y.values)
+    def train_model(self):
+        self._preprocess()
+        X = self._x.values
+        y = self._y.values
+
+        X_mem = self._x[MEM_SIZE].values
+        X_labels = np.unique(X_mem)
+        mmap = {}
+        for x in X_labels:
+            idx = np.where(X_mem == x)
+            mmap[x] = np.median(y[idx])
+        X = X_labels.reshape(-1, 1)
+        y = np.array(list(mmap.values()))
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=0
+        )
+        self._model.fit(X_train, y_train)
+        test_err = self._model.score(X_test, y_test)
+        print(f"model trained with testing error {test_err}")
+        self._save_updated_model()
+
+        plt.clf()
+        plt.scatter(X, y, color="red")
+        # plt.plot(X, self._model.predict(X), color='blue')
+
+    def _save_updated_model(self):
         try:
-            pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
+            pickle.dump(self._model, open(self._ml_model_file_path, "wb"))
         except:
-            f = open(self.ml_model_file_path, "w")
+            f = open(self._ml_model_file_path, "w")
             f.close()
-            pickle.dump(self.model, open(self.ml_model_file_path, "wb"))
-
-        # Print results and create scatter plot
-        print("intercept:", self.model.intercept_)
-        print("slope:", self.model.coef_)
-        new_configs = {}
-        mem_predictions = self.get_memory_predictions()
-        new_configs["mem_size"] = self.get_best_memory_config(mem_predictions)
-        return [new_configs, mem_predictions]
+            pickle.dump(self._model, open(self._ml_model_file_path, "wb"))
 
     def get_memory_predictions(self):
         arr = {}
         mem_size = 128
-        data = self.df[["Runtime", "Timeout", "MemorySize", "Architectures", "Region"]]
+        data = self._df[[RUNTIME, TIMEOUT, MEM_SIZE, ARCH, REGION]]
+
         data = data.iloc[0]
 
         while mem_size < 10240:
-            data["MemorySize"] = mem_size
+            data[MEM_SIZE] = mem_size
             new_x = data.to_numpy()
             new_x = new_x.reshape(1, -1)
             arr[mem_size] = self.predict(new_x)[0]
@@ -207,15 +110,15 @@ class LinearRegressionModel:
     """
 
     def predict(self, new_x):
-        return self.model.predict(new_x)
+        return self._model.predict(new_x)
 
     """
     Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
     """
 
-    def show_graph(self):
+    def plot_memsize_vs_cost(self):
         # Graph Setup
-        plt.title("MemorySize vs Cost Graph for " + self.function_name)
+        plt.title("MemorySize vs Cost Graph for " + self._function_name)
         plt.xlabel("Memory(mB)", fontsize=7)
         plt.ylabel("Cost($)", fontsize=7)
         axes = plt.gca()
@@ -223,7 +126,7 @@ class LinearRegressionModel:
         plt.setp(axes.get_yticklabels(), fontsize=6)
 
         # Format data in ascending memory size order
-        zipped_list = zip(self.df["MemorySize"].values, self.df["Cost"].values)
+        zipped_list = zip(self._df[MEM_SIZE].values, self._df[COST].values)
         sorted_zipped_lists = sorted(zipped_list, key=lambda x: int(x[0]))
         x = [_ for _, element in sorted_zipped_lists]
         y = [element for _, element in sorted_zipped_lists]
@@ -233,16 +136,16 @@ class LinearRegressionModel:
 
         # Add linear regression line
         x_vals = np.array(axes.get_xlim())
-        y_vals = self.model.intercept_ + self.model.coef_[2] * x_vals
+        y_vals = self._model.intercept_ + self._model.coef_[2] * x_vals
         plt.plot(
             x_vals,
             y_vals,
             "r-",
             label="y = "
-            + str("{:.2E}".format(self.model.coef_[2]))
+            + str("{:.2E}".format(self._model.coef_[2]))
             + "x"
             + " + "
-            + str("{:.2E}".format(self.model.intercept_)),
+            + str("{:.2E}".format(self._model.intercept_)),
         )
         plt.legend()
         plt.show()
@@ -252,9 +155,9 @@ class LinearRegressionModel:
         timestamp = today.strftime("%Y-%m-%dT%H:%M:%S.%f+0000")
         plt.savefig(
             "spot/benchmarks/"
-            + self.function_name
+            + self._benchmark_dir
             + "/"
-            + self.function_name
+            + self._function_name
             + "-"
             + timestamp
             + ".png"

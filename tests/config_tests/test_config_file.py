@@ -2,7 +2,7 @@ import unittest
 import os
 
 from spot.benchmark_config import BenchmarkConfig
-from spot.definitions import ROOT_DIR
+from spot.constants import ROOT_DIR
 
 
 class TestConfigFile(unittest.TestCase):

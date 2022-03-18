@@ -6,22 +6,25 @@ class InstanceNotSetException(Exception):
 
 
 class ConfigUpdater:
-    def __init__(self, ins, mem, region):
+    def __init__(self, function_name, mem, region):
         self.mem_size = mem
-        self.instance = ins
+        self._function_name = function_name
         self.client = boto3.client("lambda", region_name=region)
 
     def get_mem_size(self):
         return self.mem_size
 
     def set_instance(self, ins):
-        self.instance = ins
+        self._function_name = ins
 
     def set_mem_size(self, mem):
+        if self.mem_size == mem:
+            return
         self.mem_size = mem
-        if not self.instance:
+        if not self._function_name:
             raise InstanceNotSetException
-        res = self.client.update_function_configuration(
-            FunctionName=self.instance, MemorySize=self.mem_size
+        self.client.update_function_configuration(
+            FunctionName=self._function_name, MemorySize=self.mem_size
         )
-        # print(res)
+        waiter = self.client.get_waiter("function_updated")
+        waiter.wait(FunctionName=self._function_name)

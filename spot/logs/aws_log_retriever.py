@@ -1,5 +1,6 @@
 import boto3
 from spot.db.db import DBClient
+from spot.constants import *
 
 
 class AWSLogRetriever:
@@ -11,17 +12,19 @@ class AWSLogRetriever:
     def get_logs(self):
         path = "/aws/lambda/" + self.function_name
         client = boto3.client("logs")
-        return_value = self.last_log_timestamp
+        new_timestamp = self.last_log_timestamp
 
+        # TODO: determine how many log streams to read, boto3 client by default returns 50
         # get log streams
         streams = []
-        response = client.describe_log_streams(logGroupName=path)
+        response = client.describe_log_streams(
+            logGroupName=path, orderBy="LastEventTime", descending=True
+        )
         for stream in response["logStreams"]:
             if stream["lastEventTimestamp"] > self.last_log_timestamp:
                 streams.append((stream["logStreamName"]))
 
         # get log events and save it to DB
-        log_count = 0
         for stream in streams:
             logs = client.get_log_events(logGroupName=path, logStreamName=stream)
 
@@ -36,18 +39,19 @@ class AWSLogRetriever:
                         field_name = message_section.split(":")[0]
                         value = message_section.split(":")[1][1:].split(" ")[0]
                         log[field_name] = value
-                    log["RequestId"] = requestId
+                    log[REQUEST_ID] = requestId
 
                     # add log to db
-                    return_value = max(log["timestamp"], return_value)
+                    new_timestamp = max(log[TIMESTAMP], new_timestamp)
                     self.DBClient.add_document_to_collection_if_not_exists(
-                        self.function_name, "logs", log, {"RequestId": requestId}
+                        self.function_name, DB_NAME_LOGS, log, {REQUEST_ID: requestId}
                     )
-        return return_value
+
+        return new_timestamp
 
     def print_logs(self):
         iterator = self.DBClient.get_all_collection_documents(
-            self.function_name, "logs"
+            self.function_name, DB_NAME_LOGS
         )
         for log in iterator:
             print(log)

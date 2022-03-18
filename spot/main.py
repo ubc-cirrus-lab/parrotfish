@@ -1,7 +1,7 @@
 import time
 import argparse
 import os
-from spot.definitions import ROOT_DIR
+from spot.constants import ROOT_DIR
 from spot.Spot import Spot
 
 FUNCTION_DIR = "serverless_functions"
@@ -44,8 +44,31 @@ def main():
         "--model",
         "-m",
         type=str,
-        default="linear",
         help="The ML model to use to train the model (default: linear)",
+    )
+    parser.add_argument(
+        "--update_config",
+        "-u",
+        action="store_true",
+        help="Update lambda function config with the optimal config current model suggests",
+    )
+    parser.add_argument(
+        "--plot_error_vs_epoch",
+        "-ee",
+        action="store_true",
+        help="Plot error vs epoch",
+    )
+    parser.add_argument(
+        "--plot_config_vs_epoch",
+        "-ce",
+        action="store_true",
+        help="Plot config vs epoch",
+    )
+    parser.add_argument(
+        "--plot_memsize_vs_cost",
+        "-mc",
+        action="store_true",
+        help="Plot Memory Size vs Cost",
     )
 
     args = parser.parse_args()
@@ -61,11 +84,35 @@ def main():
                     time.sleep(15)  # TODO: Change this to waiting all threads to yield
                 function.collect_data()
             if args.train:
-                function.train_model()
+                if args.model:
+                    function.train_model()
+                else:
+                    print("Please specify model")
+                    exit()
             if args.recommend:
-                pass  # TODO: Recommend something if flag is set
+                if args.model:
+                    function.recommend()
+                else:
+                    print("Please specify model")
+                    exit()
             if args.profile:
-                pass  # TODO: Run multiple configurations if flag is set
+                function.profile()
+            if args.update_config:
+                if args.model:
+                    function.update_config()
+                    function.get_prediction_error_rate()
+                else:
+                    print("Please specify model")
+                    exit()
+            if args.plot_error_vs_epoch:
+                function.plot_error_vs_epoch()
+            if args.plot_config_vs_epoch:
+                function.plot_config_vs_epoch()
+            if args.plot_memsize_vs_cost:
+                if args.train and args.model:
+                    function.plot_memsize_vs_cost()
+                else:
+                    print("Memsize vs Cost plot can be generated only after training")
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"

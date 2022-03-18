@@ -45,6 +45,7 @@ class AWSFunctionInvocator:
             f = None
             # raise PayloadFileNotFoundException
         payload = json.load(f) if f else None
+        self.payload = payload
 
         self.threads.append(
             threading.Thread(
@@ -77,6 +78,7 @@ class AWSFunctionInvocator:
         return True
 
     def invoke_all(self, mem=-1):
+        self.threads = []
         for (instance, instance_times) in self.all_events.items():
             self.config.set_instance(
                 self.workload["instances"][instance]["application"]

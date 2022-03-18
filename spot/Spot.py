@@ -1,7 +1,10 @@
+import sys
 import json
 import time as time
 import os
-import sys
+from spot.mlModel.polynomial_regression import PolynomialRegressionModel
+import numpy as np
+from datetime import datetime
 
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
@@ -11,8 +14,10 @@ from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
 from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
-from spot.definitions import ROOT_DIR
+from spot.constants import ROOT_DIR
 from spot.visualize.Plot import Plot
+from spot.recommendation_engine.recommendation_engine import RecommendationEngine
+from spot.constants import *
 
 
 class Spot:
@@ -30,20 +35,20 @@ class Spot:
             with open(self.workload_file_path, "w") as json_file:
                 json.dump(self.config.workload, json_file, indent=4)
 
-        benchmark_dir = self.path
+        self.benchmark_dir = self.path
 
         try:
             self.last_log_timestamp = self.db.execute_max_value(
-                self.config.function_name, "logs", "timestamp"
+                self.config.function_name, DB_NAME_LOGS, "timestamp"
             )
         except:
             print(
-                sys.exc_info()[0],
-                "occured. No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
+                "No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
             )
             self.last_log_timestamp = 0
 
-        print(self.config.serialize())
+        # Create function db if not exists
+        self.db.create_function_db(self.config.function_name)
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.db, self.config.region)
@@ -59,35 +64,14 @@ class Spot:
             self.config.region,
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
-        self.ml_model = LinearRegressionModel(
-            self.config.function_name,
-            self.config.vendor,
+        self.ml_model = self.select_model(model)
+        self.recommendation_engine = RecommendationEngine(
+            self.config_file_path,
+            self.config,
+            self.ml_model,
             self.db,
-            self.last_log_timestamp,
-            benchmark_dir,
-        )  # TODO: Parametrize ML model constructor with factory method
-
-    def __del__(self):
-
-        # Save the updated configurations
-        with open(self.config_file_path, "w") as f:
-            f.write(self.config.serialize())
-
-        # Update the memory config on AWS with the newly suggested memory size
-        config_updater = ConfigUpdater(
-            self.config.function_name, self.config.mem_size, self.config.region
+            self.benchmark_dir,
         )
-
-        # Save model config suggestions
-        self.db.add_document_to_collection(
-            self.config.function_name, "suggested_configs", self.config.get_dict()
-        )
-
-        # Save model predictions to db for error calculation
-        # self.db.add_document_to_collection(self.config.function_name, "memory_predictions", memory_predictions)
-
-        plotter = Plot(self.config.function_name, self.db, directory=self.path)
-        plotter.plot_config_vs_epoch()
 
     def execute(self):
         print("Invoking function:", self.config.function_name)
@@ -119,10 +103,77 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs()
 
     def train_model(self):
-        # only train the model, if new logs are introduced
-        if self.ml_model.fetch_data():
-            new_configs, memory_predictions = self.ml_model.train_model()
+        self.ml_model.fetch_data()
+        self.ml_model.train_model()
 
-            # update config fields with new configs(currently only mem_size) TODO: Update memory config and other parameters
-            for new_config in new_configs:
-                self.config[new_config] = new_configs[new_config]
+    def select_model(self, model):
+        if model == "LinearRegression":
+            return LinearRegressionModel(
+                self.config.function_name,
+                self.config.vendor,
+                self.db,
+                self.last_log_timestamp,
+                self.benchmark_dir,
+            )
+        if model == "polynomial":
+            return PolynomialRegressionModel(
+                self.config.function_name,
+                self.config.vendor,
+                self.db,
+                self.last_log_timestamp,
+                self.benchmark_dir,
+                self.config.mem_bounds,
+            )
+
+    # Runs the workload with different configs to profile the serverless function
+    def profile(self):
+        mem_size = self.config.mem_bounds[0]
+        while mem_size <= self.config.mem_bounds[1]:
+            print("Invoking sample workload with mem_size: ", mem_size)
+            # fetch configs and most up to date prices
+            self.config_retriever.get_latest_config()
+            self.price_retriever.fetch_current_pricing()
+            self.function_invocator.invoke_all(mem_size)
+            mem_size *= 2
+
+    def update_config(self):
+        self.recommendation_engine.update_config()
+
+    def plot_error_vs_epoch(self):
+        self.recommendation_engine.plot_error_vs_epoch()
+
+    def plot_config_vs_epoch(self):
+        self.recommendation_engine.plot_config_vs_epoch()
+
+    def plot_memsize_vs_cost(self):
+        self.ml_model.plot_memsize_vs_cost()
+
+    def recommend(self):
+        self.recommendation = self.recommendation_engine.recommend()
+
+    def get_prediction_error_rate(self):
+        # TODO: ensure it's called after update_config
+        self.invoke()
+        time.sleep(60)  # TODO:Turn this into async if you can
+        # self.log_retriever.get_logs()
+        self.collect_data()
+
+        log_cnt = len(self.function_invocator.payload)
+        self.ml_model.fetch_data(log_cnt)
+
+        costs = self.ml_model._df["Cost"].values
+        # costs = np.array(costs)
+        # print(f"average: {np.mean(costs)}")
+        # print(f"median: {np.median(costs)}")
+        err = (
+            abs(self.recommendation_engine.get_pred_cost() - np.median(costs))
+            / np.median(costs)
+            * 100
+        )
+        # print(err)
+        self.db.add_document_to_collection(
+            self.config.function_name, DB_NAME_ERROR, {ERR_VAL: err}
+        )
+        self.recommendation_engine.plot_config_vs_epoch()
+        self.recommendation_engine.plot_error_vs_epoch()
+        # return self.recommendation_engine.recommend() - np.median(costs)
