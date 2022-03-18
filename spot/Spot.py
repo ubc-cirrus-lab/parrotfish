@@ -14,7 +14,7 @@ from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
 from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
-from spot.definitions import ROOT_DIR
+from spot.constants import ROOT_DIR
 from spot.visualize.Plot import Plot
 from spot.recommendation_engine.recommendation_engine import RecommendationEngine
 from spot.constants import *
