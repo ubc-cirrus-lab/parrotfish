@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import sys
 import os
 import datetime
 import pickle
@@ -12,13 +13,12 @@ from spot.db.db import DBClient
 
 class PolynomialRegressionModel(MlModelBaseClass):
     def __init__(
-        self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir
-    ):
+        self, function_name, vendor, db: DBClient, last_log_timestamp, benchmark_dir, polynomial_degree = 4):
         super().__init__(function_name, vendor, db, last_log_timestamp)
+        self._degree = polynomial_degree
         self._benchmark_dir = benchmark_dir
-        self._ml_model_file_path = os.path.join(
-            self._benchmark_dir, "poly_regression_model.pkl"
-        )
+        self._ml_model_file_path = self._benchmark_dir + "/poly_regression_model-" + "degree_" + str(self._degree) + ".pkl"
+    
         self._x = None
         self._y = None
         try:
@@ -53,9 +53,8 @@ class PolynomialRegressionModel(MlModelBaseClass):
             print("No data available to train the model")
             exit()
 
-        self._model = np.polyfit(self._x, self._y, 4)
+        self._model = np.polyfit(self._x, self._y, self._degree)
         self._save_model()
-        self.plot_memsize_vs_cost()
 
     """
     Creates and saves scatter plot of Memory Size vs Cost for the current serverless function
@@ -78,7 +77,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         plt.scatter(self._x, self._y)
 
         # Add linear regression line
-        xvars = np.linspace(np.min(self._x), np.max(self._x), 1024)
+        xvars = np.linspace(128, 10240, 1024)
         plt.plot(
             xvars,
             np.polyval(self._model, xvars),
@@ -131,28 +130,23 @@ class PolynomialRegressionModel(MlModelBaseClass):
             print("ML model not trained yet, thus can't recommend optimal config")
             exit()
         c = np.poly1d(self._model)
-        bounds = [256, 10280]
+        bounds = [128, 10280]
 
-        crit = c.deriv().r
-        r_crit = crit[crit.imag == 0].real
-        test = c.deriv(2)(r_crit)
+        x_min = None
+        y_min = None
+        crit_points = bounds + [x for x in c.deriv().r if x.imag == 0 and bounds[0] < x.real < bounds[1]]
+        for x in crit_points:
+            if y_min is None:
+                y_min = c(x)
+                x_min = x
+            elif y_min > c(x):
+                x_min = x
+                y_min = c(x)
 
-        x_min = max(r_crit[test > 0][0], bounds[0])
-        y_min = c(x_min)
-        
         # Check if model suggest mathematically possible config
-        if x_min < bounds[0] or x_min > bounds[1] or y_min < 0:
+        if x_min is None:
             print("Model can't suggest mathematically possible solution")
             exit()
-
-        left_boundary_cost = c(bounds[0])
-        right_boundary_cost = c(bounds[1])
-        if left_boundary_cost >= 0 and left_boundary_cost < y_min:
-            y_min = left_boundary_cost
-            x_min = bounds[0]
-        if right_boundary_cost >= 0 and right_boundary_cost < y_min:
-            y_min = right_boundary_cost
-            x_min = bounds[1]
-
-        x_min = int(x_min)
-        return x_min, y_min
+        else:
+            y_min = c(x_min)
+            return x_min, y_min
