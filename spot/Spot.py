@@ -123,7 +123,7 @@ class Spot:
                 self.db,
                 self.last_log_timestamp,
                 self.benchmark_dir,
-                self.config.mem_bounds
+                self.config.mem_bounds,
             )
 
     # Runs the workload with different configs to profile the serverless function
