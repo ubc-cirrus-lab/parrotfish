@@ -72,23 +72,21 @@ class Spot:
             self.db,
             self.benchmark_dir,
         )
-
-    def execute(self):
-        print("Invoking function:", self.config.function_name)
-        # invoke the indicated function
-        self.invoke()
-
-        print("Sleeping to allow logs to propogate")
-        # wait to allow logs to populate in aws
-        time.sleep(15)  # TODO: Change this to waiting all threads to yield
-
-        print("Retrieving new logs and save in db")
-        # collect log data
+    '''
+    End-to-end execution of full lifecycle: 
+        1. profiling
+        2. fetching newly created logs
+        3. training the model 
+        4. recommending the optimal config 
+        5. updating the serverless function config with the new config
+    '''
+    def full(self):
+        self.profile()
+        time.sleep(30)
         self.collect_data()
-
-        print("Training ML model")
-        # train ML model accordingly
         self.train_model()
+        self.update_config()
+        self.get_prediction_error_rate()
 
     def invoke(self):
         # fetch configs and most up to date prices

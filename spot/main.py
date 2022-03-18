@@ -70,6 +70,11 @@ def main():
         action="store_true",
         help="Plot Memory Size vs Cost",
     )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="End-to-end execution of full lifecycle: profiling then fetching newly created logs, then training the model, then recommending the optimal config and updating the serverless function config with the new config",
+    )
 
     args = parser.parse_args()
 
@@ -109,10 +114,15 @@ def main():
             if args.plot_config_vs_epoch:
                 function.plot_config_vs_epoch()
             if args.plot_memsize_vs_cost:
-                if args.train and args.model:
+                if (args.train or args.full) and args.model:
                     function.plot_memsize_vs_cost()
                 else:
                     print("Memsize vs Cost plot can be generated only after training")
+            if args.full:
+                if args.model:
+                    function.full()
+                else:
+                    print("Please specify model")
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
