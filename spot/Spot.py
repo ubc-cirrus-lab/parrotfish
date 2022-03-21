@@ -1,6 +1,6 @@
 import sys
 import json
-import time as time
+import time
 import os
 from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 import numpy as np
@@ -72,23 +72,6 @@ class Spot:
             self.db,
             self.benchmark_dir,
         )
-
-    def execute(self):
-        print("Invoking function:", self.config.function_name)
-        # invoke the indicated function
-        self.invoke()
-
-        print("Sleeping to allow logs to propogate")
-        # wait to allow logs to populate in aws
-        time.sleep(15)  # TODO: Change this to waiting all threads to yield
-
-        print("Retrieving new logs and save in db")
-        # collect log data
-        self.collect_data()
-
-        print("Training ML model")
-        # train ML model accordingly
-        self.train_model()
 
     def invoke(self):
         # fetch configs and most up to date prices

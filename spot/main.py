@@ -44,7 +44,7 @@ def main():
         "--model",
         "-m",
         type=str,
-        help="The ML model to use to train the model (default: linear)",
+        help="The ML model to use to train the model",
     )
     parser.add_argument(
         "--update_config",
@@ -70,15 +70,37 @@ def main():
         action="store_true",
         help="Plot Memory Size vs Cost",
     )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="End-to-end execution of full lifecycle: profiling then fetching newly created logs, then training the model, then recommending the optimal config and updating the serverless function config with the new config",
+    )
 
     args = parser.parse_args()
 
-    if args.function is not None:
+    if args.full:
+        """
+        End-to-end execution of full lifecycle:
+            1. profiling
+            2. fetching newly created logs
+            3. training the model
+            4. recommending the optimal config
+            5. updating the serverless function config with the new config
+        """
+        if args.model:
+            args.profile = args.fetch = args.train = args.update_config = True
+        else:
+            print("Please specify model")
+            return
+
+    if args.function:
         path = os.path.join(ROOT_DIR, FUNCTION_DIR, args.function)
         if os.path.isdir(path):
             function = Spot(path, args.model)
             if args.invoke:
                 function.invoke()
+            if args.profile:
+                function.profile()
             if args.fetch:
                 if args.invoke:
                     time.sleep(15)  # TODO: Change this to waiting all threads to yield
@@ -88,31 +110,30 @@ def main():
                     function.train_model()
                 else:
                     print("Please specify model")
-                    exit()
+                    return
             if args.recommend:
                 if args.model:
                     function.recommend()
                 else:
                     print("Please specify model")
-                    exit()
-            if args.profile:
-                function.profile()
+                    return
             if args.update_config:
                 if args.model:
                     function.update_config()
                     function.get_prediction_error_rate()
                 else:
                     print("Please specify model")
-                    exit()
+                    return
             if args.plot_error_vs_epoch:
                 function.plot_error_vs_epoch()
             if args.plot_config_vs_epoch:
                 function.plot_config_vs_epoch()
             if args.plot_memsize_vs_cost:
-                if args.train and args.model:
+                if (args.train or args.full) and args.model:
                     function.plot_memsize_vs_cost()
                 else:
                     print("Memsize vs Cost plot can be generated only after training")
+                    return
         else:
             print(
                 f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
