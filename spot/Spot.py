@@ -1,6 +1,6 @@
 import sys
 import json
-import time as time
+import time
 import os
 from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 import numpy as np
@@ -72,23 +72,6 @@ class Spot:
             self.db,
             self.benchmark_dir,
         )
-
-    """
-    End-to-end execution of full lifecycle: 
-        1. profiling
-        2. fetching newly created logs
-        3. training the model 
-        4. recommending the optimal config 
-        5. updating the serverless function config with the new config
-    """
-
-    def full(self):
-        self.profile()
-        time.sleep(30)
-        self.collect_data()
-        self.train_model()
-        self.update_config()
-        self.get_prediction_error_rate()
 
     def invoke(self):
         # fetch configs and most up to date prices
