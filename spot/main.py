@@ -44,7 +44,7 @@ def main():
         "--model",
         "-m",
         type=str,
-        help="The ML model to use to train the model (default: linear)",
+        help="The ML model to use to train the model",
     )
     parser.add_argument(
         "--update_config",
@@ -87,9 +87,13 @@ def main():
             4. recommending the optimal config 
             5. updating the serverless function config with the new config
         """
-        args.profile = args.fetch = args.train = args.update_config = True
+        if args.model:
+            args.profile = args.fetch = args.train = args.update_config = True
+        else:
+            print("Please specify model")
+            return
 
-    if args.function is not None:
+    if args.function:
         path = os.path.join(ROOT_DIR, FUNCTION_DIR, args.function)
         if os.path.isdir(path):
             function = Spot(path, args.model)
