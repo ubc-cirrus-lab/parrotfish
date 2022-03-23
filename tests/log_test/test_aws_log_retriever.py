@@ -60,7 +60,7 @@ class TestLogRetrival(unittest.TestCase):
             "Billed Duration": 2,
             "Memory Size": 128,
             "Max Memory Used": 39,
-            "Init Duration": 113.44
+            "Init Duration": 113.44,
         }
 
         for s in stream["logStreams"]:

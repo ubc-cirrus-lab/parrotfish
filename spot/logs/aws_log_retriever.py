@@ -39,9 +39,9 @@ class AWSLogRetriever:
                     for message_section in message_sections[1:-1]:
                         field_name = message_section.split(":")[0]
                         value = message_section.split(":")[1][1:].split(" ")[0]
-                        if re.match(r'^[0-9]+\.[0-9]+$', value):
+                        if re.match(r"^[0-9]+\.[0-9]+$", value):
                             log[field_name] = float(value)
-                        elif re.match(r'^[0-9]+$', value):
+                        elif re.match(r"^[0-9]+$", value):
                             log[field_name] = int(value)
                         else:
                             log[field_name] = value
