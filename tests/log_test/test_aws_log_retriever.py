@@ -33,7 +33,7 @@ class TestLogRetrival(unittest.TestCase):
             "events": [
                 {
                     "timestamp": 100,
-                    "message": f"REPORT RequestId: {logStreamName}	Duration: 1.50 ms	Billed Duration: 2 ms	Memory Size: 128 MB	Max Memory Used: 39 MB	Init Duration: 113.44 ms",
+                    "message": f"REPORT RequestId: {logStreamName}	Duration: 1.50 ms	Billed Duration: 2 ms	Memory Size: 128 MB	Max Memory Used: 39 MB	Init Duration: 113.44 ms	",
                     "ingestionTime": 123,
                 },
             ]
@@ -56,10 +56,11 @@ class TestLogRetrival(unittest.TestCase):
         logContent = {
             "timestamp": 100,
             "ingestionTime": 123,
-            "Duration": "1.50",
-            "Billed Duration": "2",
-            "Memory Size": "128",
-            "Max Memory Used": "39",
+            "Duration": 1.50,
+            "Billed Duration": 2,
+            "Memory Size": 128,
+            "Max Memory Used": 39,
+            "Init Duration": 113.44,
         }
 
         for s in stream["logStreams"]:
@@ -67,7 +68,7 @@ class TestLogRetrival(unittest.TestCase):
             name = s["logStreamName"]
             logTemp[
                 "message"
-            ] = f"REPORT RequestId: {name}\tDuration: 1.50 ms\tBilled Duration: 2 ms\tMemory Size: 128 MB\tMax Memory Used: 39 MB\tInit Duration: 113.44 ms"
+            ] = f"REPORT RequestId: {name}\tDuration: 1.50 ms\tBilled Duration: 2 ms\tMemory Size: 128 MB\tMax Memory Used: 39 MB\tInit Duration: 113.44 ms\t"
             logTemp["RequestId"] = name
             callTemp = call(
                 self.function,
