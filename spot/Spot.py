@@ -2,7 +2,6 @@ import sys
 import json
 import time as time
 import os
-from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 import numpy as np
 from datetime import datetime
 
@@ -18,6 +17,8 @@ from spot.constants import ROOT_DIR
 from spot.visualize.Plot import Plot
 from spot.recommendation_engine.recommendation_engine import RecommendationEngine
 from spot.constants import *
+from spot.mlModel.polynomial_regression import PolynomialRegressionModel
+from spot.logs.log_propagation_waiter import LogPropagationWaiter
 
 
 class Spot:
@@ -153,8 +154,10 @@ class Spot:
 
     def get_prediction_error_rate(self):
         # TODO: ensure it's called after update_config
+        start = datetime.now().timestamp()
         self.invoke()
-        time.sleep(60)  # TODO:Turn this into async if you can
+        LogPropagationWaiter(self.config.function_name).wait(start)
+        # time.sleep(60)  # TODO:Turn this into async if you can
         # self.log_retriever.get_logs()
         self.collect_data()
 
