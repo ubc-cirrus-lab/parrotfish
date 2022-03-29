@@ -8,26 +8,24 @@ from spot.logs.log_query_waiter import LogQueryWaiter
 LOG_TIMEOUT = 60
 LOG_WAIT_SLEEP_TIME = 15
 
-class LogPropagationWaiter:
-    def __init__(self, function_name, prev_timestamp=0):
-        self.client = boto3.client('logs')
-        self.function_name = function_name
-        self.prev_timestamp = prev_timestamp
 
-    def wait(self, start):
+class LogPropagationWaiter:
+    """Waits for CloudWatch log to propagate after invocation"""
+
+    def __init__(self, function_name):
+        self.client = boto3.client("logs")
+        self.function_name = function_name
+
+    def wait(self, start, prev_timestamp=0):
         recent_log_time = self.most_recent_log_time()
-        prev_timestamp = self.prev_timestamp
         retry = LOG_TIMEOUT
 
         while recent_log_time != prev_timestamp:  # new log fetched
-            print(
-                f"start: {start}, recent log time: {recent_log_time}, prev timestamp: {prev_timestamp}"
-            )
             if not retry:
                 print(
                     f"waited for log timed out after {LOG_TIMEOUT}s, no new log available"
                 )
-                return  # or exit?
+                return
             if recent_log_time > start:
                 prev_timestamp = recent_log_time
             else:
@@ -35,7 +33,7 @@ class LogPropagationWaiter:
             time.sleep(LOG_WAIT_SLEEP_TIME)
             recent_log_time = self.most_recent_log_time()
 
-        print("log propagated, now continue to fetch logs from cloud")
+        # print("log propagated, now continue to fetch logs from cloud")
 
     def most_recent_log_time(self) -> float:
         log_group = "/aws/lambda/" + self.function_name
@@ -47,7 +45,6 @@ class LogPropagationWaiter:
             queryString=get_log_query,
             limit=1,
         )["queryId"]
-        # res = self.wait_query(query_id)["results"][0]
         LogQueryWaiter(self.client).wait(query_id=query_id)
 
         res = self.client.get_query_results(queryId=query_id)["results"][0]
@@ -58,7 +55,6 @@ class LogPropagationWaiter:
 
     def get_query_value(self, query_res: list, field: str) -> str:
         for fv in query_res:
-            # print(fv)
             f = fv["field"]
             v = fv["value"]
             if f == field:
