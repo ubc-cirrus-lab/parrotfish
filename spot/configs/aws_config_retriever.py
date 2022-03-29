@@ -18,7 +18,7 @@ class AWSConfigRetriever:
             config["LastModified"], "%Y-%m-%dT%H:%M:%S.%f%z"
         )
         last_modified_ms = int(last_modified.timestamp() * 1000)
-        config["LastModifiedInMs"] = str(last_modified_ms)
+        config["LastModifiedInMs"] = int(last_modified_ms)
 
         config["Architectures"] = config["Architectures"][0]
         self.DBClient.add_new_config_if_changed(self.function_name, "config", config)

@@ -26,14 +26,16 @@ class BenchmarkConfig:
         region: str,
         mem_size: int,
         workload: dict,
-        mem_bounds: list = [128, 10280],
+        mem_bounds: list = None,
     ):
         self.function_name = function_name
         self.vendor = vendor
         self.region = region
         self.mem_size = mem_size
         self.workload = workload
-        self.mem_bounds = mem_bounds
+        self.mem_bounds = (
+            mem_bounds if mem_bounds else [128, 10280]
+        )  # List cannot be declared in optional arguments otherwise all instances will refer to that same list
 
     def deserialize(self, f):
         try:
