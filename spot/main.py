@@ -70,7 +70,6 @@ def main():
         action="store_true",
         help="Plot Memory Size vs Cost",
     )
-
     args = parser.parse_args()
 
     if args.function is not None:
@@ -96,7 +95,7 @@ def main():
                     print("Please specify model")
                     exit()
             if args.profile:
-                function.profile()
+                function.profile() 
             if args.update_config:
                 if args.model:
                     function.update_config()
