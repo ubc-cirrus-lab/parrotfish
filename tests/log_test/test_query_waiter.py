@@ -9,7 +9,7 @@ from datetime import datetime
 
 # from botocore.client import CloudWatchLogs
 
-from spot.logs.logs_waiter import LogQueryWaiter
+from spot.logs.log_query_waiter import LogQueryWaiter
 
 
 @mock_logs
@@ -26,7 +26,7 @@ class QueryWaiterTest(TestCase):
         logs.get_query_results = MagicMock(return_value={"status": "Complete"})
         # logs.start_query = MagicMock(return_value={"queryId": "testId"})
         self.client = logs
-        self.queryWaiter = LogQueryWaiter()
+        self.queryWaiter = LogQueryWaiter(self.client)
         self.queryWaiter.client.get_query_results = MagicMock(return_value={"status": "Complete"})
 
     # @patch("spot.logs.logs_waiter.boto3")
