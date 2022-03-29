@@ -20,7 +20,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         last_log_timestamp: int,
         benchmark_dir: str,
         mem_bounds: list,
-        polynomial_degree=2,
+        polynomial_degree=3,
     ):
         super().__init__(function_name, vendor, db, last_log_timestamp)
         self._degree = polynomial_degree
@@ -43,6 +43,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     def _preprocess(self):
         self._df[MEM_SIZE] = self._df[MEM_SIZE].astype(int)
+        self._df = self._df[(self._df[MEM_SIZE] >= self.mem_bounds[0]) & (self._df[MEM_SIZE] <= self.mem_bounds[1])]
         X_mem = self._df[MEM_SIZE].values
         y = self._df[COST].values
         X_labels = np.unique(X_mem)
@@ -92,7 +93,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         plt.scatter(self._x, self._y)
 
         # Add linear regression line
-        xvars = np.linspace(128, 10240, 1024)
+        xvars = np.linspace(self._x.min(), self._x.max(), 1024)
         plt.plot(
             xvars,
             np.polyval(self._model, xvars),
@@ -102,6 +103,8 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         # Get optimal config
         x_min, y_min = self.get_optimal_config()
+
+        print(f"Minimum cost of {y_min} found at {x_min} MB")
 
         # Plot best mem size, data points and polynomial regression fit
         plt.plot(x_min, y_min, "x")
@@ -124,9 +127,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     def get_polynomial_equation_string(self):
         ret_val = ""
-        for degree in range(len(self._model) - 1, 0, -1):
+        for degree in range(len(self._model) - 1, -1, -1):
             if degree == 0:
-                ret_val += str(self._model[degree])
+                ret_val += str(round(self._model[degree],3))
             else:
                 ret_val += (
                     str("{:.2E}".format(self._model[degree]))

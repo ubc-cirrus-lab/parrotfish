@@ -15,15 +15,22 @@ class AWSLogRetriever:
         client = boto3.client("logs")
         new_timestamp = self.last_log_timestamp
 
-        # TODO: determine how many log streams to read, boto3 client by default returns 50
         # get log streams
         streams = []
-        response = client.describe_log_streams(
-            logGroupName=path, orderBy="LastEventTime", descending=True
-        )
-        for stream in response["logStreams"]:
-            if stream["lastEventTimestamp"] > self.last_log_timestamp:
-                streams.append((stream["logStreamName"]))
+        next_token = ""
+        new_logs = True
+        while new_logs:
+            response = client.describe_log_streams(logGroupName=path, orderBy="LastEventTime", descending=True, nextToken=next_token) if next_token != "" else client.describe_log_streams(logGroupName=path, orderBy="LastEventTime", descending=True)
+
+            for stream in response["logStreams"]:
+                if stream["lastEventTimestamp"] > self.last_log_timestamp:
+                    streams.append((stream["logStreamName"]))
+                else:
+                    new_logs = False
+                    break
+            if next_token == response["nextToken"] or response["nextToken"] == "":
+                break
+            next_token = response["nextToken"]
 
         # get log events and save it to DB
         for stream in streams:

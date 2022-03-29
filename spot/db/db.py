@@ -71,6 +71,7 @@ class DBClient:
         collection = function_db[collection_name]
         return collection.find().sort(f"{field}", -1).limit(1)[0][field]
 
+
     def get_top_docs(self, function_name: str, collection_name: str, doc_cont: int):
         function_db = self.client[function_name]
         collection = function_db[collection_name]

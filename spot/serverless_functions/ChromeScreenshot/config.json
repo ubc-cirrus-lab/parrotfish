@@ -1,8 +1,8 @@
 {
     "function_name": "screenshot-service-dev-capture",
     "mem_bounds": [
-        128,
-        10280
+        256,
+        8192
     ],
     "mem_size": 256,
     "region": "us-east-2",
