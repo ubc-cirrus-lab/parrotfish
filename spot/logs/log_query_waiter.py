@@ -9,9 +9,6 @@ from botocore.waiter import create_waiter_with_client
 
 from spot.logs.custom_waiter import CustomWaiter, WaitState
 
-LOG_TIMEOUT = 60
-LOG_WAIT_SLEEP_TIME = 15
-
 
 class LogQueryWaiter(CustomWaiter):
     """Wait for a log query to finish"""
