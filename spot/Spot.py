@@ -83,7 +83,6 @@ class Spot:
         # invoke function
         start = datetime.now().timestamp()
         self.function_invocator.invoke_all()
-        # self.log_prop_waiter.wait(start,self.last_log_timestamp)
         self.log_prop_waiter.wait_by_count(start, self.function_invocator.invoke_cnt)
 
     def collect_data(self):
@@ -126,7 +125,6 @@ class Spot:
             self.function_invocator.invoke_all(mem_size)
             invoke_cnt += self.function_invocator.invoke_cnt
             mem_size *= 2
-        # self.log_prop_waiter.wait(start, self.last_log_timestamp)
         self.log_prop_waiter.wait_by_count(start, invoke_cnt)
 
     def update_config(self):
@@ -146,10 +144,7 @@ class Spot:
 
     def get_prediction_error_rate(self):
         # TODO: ensure it's called after update_config
-        # start = datetime.now().timestamp()
         self.invoke()
-        # self.log_prop_waiter.wait(start, prev_timestamp=self.last_log_timestamp)
-        # self.log_retriever.get_logs()
         self.collect_data()
 
         log_cnt = len(self.function_invocator.payload)

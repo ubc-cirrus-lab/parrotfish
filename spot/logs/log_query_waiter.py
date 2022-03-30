@@ -1,12 +1,3 @@
-from enum import Enum
-import time
-from datetime import datetime
-
-import boto3
-import botocore
-from botocore.waiter import WaiterModel
-from botocore.waiter import create_waiter_with_client
-
 from spot.logs.custom_waiter import CustomWaiter, WaitState
 
 
