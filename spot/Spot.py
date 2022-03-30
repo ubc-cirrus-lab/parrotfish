@@ -37,6 +37,8 @@ class Spot:
                 json.dump(self.config.workload, json_file, indent=4)
 
         self.benchmark_dir = self.path
+        self.log_prop_waiter = LogPropagationWaiter(self.config.function_name)
+
 
         try:
             self.last_log_timestamp = self.db.execute_max_value(
@@ -80,7 +82,10 @@ class Spot:
         self.price_retriever.fetch_current_pricing()
 
         # invoke function
+        start = datetime.now().timestamp()
         self.function_invocator.invoke_all()
+        # self.log_prop_waiter.wait(start,self.last_log_timestamp)
+        self.log_prop_waiter.wait_by_count(start, self.function_invocator.invoke_cnt)
 
     def collect_data(self):
         # retrieve logs
@@ -112,13 +117,18 @@ class Spot:
     # Runs the workload with different configs to profile the serverless function
     def profile(self):
         mem_size = self.config.mem_bounds[0]
+        start = datetime.now().timestamp()
+        invoke_cnt = 0
         while mem_size <= self.config.mem_bounds[1]:
             print("Invoking sample workload with mem_size: ", mem_size)
             # fetch configs and most up to date prices
             self.config_retriever.get_latest_config()
             self.price_retriever.fetch_current_pricing()
             self.function_invocator.invoke_all(mem_size)
+            invoke_cnt += self.function_invocator.invoke_cnt
             mem_size *= 2
+        # self.log_prop_waiter.wait(start, self.last_log_timestamp)
+        self.log_prop_waiter.wait_by_count(start, invoke_cnt)
 
     def update_config(self):
         self.recommendation_engine.update_config()
@@ -137,9 +147,9 @@ class Spot:
 
     def get_prediction_error_rate(self):
         # TODO: ensure it's called after update_config
-        start = datetime.now().timestamp()
+        # start = datetime.now().timestamp()
         self.invoke()
-        LogPropagationWaiter(self.config.function_name).wait(start, prev_timestamp=self.last_log_timestamp)
+        # self.log_prop_waiter.wait(start, prev_timestamp=self.last_log_timestamp)
         # self.log_retriever.get_logs()
         self.collect_data()
 
