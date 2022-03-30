@@ -18,7 +18,9 @@ class LogPropagationWaiter:
 
         while last_log_time != prev_timestamp:
             if not retry:
-                print(f"Log propagation waiter timed out after retrying for {retry} times")
+                print(
+                    f"Log propagation waiter timed out after retrying for {retry} times"
+                )
                 return
             if last_log_time > start:
                 prev_timestamp = last_log_time
@@ -45,7 +47,6 @@ class LogPropagationWaiter:
 
         last_log_time = self.most_recent_log_time(start)
         print(f"log propagated, {last_log_time = }")
-        
 
     def get_new_logs_cnt(self, start):
         log_group = "/aws/lambda/" + self.function_name
@@ -60,7 +61,6 @@ class LogPropagationWaiter:
         LogQueryWaiter(self.client).wait(query_id=query_id)
         res = self.client.get_query_results(queryId=query_id)["results"]
         return len(res)
-
 
     def most_recent_log_time(self, start) -> float:
         log_group = "/aws/lambda/" + self.function_name

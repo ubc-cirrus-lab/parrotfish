@@ -39,7 +39,6 @@ class Spot:
         self.benchmark_dir = self.path
         self.log_prop_waiter = LogPropagationWaiter(self.config.function_name)
 
-
         try:
             self.last_log_timestamp = self.db.execute_max_value(
                 self.config.function_name, DB_NAME_LOGS, "timestamp"

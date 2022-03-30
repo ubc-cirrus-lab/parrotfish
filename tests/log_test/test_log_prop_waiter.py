@@ -6,7 +6,11 @@ from moto import mock_logs
 from botocore.exceptions import WaiterError
 from datetime import datetime
 
-from spot.logs.log_propagation_waiter import LogPropagationWaiter, LOG_TIMEOUT, LOG_WAIT_SLEEP_TIME
+from spot.logs.log_propagation_waiter import (
+    LogPropagationWaiter,
+    LOG_TIMEOUT,
+    LOG_WAIT_SLEEP_TIME,
+)
 
 
 @mock_logs
@@ -33,4 +37,4 @@ class LogPropagationWaiterTest(TestCase):
     @patch("time.sleep", return_value=True)
     def test_wait_timeout(self, mock_sleep):
         self.log_prop_waiter.wait(start=datetime.now().timestamp())
-        self.assertEqual(mock_sleep.call_count, LOG_TIMEOUT/LOG_WAIT_SLEEP_TIME)
+        self.assertEqual(mock_sleep.call_count, LOG_TIMEOUT / LOG_WAIT_SLEEP_TIME)
