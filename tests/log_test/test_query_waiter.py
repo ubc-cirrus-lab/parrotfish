@@ -27,7 +27,9 @@ class QueryWaiterTest(TestCase):
         # logs.start_query = MagicMock(return_value={"queryId": "testId"})
         self.client = logs
         self.queryWaiter = LogQueryWaiter(self.client)
-        self.queryWaiter.client.get_query_results = MagicMock(return_value={"status": "Complete"})
+        self.queryWaiter.client.get_query_results = MagicMock(
+            return_value={"status": "Complete"}
+        )
 
     # @patch("spot.logs.logs_waiter.boto3")
     def test_query_wait_invalid_id(self):
@@ -48,7 +50,7 @@ class QueryWaiterTest(TestCase):
             queryString=query,
         )["queryId"]
         # self.queryWaiter.get_query_results = MagicMock(return_value={"status": "Complete"})
-        with patch('spot.logs.custom_waiter.botocore.waiter.Waiter') as mock_waiter:
+        with patch("spot.logs.custom_waiter.botocore.waiter.Waiter") as mock_waiter:
             mock_waiter.wait = self._mock_func
             self.queryWaiter.wait(query_id=query_id)
 
@@ -65,5 +67,3 @@ class QueryWaiterTest(TestCase):
                 return_value={"status": "Complete"}
             )
         return mock_client
-
-    

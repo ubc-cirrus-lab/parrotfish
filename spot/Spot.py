@@ -139,7 +139,9 @@ class Spot:
         # TODO: ensure it's called after update_config
         start = datetime.now().timestamp()
         self.invoke()
-        LogPropagationWaiter(self.config.function_name).wait(start, prev_timestamp=self.last_log_timestamp)
+        LogPropagationWaiter(self.config.function_name).wait(
+            start, prev_timestamp=self.last_log_timestamp
+        )
         # self.log_retriever.get_logs()
         self.collect_data()
 
