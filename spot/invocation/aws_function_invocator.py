@@ -72,12 +72,14 @@ class AWSFunctionInvocator:
                 future = executor.submit(
                     client.invoke, FunctionName=application, Payload=input_data
                 )
+                self.invoke_cnt += 1
                 self.futures.append(future)
                 after_time = time.time()
 
         return True
 
     def invoke_all(self, mem=-1):
+        self.invoke_cnt = 0
         self.threads = []
         for (instance, instance_times) in self.all_events.items():
             self.config.set_instance(

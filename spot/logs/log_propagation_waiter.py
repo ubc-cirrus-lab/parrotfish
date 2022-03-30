@@ -1,12 +1,9 @@
+from os import waitid_result
 import time
 import boto3
 from datetime import datetime
 
 from spot.logs.log_query_waiter import LogQueryWaiter
-
-
-LOG_TIMEOUT = 60
-LOG_WAIT_SLEEP_TIME = 15
 
 
 class LogPropagationWaiter:
@@ -16,31 +13,62 @@ class LogPropagationWaiter:
         self.client = boto3.client("logs")
         self.function_name = function_name
 
-    def wait(self, start, prev_timestamp=0):
-        recent_log_time = self.most_recent_log_time()
-        retry = LOG_TIMEOUT
+    def wait(self, start, prev_timestamp=0, retry=10, wait_interval=15):
+        last_log_time = self.most_recent_log_time(start)
 
-        while recent_log_time != prev_timestamp:  # new log fetched
+        while last_log_time != prev_timestamp:
             if not retry:
-                print(
-                    f"waited for log timed out after {LOG_TIMEOUT}s, no new log available"
-                )
+                print(f"Log propagation waiter timed out after retrying for {retry} times")
                 return
-            if recent_log_time > start:
-                prev_timestamp = recent_log_time
+            if last_log_time > start:
+                prev_timestamp = last_log_time
             else:
-                retry -= LOG_WAIT_SLEEP_TIME
-            time.sleep(LOG_WAIT_SLEEP_TIME)
-            recent_log_time = self.most_recent_log_time()
+                retry -= 1
+            time.sleep(wait_interval)
+            last_log_time = self.most_recent_log_time(start)
 
-        # print("log propagated, now continue to fetch logs from cloud")
+        print(f"log propagated, {last_log_time = }")
 
-    def most_recent_log_time(self) -> float:
+    def wait_by_count(self, start, log_cnt, retry=10, wait_interval=15):
+        new_log_cnt = 0
+        while new_log_cnt != log_cnt:
+            time.sleep(wait_interval)
+            temp = self.get_new_logs_cnt(start)
+            while new_log_cnt == temp and retry:
+                time.sleep(wait_interval)
+                temp = self.get_new_logs_cnt(start)
+                retry -= 1
+            new_log_cnt = temp
+            if not retry:
+                print(f"max {retry=} reached, got {new_log_cnt}/{log_cnt} logs")
+                return
+
+        last_log_time = self.most_recent_log_time(start)
+        print(f"log propagated, {last_log_time = }")
+        
+
+    def get_new_logs_cnt(self, start):
+        log_group = "/aws/lambda/" + self.function_name
+        # get_log_query = "fields @timestamp | sort @timestamp desc | limit 1"
+        query_id = self.client.start_query(
+            logGroupName=log_group,
+            # startTime=int(start),
+            startTime=int(start),
+            endTime=int(datetime.now().timestamp()),
+            queryString='filter @type = "REPORT"',
+        )["queryId"]
+        LogQueryWaiter(self.client).wait(query_id=query_id)
+        res = self.client.get_query_results(queryId=query_id)["results"]
+        return len(res)
+
+
+    def most_recent_log_time(self, start) -> float:
         log_group = "/aws/lambda/" + self.function_name
         get_log_query = "fields @timestamp | sort @timestamp desc | limit 1"
         query_id = self.client.start_query(
             logGroupName=log_group,
-            startTime=0,  # TODO: bug? if set to self.last_log_timestamp then has error of start tiem is after end time
+            # startTime=int(start),
+            startTime=0,
             endTime=int(datetime.now().timestamp()),
             queryString=get_log_query,
             limit=1,
