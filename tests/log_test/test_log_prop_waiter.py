@@ -6,11 +6,7 @@ from moto import mock_logs
 from botocore.exceptions import WaiterError
 from datetime import datetime
 
-from spot.logs.log_propagation_waiter import (
-    LogPropagationWaiter,
-    LOG_TIMEOUT,
-    LOG_WAIT_SLEEP_TIME,
-)
+from spot.logs.log_propagation_waiter import LogPropagationWaiter, LogPropWaiterTimeoutError
 
 
 @mock_logs
@@ -26,15 +22,21 @@ class LogPropagationWaiterTest(TestCase):
             return_value={
                 "results": [
                     [{"field": "@timestamp", "value": "2000-03-30 0:0:0.0"}],
+                    [{"field": "@timestamp", "value": "2000-03-31 0:0:0.0"}],
                 ],
                 "status": "Complete",
             }
         )
-        # self.client = logs
         self.log_prop_waiter = LogPropagationWaiter(func)
-        self.log_prop_waiter.client = logs
+        self.log_prop_waiter._client = logs
 
     @patch("time.sleep", return_value=True)
     def test_wait_timeout(self, mock_sleep):
-        self.log_prop_waiter.wait(start=datetime.now().timestamp())
-        self.assertEqual(mock_sleep.call_count, LOG_TIMEOUT / LOG_WAIT_SLEEP_TIME)
+        self.log_prop_waiter.wait(start=datetime.now().timestamp(), retry=10)
+        self.assertEqual(mock_sleep.call_count, 10)
+
+    @patch("time.sleep", return_value=True)
+    def test_wait_by_count_timeout(self, mock_sleep):
+        with self.assertRaises(LogPropWaiterTimeoutError):
+            self.log_prop_waiter.wait_by_count(start=datetime.now().timestamp(), log_cnt=10)
+
