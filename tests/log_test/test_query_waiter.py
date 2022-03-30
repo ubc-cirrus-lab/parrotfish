@@ -36,7 +36,9 @@ class QueryWaiterTest(TestCase):
             endTime=int(datetime.now().timestamp()),
             queryString=query,
         )["queryId"]
-        with patch("spot.logs.custom_waiter.botocore.waiter.Waiter.wait", new=self._mock_wait):
+        with patch(
+            "spot.logs.custom_waiter.botocore.waiter.Waiter.wait", new=self._mock_wait
+        ):
             self.queryWaiter.wait(query_id=query_id)
 
     def _mock_wait(self, *args, **kwargs):

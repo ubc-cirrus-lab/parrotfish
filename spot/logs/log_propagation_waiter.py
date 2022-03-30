@@ -5,8 +5,10 @@ from datetime import datetime
 
 from spot.logs.log_query_waiter import LogQueryWaiter
 
+
 class LogPropWaiterTimeoutError(Exception):
     pass
+
 
 class LogPropagationWaiter:
     """Waits for CloudWatch log to propagate after invocation
@@ -14,7 +16,7 @@ class LogPropagationWaiter:
     Args:
         function_name: the name of the function to wait on
     Raises:
-        LogPropWaiterTimeoutError: if fails to read the target number of logs after retrying  
+        LogPropWaiterTimeoutError: if fails to read the target number of logs after retrying
     """
 
     def __init__(self, function_name: str) -> None:
@@ -65,7 +67,7 @@ class LogPropagationWaiter:
             new_log_cnt = temp
             if not retry:
                 print(f"max retry reached, got {new_log_cnt}/{log_cnt} logs")
-                raise(LogPropWaiterTimeoutError)
+                raise (LogPropWaiterTimeoutError)
 
         last_log_time = self._most_recent_log_time(start)
         print(f"log propagated, {last_log_time = }")
