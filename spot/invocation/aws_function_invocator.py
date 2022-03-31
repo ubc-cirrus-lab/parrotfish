@@ -4,6 +4,7 @@ import os
 import time
 import threading
 import boto3
+import botocore
 
 from spot.invocation.JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
 from spot.invocation.WorkloadChecker import CheckWorkloadValidity
@@ -17,46 +18,69 @@ class InvalidWorkloadFileException(Exception):
 
 
 class AWSFunctionInvocator:
-    futures = []
+    """
+    Invokes a function based on the parameters specified in a workload json file
 
-    def __init__(self, workload, function_name, mem_size, region, db : DBClient):
-        self.workload = self._read_workload(workload)
-        self.workload_path: str = os.path.dirname(workload)
-        self.DBClient = db
-        self.config = ConfigUpdater(function_name, mem_size, region)
-        self.config.set_mem_size(mem_size)
-        self.threads = []
+    Args:
+        workload_path: file path to workload specifications
+        function_name: name of the function on lambda
+        mem_size: the initial memory size for the serverless function to run
+        region: region of the serverless function
+
+    Attributes:
+        invoke_cnt: the number of total function invocations of a certain workload setting
+
+    Raises:
+        InvalidWorkloadFileException: if the workload file is not of json format or some fields have wrong types
+    """
+
+    def __init__(
+        self, workload_path: str, function_name: str, mem_size: int, region: str, db : DBClient
+    ) -> None:
+        self._read_workload(workload_path)
+        self._workload_path: str = os.path.dirname(workload_path)
+        self._config = ConfigUpdater(function_name, mem_size, region)
+        self._config.set_mem_size(mem_size)
+        self._all_events, _ = GenericEventGenerator(self._workload)
         self.function_name = function_name
-        self.all_events, _ = GenericEventGenerator(self.workload)
+        self._futures = []
+        self._thread = []
+        self.DBClient = db
+        self.invoke_cnt = 0
 
-    def _read_workload(self, path):
+    def _read_workload(self, path: str) -> None:
         if not CheckJSONConfig(path):
             raise InvalidWorkloadFileException
         workload = ReadJSONConfig(path)
         if not CheckWorkloadValidity(workload=workload):
             raise InvalidWorkloadFileException
-        return workload
+        self._workload = workload
 
-    def _append_threads(self, instance, instance_times):
-        payload_file = self.workload["instances"][instance]["payload"]
-        application = self.workload["instances"][instance]["application"]
+    def _append_threads(self, instance: str, instance_times: list) -> None:
+        payload_file = self._workload["instances"][instance]["payload"]
+        application = self._workload["instances"][instance]["application"]
         client = boto3.client("lambda")
 
         try:
-            f = open(os.path.join(self.workload_path, payload_file), "r")
+            f = open(os.path.join(self._workload_path, payload_file), "r")
         except IOError:
             f = None
-            # raise PayloadFileNotFoundException
         payload = json.load(f) if f else None
         self.payload = payload
 
-        self.threads.append(
+        self._threads.append(
             threading.Thread(
                 target=self._invoke, args=[client, application, payload, instance_times]
             )
         )
 
-    def _invoke(self, client, application, payload, instance_times):
+    def _invoke(
+        self,
+        client: "botocore.client.logs",
+        function_name: str,
+        payload: list,
+        instance_times: list,
+    ) -> bool:
         with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
             # TODO: store input and invocation info to db
             st = 0
@@ -73,28 +97,31 @@ class AWSFunctionInvocator:
                 cnt += 1
                 before_time = time.time()
                 future = executor.submit(
-                        client.invoke, FunctionName=application, Payload=input_data
+                    client.invoke, FunctionName=function_name, Payload=input_data
                 )
-                self.futures.append(future)
+                self.invoke_cnt += 1
+                self._futures.append(future)
                 after_time = time.time()
 
         return True
 
-    def invoke_all(self, mem=-1):
-        self.threads = []
+    def invoke_all(self, mem: int = -1) -> None:
+        """Invoke the function with user specified inputs and parameters asynchronously"""
+        self.invoke_cnt = 0
+        self._threads = []
         request_ids = []
-        for (instance, instance_times) in self.all_events.items():
-            self.config.set_instance(
-                self.workload["instances"][instance]["application"]
+        for (instance, instance_times) in self._all_events.items():
+            self._config.set_instance(
+                self._workload["instances"][instance]["application"]
             )
             if mem != -1:
-                self.config.set_mem_size(mem)
+                self._config.set_mem_size(mem)
             self._append_threads(instance, instance_times)
-        for thread in self.threads:
+        for thread in self._threads:
             thread.start()
-        for thread in self.threads:
+        for thread in self._threads:
             thread.join()
-        for future in self.futures:
+        for future in self._futures:
             res = future.result()
             req_id = res['ResponseMetadata']['RequestId']
             status = res['StatusCode']

@@ -102,8 +102,6 @@ def main():
             if args.profile:
                 function.profile()
             if args.fetch:
-                if args.invoke:
-                    time.sleep(15)  # TODO: Change this to waiting all threads to yield
                 function.collect_data()
             if args.train:
                 if args.model:
