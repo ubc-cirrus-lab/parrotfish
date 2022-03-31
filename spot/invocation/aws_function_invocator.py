@@ -35,7 +35,12 @@ class AWSFunctionInvocator:
     """
 
     def __init__(
-        self, workload_path: str, function_name: str, mem_size: int, region: str, db : DBClient
+        self,
+        workload_path: str,
+        function_name: str,
+        mem_size: int,
+        region: str,
+        db: DBClient,
     ) -> None:
         self._read_workload(workload_path)
         self._workload_path: str = os.path.dirname(workload_path)
@@ -123,15 +128,19 @@ class AWSFunctionInvocator:
             thread.join()
         for future in self._futures:
             res = future.result()
-            req_id = res['ResponseMetadata']['RequestId']
-            status = res['StatusCode']
+            req_id = res["ResponseMetadata"]["RequestId"]
+            status = res["StatusCode"]
             error = False
             if status < 200 or status >= 300:
                 print(f"WARNING: Status code {status} for request id {req_id}")
-            if 'FunctionError' in res:
+            if "FunctionError" in res:
                 error = True
-                print("WARNING: Function error for request id {req_id}. The memory configuration being used may be too low")
-                print(res['FunctionError'])
-            request_ids.append({'_id': req_id, 'status': status, 'error': error})
+                print(
+                    "WARNING: Function error for request id {req_id}. The memory configuration being used may be too low"
+                )
+                print(res["FunctionError"])
+            request_ids.append({"_id": req_id, "status": status, "error": error})
         for request in request_ids:
-            self.DBClient.add_document_to_collection_if_not_exists(self.function_name, "requests", request, {"_id": request['_id']})
+            self.DBClient.add_document_to_collection_if_not_exists(
+                self.function_name, "requests", request, {"_id": request["_id"]}
+            )

@@ -20,7 +20,18 @@ class AWSLogRetriever:
         next_token = ""
         new_logs = True
         while new_logs:
-            response = client.describe_log_streams(logGroupName=path, orderBy="LastEventTime", descending=True, nextToken=next_token) if next_token != "" else client.describe_log_streams(logGroupName=path, orderBy="LastEventTime", descending=True)
+            response = (
+                client.describe_log_streams(
+                    logGroupName=path,
+                    orderBy="LastEventTime",
+                    descending=True,
+                    nextToken=next_token,
+                )
+                if next_token != ""
+                else client.describe_log_streams(
+                    logGroupName=path, orderBy="LastEventTime", descending=True
+                )
+            )
 
             for stream in response["logStreams"]:
                 if stream["lastEventTimestamp"] > self.last_log_timestamp:
@@ -60,7 +71,9 @@ class AWSLogRetriever:
                         self.function_name, DB_NAME_LOGS, log, {REQUEST_ID: requestId}
                     )
                     # Remove from request db if invoked using invocator to confirm all invoked logs present
-                    self.DBClient.remove_document_from_collection(self.function_name, "requests", {"_id": log[REQUEST_ID]})
+                    self.DBClient.remove_document_from_collection(
+                        self.function_name, "requests", {"_id": log[REQUEST_ID]}
+                    )
 
         return new_timestamp
 

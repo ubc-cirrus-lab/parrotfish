@@ -43,7 +43,10 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     def _preprocess(self):
         self._df[MEM_SIZE] = self._df[MEM_SIZE].astype(int)
-        self._df = self._df[(self._df[MEM_SIZE] >= self.mem_bounds[0]) & (self._df[MEM_SIZE] <= self.mem_bounds[1])]
+        self._df = self._df[
+            (self._df[MEM_SIZE] >= self.mem_bounds[0])
+            & (self._df[MEM_SIZE] <= self.mem_bounds[1])
+        ]
         X_mem = self._df[MEM_SIZE].values
         y = self._df[COST].values
         X_labels = np.unique(X_mem)
@@ -69,7 +72,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
             print("No data available to train the model")
             exit()
 
-        self._model, self._residual, _, _, _ = np.polyfit(self._x, self._y, self._degree, full=True)
+        self._model, self._residual, _, _, _ = np.polyfit(
+            self._x, self._y, self._degree, full=True
+        )
         self._save_model()
 
     """

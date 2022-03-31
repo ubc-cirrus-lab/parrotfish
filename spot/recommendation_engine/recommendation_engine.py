@@ -19,7 +19,7 @@ class RecommendationEngine:
     def recommend(self):
         self.x_min, self.y_min = self._model.get_optimal_config()
         print("Best memory config: ", self.x_min, "  ", "Cost: ", self.y_min)
-        return round(self.x_min,0)
+        return round(self.x_min, 0)
 
     def get_pred_cost(self):
         return self.y_min
