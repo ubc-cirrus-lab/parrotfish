@@ -9,6 +9,7 @@ from spot.invocation.JSONConfigHelper import CheckJSONConfig, ReadJSONConfig
 from spot.invocation.WorkloadChecker import CheckWorkloadValidity
 from spot.invocation.EventGenerator import GenericEventGenerator
 from spot.invocation.config_updater import ConfigUpdater
+from spot.db.db import DBClient
 
 
 class InvalidWorkloadFileException(Exception):
@@ -18,12 +19,14 @@ class InvalidWorkloadFileException(Exception):
 class AWSFunctionInvocator:
     futures = []
 
-    def __init__(self, workload, function_name, mem_size, region):
+    def __init__(self, workload, function_name, mem_size, region, db : DBClient):
         self.workload = self._read_workload(workload)
         self.workload_path: str = os.path.dirname(workload)
+        self.DBClient = db
         self.config = ConfigUpdater(function_name, mem_size, region)
         self.config.set_mem_size(mem_size)
         self.threads = []
+        self.function_name = function_name
         self.all_events, _ = GenericEventGenerator(self.workload)
 
     def _read_workload(self, path):
@@ -70,7 +73,7 @@ class AWSFunctionInvocator:
                 cnt += 1
                 before_time = time.time()
                 future = executor.submit(
-                    client.invoke, FunctionName=application, Payload=input_data
+                        client.invoke, FunctionName=application, Payload=input_data
                 )
                 self.futures.append(future)
                 after_time = time.time()
@@ -79,6 +82,7 @@ class AWSFunctionInvocator:
 
     def invoke_all(self, mem=-1):
         self.threads = []
+        request_ids = []
         for (instance, instance_times) in self.all_events.items():
             self.config.set_instance(
                 self.workload["instances"][instance]["application"]
@@ -92,3 +96,15 @@ class AWSFunctionInvocator:
             thread.join()
         for future in self.futures:
             res = future.result()
+            req_id = res['ResponseMetadata']['RequestId']
+            status = res['StatusCode']
+            error = False
+            if status < 200 or status >= 300:
+                print(f"WARNING: Status code {status} for request id {req_id}")
+            if 'FunctionError' in res:
+                error = True
+                print("WARNING: Function error for request id {req_id}. The memory configuration being used may be too low")
+                print(res['FunctionError'])
+            request_ids.append({'_id': req_id, 'status': status, 'error': error})
+        for request in request_ids:
+            self.DBClient.add_document_to_collection_if_not_exists(self.function_name, "requests", request, {"_id": request['_id']})

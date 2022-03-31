@@ -59,6 +59,8 @@ class AWSLogRetriever:
                     self.DBClient.add_document_to_collection_if_not_exists(
                         self.function_name, DB_NAME_LOGS, log, {REQUEST_ID: requestId}
                     )
+                    # Remove from request db if invoked using invocator to confirm all invoked logs present
+                    self.DBClient.remove_document_from_collection(self.function_name, "requests", {"_id": log[REQUEST_ID]})
 
         return new_timestamp
 

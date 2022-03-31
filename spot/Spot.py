@@ -62,6 +62,7 @@ class Spot:
             self.config.function_name,
             self.config.mem_size,
             self.config.region,
+            self.db
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
         self.ml_model = self.select_model(model)

@@ -69,7 +69,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
             print("No data available to train the model")
             exit()
 
-        self._model = np.polyfit(self._x, self._y, self._degree)
+        self._model, self._residual, _, _, _ = np.polyfit(self._x, self._y, self._degree, full=True)
         self._save_model()
 
     """
@@ -103,11 +103,15 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         # Get optimal config
         x_min, y_min = self.get_optimal_config()
+        mem_recommend = int(round(x_min, 0))
+        rsme = self._residual
 
-        print(f"Minimum cost of {y_min} found at {x_min} MB")
+        print(f"Minimum cost of {y_min} found at {mem_recommend} MB")
+        print(f"Residual: {rsme}")
 
         # Plot best mem size, data points and polynomial regression fit
         plt.plot(x_min, y_min, "x")
+        plt.text(x_min, y_min, f"{mem_recommend} MB", fontweight=700)
         plt.legend()
         plt.show()
 
@@ -129,7 +133,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         ret_val = ""
         for degree in range(len(self._model) - 1, -1, -1):
             if degree == 0:
-                ret_val += str(round(self._model[degree],3))
+                ret_val += str("{:.2E}".format(self._model[degree]))
             else:
                 ret_val += (
                     str("{:.2E}".format(self._model[degree]))

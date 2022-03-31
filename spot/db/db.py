@@ -41,6 +41,11 @@ class DBClient:
         if not collection.find_one(criteria):
             collection.insert_one(document)
 
+    def remove_document_from_collection(self, function_name, collection_name, query):
+        function_db = self.client[function_name]
+        collection = function_db[collection_name]
+        collection.delete_one(query)
+
     def add_new_config_if_changed(self, function_name, collection_name, document):
         function_db = self.client[function_name]
         collection = function_db[collection_name]
