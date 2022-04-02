@@ -4,7 +4,6 @@ import time
 import os
 import numpy as np
 from datetime import datetime
-
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
 from spot.invocation.aws_function_invocator import AWSFunctionInvocator
@@ -151,18 +150,11 @@ class Spot:
         self.ml_model.fetch_data(log_cnt)
 
         costs = self.ml_model._df["Cost"].values
-        # costs = np.array(costs)
-        # print(f"average: {np.mean(costs)}")
-        # print(f"median: {np.median(costs)}")
-        err = (
-            abs(self.recommendation_engine.get_pred_cost() - np.median(costs))
-            / np.median(costs)
-            * 100
-        )
-        # print(err)
+        pred = self.recommendation_engine.get_pred_cost()
+        err = sum([(cost - pred) ** 2 for cost in costs]) / len(costs)
+        print(f"{err=}")
         self.db.add_document_to_collection(
             self.config.function_name, DB_NAME_ERROR, {ERR_VAL: err}
         )
         self.recommendation_engine.plot_config_vs_epoch()
         self.recommendation_engine.plot_error_vs_epoch()
-        # return self.recommendation_engine.recommend() - np.median(costs)
