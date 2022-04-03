@@ -1,11 +1,21 @@
 import datetime
+from spot.benchmark_config import BenchmarkConfig
+from spot.db.db import DBClient
 from spot.invocation.config_updater import ConfigUpdater
+from spot.mlModel.ml_model_base_class import MlModelBaseClass
 from spot.visualize.Plot import Plot
 from spot.constants import *
 
 
 class RecommendationEngine:
-    def __init__(self, config_file_path, config, model, db, benchmark_dir):
+    def __init__(
+        self,
+        config_file_path: str,
+        config: BenchmarkConfig,
+        model: MlModelBaseClass,
+        db: DBClient,
+        benchmark_dir: str,
+    ) -> None:
         self.config_file_path = config_file_path
         self._model = model
         self.new_config = config
@@ -16,15 +26,15 @@ class RecommendationEngine:
 
     """get optimal mem config from the model"""
 
-    def recommend(self):
+    def recommend(self) -> int:
         self.x_min, self.y_min = self._model.get_optimal_config()
         print("Best memory config: ", self.x_min, "  ", "Cost: ", self.y_min)
-        return round(self.x_min, 0)
+        return int(round(self.x_min, 0))
 
-    def get_pred_cost(self):
+    def get_pred_cost(self) -> float:
         return self.y_min
 
-    def update_config(self):
+    def update_config(self) -> None:
 
         # Get the new recommended config
         self.new_config.mem_size = self.recommend()
@@ -48,8 +58,8 @@ class RecommendationEngine:
             self.new_config.get_dict(),
         )
 
-    def plot_config_vs_epoch(self):
+    def plot_config_vs_epoch(self) -> None:
         self.plotter.plot_config_vs_epoch()
 
-    def plot_error_vs_epoch(self):
+    def plot_error_vs_epoch(self) -> None:
         self.plotter.plot_error_vs_epoch()
