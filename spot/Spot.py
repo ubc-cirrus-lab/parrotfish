@@ -143,14 +143,15 @@ class Spot:
         self.recommendation = self.recommendation_engine.recommend()
 
     def get_prediction_error_rate(self):
-        # TODO: ensure it's called after update_config
+        # TODO: ensure it's called after update_config, or ensure memory is updated in invoke()
         self.invoke()
         self.collect_data()
 
-        log_cnt = len(self.function_invocator.payload)
+        log_cnt = self.function_invocator.invoke_cnt
         self.ml_model.fetch_data(log_cnt)
 
-        costs = self.ml_model._df["Cost"].values
+        # only take the last few because _df may have already contain data
+        costs = self.ml_model._df["Cost"].values[-log_cnt:]
         pred = self.recommendation_engine.get_pred_cost()
         err = sum([(cost - pred) ** 2 for cost in costs]) / len(costs)
         print(f"{err=}")
