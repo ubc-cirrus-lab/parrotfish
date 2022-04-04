@@ -20,7 +20,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         last_log_timestamp: int,
         benchmark_dir: str,
         mem_bounds: list,
-        polynomial_degree=2,
+        polynomial_degree=3,
     ):
         super().__init__(function_name, vendor, db, last_log_timestamp)
         self._degree = polynomial_degree
@@ -43,6 +43,10 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     def _preprocess(self):
         self._df[MEM_SIZE] = self._df[MEM_SIZE].astype(int)
+        self._df = self._df[
+            (self._df[MEM_SIZE] >= self.mem_bounds[0])
+            & (self._df[MEM_SIZE] <= self.mem_bounds[1])
+        ]
         X_mem = self._df[MEM_SIZE].values
         y = self._df[COST].values
         X_labels = np.unique(X_mem)
@@ -68,7 +72,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
             print("No data available to train the model")
             exit()
 
-        self._model = np.polyfit(self._x, self._y, self._degree)
+        self._model, self._residual, _, _, _ = np.polyfit(
+            self._x, self._y, self._degree, full=True
+        )
         self._save_model()
 
     """
@@ -92,7 +98,7 @@ class PolynomialRegressionModel(MlModelBaseClass):
         plt.scatter(self._x, self._y)
 
         # Add linear regression line
-        xvars = np.linspace(128, 10240, 1024)
+        xvars = np.linspace(self._x.min(), self._x.max(), 1024)
         plt.plot(
             xvars,
             np.polyval(self._model, xvars),
@@ -102,9 +108,15 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
         # Get optimal config
         x_min, y_min = self.get_optimal_config()
+        mem_recommend = int(round(x_min, 0))
+        rsme = self._residual
+
+        print(f"Minimum cost of {y_min} found at {mem_recommend} MB")
+        print(f"Residual: {rsme}")
 
         # Plot best mem size, data points and polynomial regression fit
         plt.plot(x_min, y_min, "x")
+        plt.text(x_min, y_min, f"{mem_recommend} MB", fontweight=700)
         plt.legend()
         plt.show()
 
@@ -124,9 +136,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
 
     def get_polynomial_equation_string(self):
         ret_val = ""
-        for degree in range(len(self._model) - 1, 0, -1):
+        for degree in range(len(self._model) - 1, -1, -1):
             if degree == 0:
-                ret_val += str(self._model[degree])
+                ret_val += str("{:.2E}".format(self._model[degree]))
             else:
                 ret_val += (
                     str("{:.2E}".format(self._model[degree]))

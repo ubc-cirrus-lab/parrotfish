@@ -62,7 +62,6 @@ class MlModelBaseClass:
             {
                 RUNTIME: 1,
                 TIMEOUT: 1,
-                MEM_SIZE: 1,
                 ARCH: 1,
                 LAST_MODIFIED_MS: 1,
                 DB_ID: 0,
@@ -136,7 +135,6 @@ class MlModelBaseClass:
                     * float(int(log[MEM_SIZE]) / 128)
                 )
 
-                # self._df = self._df.append(new_row, ignore_index=True)
                 self._df = pd.concat(
                     [self._df, pd.DataFrame.from_records([new_row])], ignore_index=True
                 )

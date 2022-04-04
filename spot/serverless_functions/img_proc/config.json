@@ -1,27 +1,31 @@
 {
     "function_name": "image_processing",
-    "vendor": "AWS",
+    "mem_bounds": [
+        256,
+        10280
+    ],
+    "mem_size": 128,
     "region": "us-east-2",
-    "mem_size": 512,
+    "vendor": "AWS",
     "workload": {
-        "test_name": "IntegrationTest1",
-        "test_duration_in_seconds": 5,
-        "random_seed": 100,
         "blocking_cli": false,
         "instances": {
             "instance1": {
-                "application": "image_processing",
-                "distribution": "Poisson",
-                "rate": 1,
                 "activity_window": [
                     1,
                     5
                 ],
-                "payload": "payload.json",
+                "application": "image_processing",
+                "distribution": "Poisson",
                 "host": "ts7p12m27c.execute-api.us-east-2.amazonaws.com",
-                "stage": "default",
-                "resource": "/image_processing?format=json"
+                "payload": "payload.json",
+                "rate": 1,
+                "resource": "/image_processing?format=json",
+                "stage": "default"
             }
-        }
+        },
+        "random_seed": 100,
+        "test_duration_in_seconds": 5,
+        "test_name": "IntegrationTest1"
     }
 }
