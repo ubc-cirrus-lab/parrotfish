@@ -4,7 +4,8 @@ This README from https://github.com/kmu-bigdata/serverless-faas-workbench/wiki/i
 **Library** : subprocess
 
 **EC2 Setting**
-_Note: the `iperf` server can be placed anywhere, including outside AWS (the Capstone team used their development VM on GCP). If the server is not on AWS, do not attach the lambda function to a VPC or give it the AWSLambdaVPCAccessExecutionRole IAM role._
+
+_Note: the `iperf` server can be placed anywhere, including outside AWS (the Capstone team used their development VM on GCP). If the server is not on AWS, it's not necessary to attach the lambda function to a VPC or give it the AWSLambdaVPCAccessExecutionRole IAM role; the function has internet access by default._
 
 1. Start your EC2 instance, Configure EC2 Network and Subnet(same Lambda functions)
 ![image](images/1-instance-settings.png)
