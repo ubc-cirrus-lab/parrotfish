@@ -5,9 +5,9 @@ This README from https://github.com/kmu-bigdata/serverless-faas-workbench/wiki/i
 
 **EC2 Setting**
 1. Start your EC2 instance, Configure EC2 Network and Subnet(same Lambda functions)
-![image](https://user-images.githubusercontent.com/10591350/56786966-d48bd500-6835-11e9-9e34-695d65569854.png)
+![image](images/1-instance-settings.png)
 2. Configure your Security Group
-![image](https://user-images.githubusercontent.com/10591350/56786950-c76ee600-6835-11e9-96bd-6a459a7f50b1.png)
+![image](images/2-sg-settings.png)
 3. Check your EC2 internal-ip (ex : 172.31.XX.XX)
 4. Install iperf3
 ```bash
@@ -20,10 +20,10 @@ sudo iperf3 -s -p [PORT]
 ```
 6. Check your Lambda VPC Permission
 AWSLambdaVPCAccessExecutionRole
-![image](https://user-images.githubusercontent.com/10591350/56787002-fb4a0b80-6835-11e9-8d9a-a848a75769f6.png)
+![image](images/6-vpc-permissions.png)
 
 7. Config your Lambda Network
-![image](https://user-images.githubusercontent.com/10591350/56787081-4ebc5980-6836-11e9-86b0-7c6d724116eb.png)
+![image](images/7-lambda-network.png)
 
 
 **Lambda payload**(test-event) example:
