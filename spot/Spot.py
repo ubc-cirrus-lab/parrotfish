@@ -115,17 +115,62 @@ class Spot:
     # Runs the workload with different configs to profile the serverless function
     def profile(self):
         mem_size = self.config.mem_bounds[0]
-        start = datetime.now().timestamp()
-        invoke_cnt = 0
+        prev_price_avg = float("inf")
+        has_price_increased_compared_to_previous_iteration = False
+        NUM_OF_INVOCATIONS = 20
+        # TODO: set the minimum allowed interval
+        profile_interval = int((self.config.mem_bounds[1] - self.config.mem_bounds[0]) / NUM_OF_INVOCATIONS)
+
         while mem_size <= self.config.mem_bounds[1]:
             print("Invoking sample workload with mem_size: ", mem_size)
+
             # fetch configs and most up to date prices
             self.config_retriever.get_latest_config()
             self.price_retriever.fetch_current_pricing()
+
+            start = datetime.now().timestamp()
             self.function_invocator.invoke_all(mem_size)
-            invoke_cnt += self.function_invocator.invoke_cnt
-            mem_size *= 2
-        self.log_prop_waiter.wait_by_count(start, invoke_cnt)
+           
+            # wait for logs to propogate
+            # self.log_prop_waiter.wait_by_count(
+            #     start, self.function_invocator.invoke_cnt
+            # )
+            time.sleep(10)
+
+            # fetch recent profiling logs
+            self.collect_data()
+            self.ml_model.fetch_data(self.function_invocator.invoke_cnt)
+            costs = self.ml_model._df[COST].values[-self.function_invocator.invoke_cnt:]
+            cur_price_avg = np.mean(costs)
+
+            if prev_price_avg < cur_price_avg:
+                # if the average price increased two iterations in a row, stop profiling
+                if has_price_increased_compared_to_previous_iteration:
+                    break
+                else:
+                    has_price_increased_compared_to_previous_iteration = True
+            else:
+                has_price_increased_compared_to_previous_iteration = False
+
+            prev_price_avg = cur_price_avg
+            mem_size += profile_interval
+
+        print(f"stopped profiling at {mem_size=}")
+
+        # Update the mem range in the config file????
+        # Currently, this updates the right boundary of mem size to 
+        # 2 profile_interval bigger than the provisional optimal mem size config
+        self.config.mem_bounds[1] = mem_size
+        
+        # Save the updated configurations
+        with open(self.config_file_path, "w") as f:
+            f.write(self.config.serialize())
+
+
+    @staticmethod
+    def load_cache():
+        with open('./cache','w+') as f:
+            data = json.load(f)
 
     def update_config(self):
         self.recommendation_engine.update_config()
