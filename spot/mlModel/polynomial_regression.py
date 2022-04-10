@@ -145,9 +145,9 @@ class PolynomialRegressionModel(MlModelBaseClass):
                     str("{:.2E}".format(self._model[degree]))
                     + "x^"
                     + str(degree)
-                    + " + "
+                    + " + ",
                 )
-        return ''.join(ret_val)
+        return "".join(ret_val)
 
     def predict(self, X):
         return self._model.predict(X)
