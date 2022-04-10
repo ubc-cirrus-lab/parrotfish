@@ -39,7 +39,7 @@ class AWSLogRetriever:
                 else:
                     new_logs = False
                     break
-            if next_token == response["nextToken"] or response["nextToken"] == "":
+            if "nextToken" not in response or next_token == response["nextToken"] or response["nextToken"] == "":
                 break
             next_token = response["nextToken"]
 
