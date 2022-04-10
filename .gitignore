@@ -13,6 +13,9 @@ spot/invocation/GenConfigs.py
 *.swp
 tags
 
+#serverless
+.serverless/
+
 __pycache__/
 *.py[cod]
 *$py.class

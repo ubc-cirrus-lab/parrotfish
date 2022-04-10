@@ -1,0 +1,14 @@
+{
+  "name": "screenshot-service",
+  "version": "1.0.0",
+  "description": "Take screenshot of a webpage",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chrome-aws-lambda": "^10.1.0"
+  }
+}
