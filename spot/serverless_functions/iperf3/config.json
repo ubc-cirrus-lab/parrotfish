@@ -1,10 +1,6 @@
 {
-    "function_name": "screenshot-service-dev-capture",
-    "mem_bounds": [
-        256,
-        8192
-    ],
-    "mem_size": 639,
+    "function_name": "iperf3",
+    "mem_size": 256,
     "region": "us-east-2",
     "vendor": "AWS",
     "workload": {
@@ -12,16 +8,16 @@
         "instances": {
             "instance1": {
                 "activity_window": [
-                    0,
+                    1,
                     5
                 ],
-                "application": "screenshot-service-dev-capture",
+                "application": "iperf3",
                 "distribution": "Poisson",
-                "host": "odez8iwqs8.execute-api.us-east-2.amazonaws.com",
+                "host": "ts7p12m27c.execute-api.us-east-2.amazonaws.com",
                 "payload": "payload.json",
-                "rate": 3,
-                "resource": "capture",
-                "stage": "dev"
+                "rate": 1,
+                "resource": "/iperf3?format=json",
+                "stage": "default"
             }
         },
         "random_seed": 100,

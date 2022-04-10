@@ -136,7 +136,7 @@ class AWSFunctionInvocator:
             if "FunctionError" in res:
                 error = True
                 print(
-                    "WARNING: Function error for request id {req_id}. The memory configuration being used may be too low"
+                    f"WARNING: Function error for request id {req_id}. The memory configuration being used may be too low"
                 )
                 print(res["FunctionError"])
             request_ids.append({"_id": req_id, "status": status, "error": error})

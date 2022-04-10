@@ -135,18 +135,19 @@ class PolynomialRegressionModel(MlModelBaseClass):
         plt.clf()
 
     def get_polynomial_equation_string(self):
-        ret_val = ""
-        for degree in range(len(self._model) - 1, -1, -1):
+        ret_val = []
+        for degree in range(len(self._model)):
             if degree == 0:
-                ret_val += str("{:.2E}".format(self._model[degree]))
+                ret_val.insert(0, str("{:.2E}".format(self._model[degree])))
             else:
-                ret_val += (
+                ret_val.insert(
+                    0,
                     str("{:.2E}".format(self._model[degree]))
                     + "x^"
                     + str(degree)
-                    + " + "
+                    + " + ",
                 )
-        return ret_val
+        return "".join(ret_val)
 
     def predict(self, X):
         return self._model.predict(X)

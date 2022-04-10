@@ -1,0 +1,17 @@
+service: screenshot-service
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-east-2
+
+functions:
+  capture:
+    handler: handler.capture # refers to function capture in handler.js
+    events:
+      - http: # trigger function via http request
+          path: capture
+          method: post
+    memorySize: 1536 # RAM size for the function
+    timeout: 15
