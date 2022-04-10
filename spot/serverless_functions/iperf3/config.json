@@ -1,0 +1,27 @@
+{
+    "function_name": "iperf3",
+    "mem_size": 256,
+    "region": "us-east-2",
+    "vendor": "AWS",
+    "workload": {
+        "blocking_cli": false,
+        "instances": {
+            "instance1": {
+                "activity_window": [
+                    1,
+                    5
+                ],
+                "application": "iperf3",
+                "distribution": "Poisson",
+                "host": "ts7p12m27c.execute-api.us-east-2.amazonaws.com",
+                "payload": "payload.json",
+                "rate": 1,
+                "resource": "/iperf3?format=json",
+                "stage": "default"
+            }
+        },
+        "random_seed": 100,
+        "test_duration_in_seconds": 5,
+        "test_name": "IntegrationTest1"
+    }
+}
