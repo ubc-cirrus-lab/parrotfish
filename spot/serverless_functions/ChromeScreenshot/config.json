@@ -4,7 +4,7 @@
         256,
         8192
     ],
-    "mem_size": 512,
+    "mem_size": 639,
     "region": "us-east-2",
     "vendor": "AWS",
     "workload": {
