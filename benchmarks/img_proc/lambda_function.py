@@ -1,3 +1,4 @@
+#Taken from https://github.com/ddps-lab/serverless-faas-workbench by Jeongchul Kim and Kyungyong Lee
 import boto3
 import uuid
 from time import time
