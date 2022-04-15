@@ -1,9 +1,8 @@
 ## AWS Config Retriever
-* Retrieves current configs of the given function 
-* Populates them in the MongoDB database
+This module fetches the current serverless function configuration through Boto3. Then, if the configuration hasn't been updated since the last saved config, configurations are saved to the local database with a timestamp so they can be correlated with logs.
 
-### Example Log Output:
-```
+### Example Config Output:
+```json
 {
         "_id" : ObjectId("61b3beaee841f6f62091b06d"),
         "FunctionName" : "AWSHelloWorld",
