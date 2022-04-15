@@ -1,5 +1,10 @@
-# UBC SPOT
-Created by Capstone Group 59
+# Serverless Price Optimization Tool
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Save money on your serverless functions.
+
+SPOT uses your functions' performance data to configure their allocated memory and CPU for the lowest possible cost.
 
 ## Setup
 
