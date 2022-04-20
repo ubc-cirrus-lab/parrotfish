@@ -118,7 +118,9 @@ class Spot:
         has_price_increased_compared_to_previous_iteration = False
         NUM_OF_INVOCATIONS = 20
         # TODO: set the minimum allowed interval
-        profile_interval = int((self.config.mem_bounds[1] - self.config.mem_bounds[0]) / NUM_OF_INVOCATIONS)
+        profile_interval = int(
+            (self.config.mem_bounds[1] - self.config.mem_bounds[0]) / NUM_OF_INVOCATIONS
+        )
 
         while mem_size <= self.config.mem_bounds[1]:
             print("Invoking sample workload with mem_size: ", mem_size)
@@ -129,7 +131,7 @@ class Spot:
 
             start = datetime.now().timestamp()
             self.function_invocator.invoke_all(mem_size)
-           
+
             # wait for logs to propogate
             # TODO: the waiter seems to idle/wait for a long after the logs are available
             self.log_prop_waiter.wait_by_count(
@@ -139,7 +141,9 @@ class Spot:
             # fetch recent profiling logs
             self.collect_data()
             self.ml_model.fetch_data(self.function_invocator.invoke_cnt)
-            costs = self.ml_model._df[COST].values[-self.function_invocator.invoke_cnt:]
+            costs = self.ml_model._df[COST].values[
+                -self.function_invocator.invoke_cnt :
+            ]
             cur_price_avg = np.mean(costs)
 
             if prev_price_avg < cur_price_avg:
@@ -156,14 +160,13 @@ class Spot:
 
         print(f"stopped profiling at {mem_size=}")
 
-        # Currently, this updates the right boundary of mem size to 
+        # Currently, this updates the right boundary of mem size to
         # 2 profile_interval bigger than the provisional optimal mem size config
         self.config.mem_bounds[1] = mem_size
-        
+
         # Save the updated interval
         with open(self.config_file_path, "w") as f:
             f.write(self.config.serialize())
-
 
     def update_config(self):
         self.recommendation_engine.update_config()
