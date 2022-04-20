@@ -1,4 +1,5 @@
 # AWS Function Invocator
+Adapted form [FaaSProfiler](https://github.com/PrincetonUniversity/faas-profiler).
 ## Initiliaztion and Invocation
 The invocator takes a user-defined workload JSON file on initialization and asynchronously invokes all the functions instances in it on `invoke_all()`. The memory size limit is 128MB by default and it can be optionally specified when calling `invoke_all()`.
 ```
