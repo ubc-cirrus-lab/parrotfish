@@ -12,7 +12,6 @@ from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
 from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
-from spot.constants import ROOT_DIR
 from spot.visualize.Plot import Plot
 from spot.recommendation_engine.recommendation_engine import RecommendationEngine
 from spot.constants import *
@@ -132,10 +131,10 @@ class Spot:
             self.function_invocator.invoke_all(mem_size)
            
             # wait for logs to propogate
-            # self.log_prop_waiter.wait_by_count(
-            #     start, self.function_invocator.invoke_cnt
-            # )
-            time.sleep(10)
+            # TODO: the waiter seems to idle/wait for a long after the logs are available
+            self.log_prop_waiter.wait_by_count(
+                start, self.function_invocator.invoke_cnt
+            )
 
             # fetch recent profiling logs
             self.collect_data()
@@ -157,20 +156,14 @@ class Spot:
 
         print(f"stopped profiling at {mem_size=}")
 
-        # Update the mem range in the config file????
         # Currently, this updates the right boundary of mem size to 
         # 2 profile_interval bigger than the provisional optimal mem size config
         self.config.mem_bounds[1] = mem_size
         
-        # Save the updated configurations
+        # Save the updated interval
         with open(self.config_file_path, "w") as f:
             f.write(self.config.serialize())
 
-
-    @staticmethod
-    def load_cache():
-        with open('./cache','w+') as f:
-            data = json.load(f)
 
     def update_config(self):
         self.recommendation_engine.update_config()
@@ -188,7 +181,6 @@ class Spot:
         self.recommendation = self.recommendation_engine.recommend()
 
     def get_prediction_error_rate(self):
-        # TODO: ensure it's called after update_config, or ensure memory is updated in invoke()
         self.invoke()
         self.collect_data()
 
