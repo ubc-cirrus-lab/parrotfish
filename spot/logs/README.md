@@ -1,9 +1,12 @@
 ## AWS Log Retriever
-* Retrieves logs of the given function 
-* Populates them in the MongoDB database
+The logs are retrieved using Boto3. The log retrieval was designed to work independently of the invocation of the function. Therefore, the function can continue to run and the logs are only retrieved when necessary for optimizing the configuration of the serverless function. When the retriever is used, it gathers all logs since the last retrieval, parses them so that their data is indexed for easy searching, and stores them in the database.
+
+A list of invocation IDs that were triggered using the automatic function invocator is also stored in the database and matched with the logs as they are retrieved from AWS. This confirms that all invocated functions have matching logs and the dataset is complete.
+Logs for a particular function can be retrieved through the CLI tool using the ‘--fetch’ flag.
+
 
 ### Example Log Output:
-```
+```json
 {
         "_id" : ObjectId("61b3b35cb537d4c93cb3c8b7"),
         "events" : [

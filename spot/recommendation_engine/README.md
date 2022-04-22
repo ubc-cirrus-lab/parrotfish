@@ -1,0 +1,2 @@
+## Recommendation Engine
+The recommendation engine predicts costs based on the generated statistical model for various configurations. Furthermore, it selects and recommends the lowest-cost generating configuration. Lastly, upon user request, update serverless function configuration on AWS with the recommended configuration.
