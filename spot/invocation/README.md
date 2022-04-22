@@ -1,7 +1,8 @@
 # AWS Function Invocator
-Automatic invocator is the tool to trigger benchmark functions to produce logs for model fitting and error calculation and waits for the data to be available on the cloud for further retrieval. It is based on the source code of an open-source tool, FaaSProfiler by Princeton University. 
+Automatic invocator is the tool to trigger benchmark functions to produce logs for model fitting and error calculation and waits for the data to be available on the cloud for further retrieval. It is based on the source code of an open-source tool, FaaSProfiler by Princeton University.
 
 Adapted form [FaaSProfiler](https://github.com/PrincetonUniversity/faas-profiler).
+
 ## Initiliaztion and Invocation
 The invocator takes a user-defined workload JSON file on initialization and asynchronously invokes all the functions instances in it on `invoke_all()`. The memory size limit is 128MB by default and it can be optionally specified when calling `invoke_all()`.
 ```
