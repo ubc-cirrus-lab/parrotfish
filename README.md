@@ -1,4 +1,4 @@
-# Serverless Price Optimization Tool
+# UBC Serverless Price Optimization Tool (SPOT)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
