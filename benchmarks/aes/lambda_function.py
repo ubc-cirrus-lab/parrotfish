@@ -1,3 +1,4 @@
+# Taken from https://github.com/ddps-lab/serverless-faas-workbench by Jeongchul Kim and Kyungyong Lee
 from time import time
 import random
 import string
