@@ -4,7 +4,7 @@ import os
 from spot.constants import ROOT_DIR
 from spot.Spot import Spot
 
-FUNCTION_DIR = "serverless_functions"
+FUNCTION_DIR = "configs"
 
 
 def main():
@@ -94,7 +94,7 @@ def main():
             return
 
     if args.function:
-        path = os.path.join(ROOT_DIR, FUNCTION_DIR, args.function)
+        path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
         if os.path.isdir(path):
             function = Spot(path, args.model)
             if args.invoke:
