@@ -69,7 +69,7 @@ class DBClient:
         if not latest_saved_config == current_config:
             collection.insert_one(document)
         elif not current_config.keys() == latest_saved_config.keys():
-                print("Warning: AWS might have changed configuration parameters")
+            print("Warning: AWS might have changed configuration parameters")
 
     def execute_query(
         self, function_name, collection_name, select_fields, display_fields
