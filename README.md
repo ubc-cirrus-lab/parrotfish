@@ -63,3 +63,6 @@ To invoke only with the configurations defined in `config.json`, use `-i` flag
 ```bash
 spot <function_name> -i
 ```
+
+### SPOT UML Class Diagram
+![SPOT UML Class Diagram](/spot/visualize/SPOT_UML_Class_Diagram.jpeg)

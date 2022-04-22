@@ -86,7 +86,9 @@ class Spot:
         self.log_prop_waiter.wait_by_count(start, self.function_invocator.invoke_cnt)
 
     def collect_data(self):
-        # retrieve logs
+        # retrieve latest config, logs, pricing scheme
+        self.config_retriever.get_latest_config()
+        self.price_retriever.fetch_current_pricing()
         self.last_log_timestamp = self.log_retriever.get_logs()
 
     def train_model(self):

@@ -1,6 +1,4 @@
-import os
 import boto3
-import time as time
 from spot.db.db import DBClient
 import datetime
 

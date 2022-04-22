@@ -50,19 +50,26 @@ class DBClient:
         function_db = self.client[function_name]
         collection = function_db[collection_name]
 
-        latest_config = collection.find_one(sort=[("_id", pymongo.DESCENDING)])
-        if latest_config:
-            del latest_config["_id"]
-            del latest_config["LastModified"]
-            del latest_config["RevisionId"]
-            del latest_config["LastModifiedInMs"]
+        latest_saved_config = collection.find_one(sort=[("_id", pymongo.DESCENDING)])
 
-        test = document.copy()
-        del test["LastModified"]
-        del test["RevisionId"]
+        # Delete unique identifier fields to be able to configure current and most recent config
+        if latest_saved_config:
+            del latest_saved_config["_id"]
+            del latest_saved_config["LastModified"]
+            del latest_saved_config["RevisionId"]
+            del latest_saved_config["LastModifiedInMs"]
+            del latest_saved_config["ResponseMetadata"]
 
-        if not latest_config == test:
+        current_config = document.copy()
+        del current_config["LastModified"]
+        del current_config["LastModifiedInMs"]
+        del current_config["RevisionId"]
+        del current_config["ResponseMetadata"]
+
+        if not latest_saved_config == current_config:
             collection.insert_one(document)
+        elif not current_config.keys() == latest_saved_config.keys():
+            print("Warning: AWS might have changed configuration parameters")
 
     def execute_query(
         self, function_name, collection_name, select_fields, display_fields
