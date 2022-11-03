@@ -1,89 +1,95 @@
 import boto3
-from spot.db.db import DBClient
-from spot.constants import *
+import pandas as pd
 import re
 
 
 class AWSLogRetriever:
-    def __init__(self, function_name, db: DBClient, last_log_timestamp):
-        self.DBClient = db
-        self.last_log_timestamp = last_log_timestamp
+    def __init__(self, function_name, max_log_count = None):
         self.function_name = function_name
+        self.client = boto3.client("logs")
+        self.max_log_count = max_log_count
 
-    def get_logs(self):
-        path = "/aws/lambda/" + self.function_name
-        client = boto3.client("logs")
-        new_timestamp = self.last_log_timestamp
+    def get_logs(self, start_timestamp = None):
+        path = f"/aws/lambda/{self.function_name}"
+        next_token = None
+        is_first = True
 
-        # get log streams
-        streams = []
-        next_token = ""
-        new_logs = True
-        while new_logs:
-            response = (
-                client.describe_log_streams(
-                    logGroupName=path,
-                    orderBy="LastEventTime",
-                    descending=True,
-                    nextToken=next_token,
-                )
-                if next_token != ""
-                else client.describe_log_streams(
-                    logGroupName=path, orderBy="LastEventTime", descending=True
-                )
-            )
+        response = []
 
-            for stream in response["logStreams"]:
-                if stream["lastEventTimestamp"] > self.last_log_timestamp:
-                    streams.append((stream["logStreamName"]))
-                else:
-                    new_logs = False
-                    break
-            if (
-                "nextToken" not in response
-                or next_token == response["nextToken"]
-                or response["nextToken"] == ""
-            ):
+        while next_token is not None or is_first:
+            args = {
+                "logGroupName": path,
+                "orderBy": "LastEventTime",
+                "descending": True,
+            }
+            if is_first:
+                is_first = False
+            else:
+                args["nextToken"] = next_token
+
+            stream_response = self.client.describe_log_streams(**args)
+
+            next_token = stream_response.get("nextToken")
+
+            is_newly_added = False
+            for log_stream in stream_response["logStreams"]:
+                args = {
+                    "logGroupName": path,
+                    "logStreamName": log_stream["logStreamName"],
+                }
+                if start_timestamp:
+                    args["startTime"] = start_timestamp
+
+                events = self.client.get_log_events(**args)["events"]
+                for event in events:
+                    if event["message"].startswith("REPORT"):
+                        response.append(event)
+                        is_newly_added = True
+
+            if self.max_log_count and len(response) >= self.max_log_count:
                 break
-            next_token = response["nextToken"]
 
-        # get log events and save it to DB
-        for stream in streams:
-            logs = client.get_log_events(logGroupName=path, logStreamName=stream)
+            if not is_newly_added:
+                break
 
-            # parse and reformat log
-            for log in logs["events"]:
-                if log["message"].startswith("REPORT"):
-                    request_id_start_pos = log["message"].find(":") + 2
-                    request_id_end_pos = log["message"].find("\t")
-                    requestId = log["message"][request_id_start_pos:request_id_end_pos]
-                    message_sections = log["message"].split("\t")
-                    for message_section in message_sections[1:-1]:
-                        field_name = message_section.split(":")[0]
-                        value = message_section.split(":")[1][1:].split(" ")[0]
-                        if re.match(r"^[0-9]+\.[0-9]+$", value):
-                            log[field_name] = float(value)
-                        elif re.match(r"^[0-9]+$", value):
-                            log[field_name] = int(value)
-                        else:
-                            log[field_name] = value
-                    log[REQUEST_ID] = requestId
+        return self._parse_logs(response)
 
-                    # add log to db
-                    new_timestamp = max(log[TIMESTAMP], new_timestamp)
-                    self.DBClient.add_document_to_collection_if_not_exists(
-                        self.function_name, DB_NAME_LOGS, log, {REQUEST_ID: requestId}
-                    )
-                    # Remove from request db if invoked using invocator to confirm all invoked logs present
-                    self.DBClient.remove_document_from_collection(
-                        self.function_name, "requests", {"_id": log[REQUEST_ID]}
-                    )
+    def _parse_logs(self, response):
+        df = pd.DataFrame(response, columns=["timestamp", "message", "ingestionTime"])
+        df["message"] = df["message"].str.replace("REPORT ", "")
+        df["message"] = df["message"].str.replace(r"Init Duration:.*ms\t", "", regex=True)
+        df["message"] = df["message"].str.replace(r"XRAY TraceId: [0-9a-f-]+\t", "", regex=True)
+        df["message"] = df["message"].str.replace(r"SegmentId: [0-9a-f]+\t", "", regex=True)
+        df["message"] = df["message"].str.replace(r"Sampled: (true|false)", "", regex=True)
+        df["message"] = df["message"].str.replace(re.compile(r"(\n| |)"), "").str.rstrip("\t")
 
-        return new_timestamp
+        df[["RequestId", "Duration", "Billed Duration", "Memory Size", "Max Memory Used"]] = df.message.str.split("\t", expand=True)
+        df["RequestId"] = df["RequestId"].str.replace("RequestId:", "")
 
-    def print_logs(self):
-        iterator = self.DBClient.get_all_collection_documents(
-            self.function_name, DB_NAME_LOGS
-        )
-        for log in iterator:
-            print(log)
+        df["Duration"] = df["Duration"].str.replace("Duration:", "")
+        df["Duration"] = df["Duration"].str.replace("ms", "")
+        df["Duration"] = df["Duration"].astype("float")
+
+        df["Billed Duration"] = df["Billed Duration"].str.replace("BilledDuration:", "")
+        df["Billed Duration"] = df["Billed Duration"].str.replace("ms", "")
+        df["Billed Duration"] = df["Billed Duration"].astype("float")
+
+        df["Memory Size"] = df["Memory Size"].str.replace("MemorySize:", "")
+        df["Memory Size"] = df["Memory Size"].str.replace("MB", "")
+        df["Memory Size"] = df["Memory Size"].astype("int")
+
+        df["Max Memory Used"] = df["Max Memory Used"].str.replace("MaxMemoryUsed:", "")
+        df["Max Memory Used"] = df["Max Memory Used"].str.replace("MB", "")
+        df["Max Memory Used"] = df["Max Memory Used"].astype("int")
+
+        df.drop(columns=["message"], inplace=True)
+        return df
+
+# if __name__ == "__main__":
+#     pd.set_option('display.max_columns', 500)
+#     pd.set_option('display.max_rows', 500)
+#     pd.set_option('display.width', 1000)
+#     pd.set_option('max_colwidth', -1)
+#     r = AWSLogRetriever("VideoAnalyticsDecoder", 100)
+#     df = r.get_logs()
+#     print(df)
