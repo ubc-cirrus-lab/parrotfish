@@ -4,12 +4,12 @@ import re
 
 
 class AWSLogRetriever:
-    def __init__(self, function_name, max_log_count = None):
+    def __init__(self, function_name, max_log_count=None):
         self.function_name = function_name
         self.client = boto3.client("logs")
         self.max_log_count = max_log_count
 
-    def get_logs(self, start_timestamp = None):
+    def get_logs(self, start_timestamp=None):
         path = f"/aws/lambda/{self.function_name}"
         next_token = None
         is_first = True
@@ -57,13 +57,31 @@ class AWSLogRetriever:
     def _parse_logs(self, response):
         df = pd.DataFrame(response, columns=["timestamp", "message", "ingestionTime"])
         df["message"] = df["message"].str.replace("REPORT ", "")
-        df["message"] = df["message"].str.replace(r"Init Duration:.*ms\t", "", regex=True)
-        df["message"] = df["message"].str.replace(r"XRAY TraceId: [0-9a-f-]+\t", "", regex=True)
-        df["message"] = df["message"].str.replace(r"SegmentId: [0-9a-f]+\t", "", regex=True)
-        df["message"] = df["message"].str.replace(r"Sampled: (true|false)", "", regex=True)
-        df["message"] = df["message"].str.replace(re.compile(r"(\n| |)"), "").str.rstrip("\t")
+        df["message"] = df["message"].str.replace(
+            r"Init Duration:.*ms\t", "", regex=True
+        )
+        df["message"] = df["message"].str.replace(
+            r"XRAY TraceId: [0-9a-f-]+\t", "", regex=True
+        )
+        df["message"] = df["message"].str.replace(
+            r"SegmentId: [0-9a-f]+\t", "", regex=True
+        )
+        df["message"] = df["message"].str.replace(
+            r"Sampled: (true|false)", "", regex=True
+        )
+        df["message"] = (
+            df["message"].str.replace(re.compile(r"(\n| |)"), "").str.rstrip("\t")
+        )
 
-        df[["RequestId", "Duration", "Billed Duration", "Memory Size", "Max Memory Used"]] = df.message.str.split("\t", expand=True)
+        df[
+            [
+                "RequestId",
+                "Duration",
+                "Billed Duration",
+                "Memory Size",
+                "Max Memory Used",
+            ]
+        ] = df.message.str.split("\t", expand=True)
         df["RequestId"] = df["RequestId"].str.replace("RequestId:", "")
 
         df["Duration"] = df["Duration"].str.replace("Duration:", "")
@@ -84,6 +102,7 @@ class AWSLogRetriever:
 
         df.drop(columns=["message"], inplace=True)
         return df
+
 
 # if __name__ == "__main__":
 #     pd.set_option('display.max_columns', 500)
