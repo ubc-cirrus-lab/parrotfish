@@ -38,38 +38,63 @@ class Sampler:
     def run(self):
         self.initial_sample()
         self.sampled_points = 2
-        while len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT and self.objective.ratio > 0.2:
+        while (
+            len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
+            and self.objective.ratio > 0.2
+        ):
             x = self.choose_sample_point()
             self.sample(x)
             self.sampled_points += 1
             self.function_degree = self.sampled_points
-            self.fitted_function, self.function_parameters = Utility.fit_function(self.sampled_datapoints,
-                                                                                  degree=self.function_degree)
-            while Utility.check_function_validity(self.fitted_function, self.function_parameters) is False:
+            self.fitted_function, self.function_parameters = Utility.fit_function(
+                self.sampled_datapoints, degree=self.function_degree
+            )
+            while (
+                Utility.check_function_validity(
+                    self.fitted_function, self.function_parameters
+                )
+                is False
+            ):
                 self.function_degree -= 1
-                self.fitted_function, self.function_parameters = Utility.fit_function(self.sampled_datapoints,
-                                                                                      degree=self.function_degree)
+                self.fitted_function, self.function_parameters = Utility.fit_function(
+                    self.sampled_datapoints, degree=self.function_degree
+                )
             self.exctract_logs()
-        minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(self.fitted_function, self.function_parameters)
-        nearest_memory = min([d.memory for d in self.datapoints], key=lambda x: abs(x - minimum_memory))
+        minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
+            self.fitted_function, self.function_parameters
+        )
+        nearest_memory = min(
+            [d.memory for d in self.datapoints], key=lambda x: abs(x - minimum_memory)
+        )
 
     def initial_sample(self):
         for x in SAMPLE_POINTS:
             self.sample(x)
-        self.fitted_function, self.function_parameters = Utility.fit_function(self.sampled_datapoints,
-                                                                              degree=self.function_degree)
+        self.fitted_function, self.function_parameters = Utility.fit_function(
+            self.sampled_datapoints, degree=self.function_degree
+        )
         self.exctract_logs()
 
     def exctract_logs(self):
         total_cost = 0
-        mape = Utility.mape(self.fitted_function, self.function_parameters, [x.memory for x in self.datapoints],
-                            [x.billed_time for x in self.datapoints])
+        mape = Utility.mape(
+            self.fitted_function,
+            self.function_parameters,
+            [x.memory for x in self.datapoints],
+            [x.billed_time for x in self.datapoints],
+        )
         for datapoint in self.sampled_datapoints:
             total_cost += datapoint.cost
         self.logger.add_cost(total_cost)
         self.logger.add_mape(mape)
 
-    def show_results(self, min_hline=0, function_hline=0, use_multi_function=True, dynamic_sampling=True):
+    def show_results(
+        self,
+        min_hline=0,
+        function_hline=0,
+        use_multi_function=True,
+        dynamic_sampling=True,
+    ):
         global ALPHA
         global IS_MULTI_FUNCTION
         global IS_DYNAMIC_SAMPLING_ENABLED
@@ -78,36 +103,61 @@ class Sampler:
         fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 4))
         ALPHA = 0.01
 
-        for color in ['red', 'blue', 'green', 'orange']:
+        for color in ["red", "blue", "green", "orange"]:
             self.run()
             logging.info(
-                f'Sample points (α={ALPHA}): {list(dict.fromkeys([x.memory for x in self.sampled_datapoints]))}')
+                f"Sample points (α={ALPHA}): {list(dict.fromkeys([x.memory for x in self.sampled_datapoints]))}"
+            )
 
-            axes[0].plot([i for i in range(2, self.sampled_points + 1)],
-                         [cost / 10000 for cost in self.logger.costs], label=f'α = {ALPHA}', marker='X', color=color,
-                         alpha=0.5)
-            axes[0].set_ylabel('Cost (¢)')
-            axes[0].set_xlabel('Sample Point #')
+            axes[0].plot(
+                [i for i in range(2, self.sampled_points + 1)],
+                [cost / 10000 for cost in self.logger.costs],
+                label=f"α = {ALPHA}",
+                marker="X",
+                color=color,
+                alpha=0.5,
+            )
+            axes[0].set_ylabel("Cost (¢)")
+            axes[0].set_xlabel("Sample Point #")
 
-            axes[1].plot([i for i in range(2, self.sampled_points + 1)],
-                         self.logger.mapes, label=f'α = {ALPHA}', marker='X', color=color, alpha=0.5)
-            axes[1].set_ylabel('MAPE value (%)')
-            axes[1].set_xlabel('Sample Point #')
+            axes[1].plot(
+                [i for i in range(2, self.sampled_points + 1)],
+                self.logger.mapes,
+                label=f"α = {ALPHA}",
+                marker="X",
+                color=color,
+                alpha=0.5,
+            )
+            axes[1].set_ylabel("MAPE value (%)")
+            axes[1].set_xlabel("Sample Point #")
             axes[1].set_ylim(0, 100)
 
-            axes[2].plot([cost / 10000 for cost in self.logger.costs], self.logger.mapes, label=f'α = {ALPHA}',
-                         marker='X', color=color, alpha=0.5)
-            axes[2].set_ylabel('MAPE value (%)')
-            axes[2].set_xlabel('Cost (¢)')
+            axes[2].plot(
+                [cost / 10000 for cost in self.logger.costs],
+                self.logger.mapes,
+                label=f"α = {ALPHA}",
+                marker="X",
+                color=color,
+                alpha=0.5,
+            )
+            axes[2].set_ylabel("MAPE value (%)")
+            axes[2].set_xlabel("Cost (¢)")
             axes[2].set_ylim(0, 100)
             ALPHA /= 10
-            if color != 'orange':
+            if color != "orange":
                 self._reset()
 
         if min_hline > 0:
-            axes[1].axhline(y=min_hline, color="red", linestyle="--", label='Minimum Possible MAPE')
+            axes[1].axhline(
+                y=min_hline, color="red", linestyle="--", label="Minimum Possible MAPE"
+            )
         if function_hline > 0:
-            axes[1].axhline(y=function_hline, color="black", linestyle="--", label=f'Mimimum Attained MAPE')
+            axes[1].axhline(
+                y=function_hline,
+                color="black",
+                linestyle="--",
+                label=f"Mimimum Attained MAPE",
+            )
 
         for ax in axes:
             ax.legend()
@@ -143,9 +193,13 @@ class Sampler:
 
     def get_sample_value(self, x):
         self.function_invocator.invoke_all(mem=x)
-        candids = [d for d in self.datapoints if d.memory == x and d not in self.sampled_datapoints]
+        candids = [
+            d
+            for d in self.datapoints
+            if d.memory == x and d not in self.sampled_datapoints
+        ]
         if len(candids) == 0:
-            raise ValueError(f'No datapoint with memory {x} found')
+            raise ValueError(f"No datapoint with memory {x} found")
 
         index = random.randint(0, len(candids) - 1) if RANDOM_SAMPLING else 0
         self.sampled_datapoints.append(candids[index])
@@ -154,7 +208,9 @@ class Sampler:
 
     def remainder_memories(self):
         memories = set([datapoint.memory for datapoint in self.datapoints])
-        sampled_memories = set([datapoint.memory for datapoint in self.sampled_datapoints])
+        sampled_memories = set(
+            [datapoint.memory for datapoint in self.sampled_datapoints]
+        )
         remainder = [x for x in memories if x not in sampled_memories]
         return remainder
 
@@ -205,14 +261,17 @@ class Utility:
         f = Utility.fn
         fmodel = Model(f)
         params = Parameters()
-        params.add('n', value=degree, vary=False)
-        params.add('a0', value=20)
-        params.add('a1', value=100000)
+        params.add("n", value=degree, vary=False)
+        params.add("a0", value=20)
+        params.add("a1", value=100000)
         for i in range(2, degree):
-            params.add(f'a{i}', value=1000)
+            params.add(f"a{i}", value=1000)
         aggregated_datapoints = Utility.aggregate_data(datapoints)
-        fresult = fmodel.fit([x.billed_time for x in aggregated_datapoints],
-                             x=[x.memory for x in aggregated_datapoints], params=params)
+        fresult = fmodel.fit(
+            [x.billed_time for x in aggregated_datapoints],
+            x=[x.memory for x in aggregated_datapoints],
+            params=params,
+        )
         fparams = fresult.params.valuesdict()
         return f, fparams
 
@@ -223,16 +282,18 @@ class Utility:
             for d in data:
                 if d.memory == memory_value:
                     billed_times.append(d.billed_time)
-            aggregated_data.append(AggregatedData(memory_value, np.median(billed_times)))
+            aggregated_data.append(
+                AggregatedData(memory_value, np.median(billed_times))
+            )
         return aggregated_data
 
     def f1(x, a0, a1):
         return a0 + a1 / x
 
     def fn(x, **kwargs):
-        res = kwargs['a0']
-        for i in range(1, kwargs['n']):
-            res += kwargs[f'a{i}'] / (x ** i)
+        res = kwargs["a0"]
+        for i in range(1, kwargs["n"]):
+            res += kwargs[f"a{i}"] / (x**i)
         return res
 
     def find_closest(x, l):
@@ -259,15 +320,24 @@ class Objective(ABC):
         self.sampler = sampler
 
     def normalized_cost(self, x):
-        return self.sampler.fitted_function(x, **self.sampler.function_parameters) * x / self._min_cost()
+        return (
+            self.sampler.fitted_function(x, **self.sampler.function_parameters)
+            * x
+            / self._min_cost()
+        )
 
     def normalized_duration(self, x):
-        return self.sampler.fitted_function(x, **self.sampler.function_parameters) / self._max_duration()
+        return (
+            self.sampler.fitted_function(x, **self.sampler.function_parameters)
+            / self._max_duration()
+        )
 
     def _max_duration(self):
         max_duration = 0
         for memory_value in range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1):
-            duration = self.sampler.fitted_function(memory_value, **self.sampler.function_parameters)
+            duration = self.sampler.fitted_function(
+                memory_value, **self.sampler.function_parameters
+            )
             if duration > max_duration:
                 max_duration = duration
         return max_duration
@@ -275,7 +345,12 @@ class Objective(ABC):
     def _max_cost(self):
         max_cost = 0
         for memory_value in range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1):
-            cost = self.sampler.fitted_function(memory_value, **self.sampler.function_parameters) * memory_value
+            cost = (
+                self.sampler.fitted_function(
+                    memory_value, **self.sampler.function_parameters
+                )
+                * memory_value
+            )
             if cost > max_cost:
                 max_cost = cost
         return max_cost
@@ -283,7 +358,12 @@ class Objective(ABC):
     def _min_cost(self):
         min_cost = np.inf
         for memory_value in range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1):
-            cost = self.sampler.fitted_function(memory_value, **self.sampler.function_parameters) * memory_value
+            cost = (
+                self.sampler.fitted_function(
+                    memory_value, **self.sampler.function_parameters
+                )
+                * memory_value
+            )
             if cost < min_cost:
                 min_cost = cost
         return min_cost
@@ -310,19 +390,21 @@ class NormalObjective(Objective):
 
     def update_knowledge(self, x):
         for key, _ in self.knowledge_values.items():
-            self.knowledge_values[key] += Utility.get_normal_value(key, x.memory, NORMAL_SCALE, self.ratio)
+            self.knowledge_values[key] += Utility.get_normal_value(
+                key, x.memory, NORMAL_SCALE, self.ratio
+            )
         self.ratio *= 1 / sum(list(self.knowledge_values.values()))
         Utility.normalize(self.knowledge_values)
 
 
 class RecommendationEngine:
     def __init__(
-            self,
-            config_file_path: str,
-            config: BenchmarkConfig,
-            model: MlModelBaseClass,
-            db: DBClient,
-            benchmark_dir: str,
+        self,
+        config_file_path: str,
+        config: BenchmarkConfig,
+        model: MlModelBaseClass,
+        db: DBClient,
+        benchmark_dir: str,
     ) -> None:
         self.config_file_path = config_file_path
         self._model = model

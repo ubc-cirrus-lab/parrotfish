@@ -14,7 +14,10 @@ from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
 from spot.constants import ROOT_DIR
 from spot.visualize.Plot import Plot
-from spot.recommendation_engine.recommendation_engine import RecommendationEngine, Sampler
+from spot.recommendation_engine.recommendation_engine import (
+    RecommendationEngine,
+    Sampler,
+)
 from spot.constants import *
 from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 from spot.logs.log_propagation_waiter import LogPropagationWaiter
