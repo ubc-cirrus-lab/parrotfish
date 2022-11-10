@@ -14,10 +14,7 @@ from spot.db.db import DBClient
 from spot.benchmark_config import BenchmarkConfig
 from spot.constants import ROOT_DIR
 from spot.visualize.Plot import Plot
-from spot.recommendation_engine.recommendation_engine import (
-    RecommendationEngine,
-    Sampler,
-)
+from spot.recommendation_engine.recommendation_engine import RecommendationEngine
 from spot.constants import *
 from spot.mlModel.polynomial_regression import PolynomialRegressionModel
 from spot.logs.log_propagation_waiter import LogPropagationWaiter
@@ -69,7 +66,7 @@ class Spot:
             self.db,
         )
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
-        self.sampler = Sampler(self.function_invocator)
+        self.sampler = RecommendationEngine(self.function_invocator)
         # self.ml_model = self.select_model(model)
         # self.recommendation_engine = RecommendationEngine(
         #     self.config_file_path,

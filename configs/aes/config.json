@@ -5,7 +5,7 @@
         1024
     ],
     "mem_size": 128,
-    "region": "us-east-2",
+    "region": "us-east-1",
     "vendor": "AWS",
     "workload": {
         "blocking_cli": false,
