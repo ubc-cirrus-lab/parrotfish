@@ -13,7 +13,6 @@ class AggregatedData:
 
 
 class Utility:
-
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
         min_cost = np.inf
@@ -53,14 +52,17 @@ class Utility:
         f = Utility.fn
         fmodel = Model(f)
         params = Parameters()
-        params.add('n', value=degree, vary=False)
-        params.add('a0', value=20)
-        params.add('a1', value=100000)
+        params.add("n", value=degree, vary=False)
+        params.add("a0", value=20)
+        params.add("a1", value=100000)
         for i in range(2, degree):
-            params.add(f'a{i}', value=1000)
+            params.add(f"a{i}", value=1000)
         aggregated_datapoints = Utility.aggregate_data(datapoints)
-        fresult = fmodel.fit([x.billed_time for x in aggregated_datapoints],
-                             x=[x.memory for x in aggregated_datapoints], params=params)
+        fresult = fmodel.fit(
+            [x.billed_time for x in aggregated_datapoints],
+            x=[x.memory for x in aggregated_datapoints],
+            params=params,
+        )
         fparams = fresult.params.valuesdict()
         return f, fparams
 
@@ -72,12 +74,14 @@ class Utility:
             for d in data:
                 if d.memory == memory_value:
                     billed_times.append(d.billed_time)
-            aggregated_data.append(AggregatedData(memory_value, np.median(billed_times)))
+            aggregated_data.append(
+                AggregatedData(memory_value, np.median(billed_times))
+            )
         return aggregated_data
 
     @staticmethod
     def fn(x, **kwargs):
-        res = kwargs['a0']
-        for i in range(1, kwargs['n']):
-            res += kwargs[f'a{i}'] / (x ** i)
+        res = kwargs["a0"]
+        for i in range(1, kwargs["n"]):
+            res += kwargs[f"a{i}"] / (x**i)
         return res

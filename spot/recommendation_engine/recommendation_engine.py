@@ -32,28 +32,39 @@ class RecommendationEngine:
     def run(self):
         self.initial_sample()
         self.sampled_points = 2
-        while len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT and self.objective.ratio > 0.2:
+        while (
+            len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
+            and self.objective.ratio > 0.2
+        ):
             x = self.choose_sample_point()
             self.sample(x)
             self.sampled_points += 1
             self.function_degree = self.sampled_points
-            self.fitted_function, self.function_parameters = Utility.fit_function(self.sampled_datapoints,
-                                                                                  degree=self.function_degree)
+            self.fitted_function, self.function_parameters = Utility.fit_function(
+                self.sampled_datapoints, degree=self.function_degree
+            )
 
-            while Utility.check_function_validity(self.fitted_function, self.function_parameters,
-                                                  MEMORY_RANGE) is False:
+            while (
+                Utility.check_function_validity(
+                    self.fitted_function, self.function_parameters, MEMORY_RANGE
+                )
+                is False
+            ):
                 self.function_degree -= 1
-                self.fitted_function, self.function_parameters = Utility.fit_function(self.sampled_datapoints,
-                                                                                      degree=self.function_degree)
-        minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(self.fitted_function, self.function_parameters,
-                                                                        MEMORY_RANGE)
+                self.fitted_function, self.function_parameters = Utility.fit_function(
+                    self.sampled_datapoints, degree=self.function_degree
+                )
+        minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
+            self.fitted_function, self.function_parameters, MEMORY_RANGE
+        )
         print(f"{minimum_memory=}, with {minimum_cost=}")
 
     def initial_sample(self):
         for x in SAMPLE_POINTS:
             self.sample(x)
-        self.fitted_function, self.function_parameters = Utility.fit_function(self.sampled_datapoints,
-                                                                              degree=self.function_degree)
+        self.fitted_function, self.function_parameters = Utility.fit_function(
+            self.sampled_datapoints, degree=self.function_degree
+        )
 
     def sample(self, x):
         # TODO: handle cold start
@@ -80,6 +91,8 @@ class RecommendationEngine:
 
     def remainder_memories(self):
         memories = range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1)
-        sampled_memories = set([datapoint.memory for datapoint in self.sampled_datapoints])
+        sampled_memories = set(
+            [datapoint.memory for datapoint in self.sampled_datapoints]
+        )
         remainder = [x for x in memories if x not in sampled_memories]
         return remainder

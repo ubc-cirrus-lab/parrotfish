@@ -12,12 +12,21 @@ class Objective(ABC):
         self.memory_range = memory_range
 
     def normalized_cost(self, x):
-        return self.sampler.fitted_function(x, **self.sampler.function_parameters) * x / self._min_cost()
+        return (
+            self.sampler.fitted_function(x, **self.sampler.function_parameters)
+            * x
+            / self._min_cost()
+        )
 
     def _min_cost(self):
         min_cost = np.inf
         for memory_value in range(self.memory_range[0], self.memory_range[1] + 1):
-            cost = self.sampler.fitted_function(memory_value, **self.sampler.function_parameters) * memory_value
+            cost = (
+                self.sampler.fitted_function(
+                    memory_value, **self.sampler.function_parameters
+                )
+                * memory_value
+            )
             if cost < min_cost:
                 min_cost = cost
         return min_cost
@@ -44,7 +53,9 @@ class NormalObjective(Objective):
 
     def update_knowledge(self, x):
         for key, _ in self.knowledge_values.items():
-            self.knowledge_values[key] += NormalObjective.get_normal_value(key, x.memory, NORMAL_SCALE, self.ratio)
+            self.knowledge_values[key] += NormalObjective.get_normal_value(
+                key, x.memory, NORMAL_SCALE, self.ratio
+            )
         self.ratio *= 1 / sum(list(self.knowledge_values.values()))
         self.normalize()
 
