@@ -15,12 +15,15 @@ class AWSLambdaInvoker:
         self.lambda_name = lambda_name
         self.client = boto3.client("lambda")
 
-    def invoke(self, invocation_count, parallelism, memory_mb, payload):
+    def invoke(self, invocation_count, parallelism, memory_mb, payload_filename):
         """
         Invokes the specified lambda with given memory config.
         Returns pandas DataFrame representing the execution logs
         """
         keys = ["Duration", "Billed Duration", "Max Memory Used"]
+
+        with open(payload_filename) as f:
+            payload = f.read()
 
         def invoke_sequential(count):
             # TODO: maybe support different payload across invocations?
@@ -39,15 +42,24 @@ class AWSLambdaInvoker:
 
         self._check_and_set_memory_value(memory_mb)
         results = {key: [] for key in keys}
+        errors = []
         with ThreadPoolExecutor(max_workers=parallelism) as executor:
             invocation_chunks = [invocation_count // parallelism] * parallelism
             invocation_chunks[-1] += (
                 invocation_count - invocation_count // parallelism * parallelism
             )
             for chunk in invocation_chunks:
-                res = executor.submit(invoke_sequential, chunk).result()
+                try:
+                    res = executor.submit(invoke_sequential, chunk).result()
+                except _SingleInvocationError as e:
+                    errors.append(e.msg)
+                    continue
                 for key in keys:
                     results[key].extend(res[key])
+
+        if len(errors) != 0:
+            raise LambdaInvocationError(errors)
+
         return pd.DataFrame.from_dict(results)
 
     def _check_and_set_memory_value(self, memory_mb):
@@ -63,15 +75,31 @@ class AWSLambdaInvoker:
         )
 
 
+class LambdaInvocationError(Exception):
+    def __init__(self, messages):
+        self.messages = messages
+
+
+class _SingleInvocationError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+
 def parse_log(log, keys):
     res = {}
+    # check for errors
+    m = re.match(r".*\[ERROR\] (?P<error>.*)END RequestId.*", log)
+    if m is not None:
+        raise _SingleInvocationError(m["error"])
+
+    # check for keys
     for key in keys:
         m = re.match(rf".*\\t{key}: (?P<duration>[0-9.]+) (ms|MB).*", log)
         res[key] = float(m["duration"])
     return res
 
 
-# if __name__ == "__main__":
-#     invoker = AWSLambdaInvoker("DNAVisualization")
-#     p = bytes(json.dumps({"gen_file_name": "sequence_2.gb"}), "utf-8")
-#     invoker.invoke(3, 1, 256, p)
+if __name__ == "__main__":
+    invoker = AWSLambdaInvoker("DNAVisualization")
+    res = invoker.invoke(3, 1, 256, "/home/joe/research/ubc/ubc-SPOT/payload1.json")
+    print("done", res)
