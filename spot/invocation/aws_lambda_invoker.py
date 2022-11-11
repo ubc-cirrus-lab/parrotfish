@@ -97,9 +97,3 @@ def parse_log(log, keys):
         m = re.match(rf".*\\t{key}: (?P<duration>[0-9.]+) (ms|MB).*", log)
         res[key] = float(m["duration"])
     return res
-
-
-if __name__ == "__main__":
-    invoker = AWSLambdaInvoker("DNAVisualization")
-    res = invoker.invoke(3, 1, 256, "/home/joe/research/ubc/ubc-SPOT/payload1.json")
-    print("done", res)
