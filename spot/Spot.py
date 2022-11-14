@@ -93,6 +93,7 @@ class Spot:
         # retrieve latest config, logs, pricing scheme
         self.config_retriever.get_latest_config()
         self.price_retriever.fetch_current_pricing()
+        # FIXME: now AWSLogRetriever::get_logs returns a pandas DataFrame.
         self.last_log_timestamp = self.log_retriever.get_logs()
 
     def train_model(self):
