@@ -2,8 +2,7 @@ import numpy as np
 import scipy.stats as stats
 from abc import ABC, abstractmethod
 
-ALPHA = 0.001
-NORMAL_SCALE = 100
+from spot.constants import ALPHA, NORMAL_SCALE
 
 
 class Objective(ABC):
@@ -54,7 +53,7 @@ class NormalObjective(Objective):
     def update_knowledge(self, x):
         for key, _ in self.knowledge_values.items():
             self.knowledge_values[key] += NormalObjective.get_normal_value(
-                key, x.memory, NORMAL_SCALE, self.ratio
+                key, x, NORMAL_SCALE, self.ratio
             )
         self.ratio *= 1 / sum(list(self.knowledge_values.values()))
         self.normalize()

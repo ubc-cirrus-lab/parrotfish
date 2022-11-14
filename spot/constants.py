@@ -27,3 +27,15 @@ DB_ID = "_id"
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
+
+
+SAMPLE_POINTS = [128, 2048]
+MEMORY_RANGE = [128, 3008]
+IS_DYNAMIC_SAMPLING_ENABLED = True
+TOTAL_SAMPLE_COUNT = 20
+RANDOM_SAMPLING = True
+RANDOM_SEED = 0
+IS_MULTI_FUNCTION = True
+
+ALPHA = 0
+NORMAL_SCALE = 100

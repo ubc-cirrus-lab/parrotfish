@@ -2,9 +2,6 @@ from lmfit import Model, Parameters
 
 import numpy as np
 
-LAMBDA_DURTION_COST = 0.0000166667
-LAMBDA_REQUEST_COST = 0.20 / 100000
-
 
 class AggregatedData:
     def __init__(self, memory, billed_time):
@@ -13,6 +10,7 @@ class AggregatedData:
 
 
 class Utility:
+
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
         min_cost = np.inf
@@ -83,5 +81,5 @@ class Utility:
     def fn(x, **kwargs):
         res = kwargs["a0"]
         for i in range(1, kwargs["n"]):
-            res += kwargs[f"a{i}"] / (x**i)
+            res += kwargs[f"a{i}"] / (x ** i)
         return res

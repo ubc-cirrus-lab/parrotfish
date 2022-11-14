@@ -20,7 +20,7 @@ class AWSLambdaInvoker:
         Invokes the specified lambda with given memory config.
         Returns pandas DataFrame representing the execution logs
         """
-        keys = ["Duration", "Billed Duration", "Max Memory Used"]
+        keys = ["Duration", "Billed Duration", "Max Memory Used", "Memory Size"]
 
         with open(payload_filename) as f:
             payload = f.read()
