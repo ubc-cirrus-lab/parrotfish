@@ -17,7 +17,10 @@ class DataPoint:
 
 class RecommendationEngine:
     def __init__(self, invocator, workload_path, workload):
-        self.payload = os.path.join(os.path.dirname(workload_path), workload['instances']['instance1']['payload'])
+        self.payload = os.path.join(
+            os.path.dirname(workload_path),
+            workload["instances"]["instance1"]["payload"],
+        )
         self.function_invocator = invocator
         self.sampled_datapoints = []
         self.sampled_points = 0
@@ -33,8 +36,8 @@ class RecommendationEngine:
         self.initial_sample()
         self.sampled_points = 2
         while (
-                len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
-                and self.objective.ratio > 0.2
+            len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
+            and self.objective.ratio > 0.2
         ):
             x = self.choose_sample_point()
             self.sample(x)
@@ -45,10 +48,10 @@ class RecommendationEngine:
             )
 
             while (
-                    Utility.check_function_validity(
-                        self.fitted_function, self.function_parameters, MEMORY_RANGE
-                    )
-                    is False
+                Utility.check_function_validity(
+                    self.fitted_function, self.function_parameters, MEMORY_RANGE
+                )
+                is False
             ):
                 self.function_degree -= 1
                 self.fitted_function, self.function_parameters = Utility.fit_function(
@@ -69,19 +72,31 @@ class RecommendationEngine:
     def sample(self, x):
         # Cold start
         print(f"Sampling {x}")
-        self.function_invocator.invoke(invocation_count=2, parallelism=2, memory_mb=x,
-                                       payload_filename=self.payload)
-        result = self.function_invocator.invoke(invocation_count=2, parallelism=2, memory_mb=x,
-                                                payload_filename=self.payload)
+        self.function_invocator.invoke(
+            invocation_count=2,
+            parallelism=2,
+            memory_mb=x,
+            payload_filename=self.payload,
+        )
+        result = self.function_invocator.invoke(
+            invocation_count=2,
+            parallelism=2,
+            memory_mb=x,
+            payload_filename=self.payload,
+        )
         # TODO: better check
-        for memory in result['Memory Size'].tolist():
+        for memory in result["Memory Size"].tolist():
             assert int(memory) == x
-        values = result['Billed Duration'].tolist()
+        values = result["Billed Duration"].tolist()
         if IS_DYNAMIC_SAMPLING_ENABLED:
             while len(values) < 5 and Utility.cv(values) > 0.3:
-                result = self.function_invocator.invoke(invocation_count=1, parallelism=1, memory_mb=x,
-                                                        payload_filename=self.payload)
-                values.append(result.iloc[0]['Billed Duration'])
+                result = self.function_invocator.invoke(
+                    invocation_count=1,
+                    parallelism=1,
+                    memory_mb=x,
+                    payload_filename=self.payload,
+                )
+                values.append(result.iloc[0]["Billed Duration"])
         for value in values:
             self.sampled_datapoints.append(DataPoint(memory=x, billed_time=value))
         print(f"finished sampling {x} with {len(values)} samples")

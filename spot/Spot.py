@@ -64,7 +64,9 @@ class Spot:
         # )
         self.function_invoker = AWSLambdaInvoker(lambda_name=self.config.function_name)
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
-        self.sampler = RecommendationEngine(self.function_invoker, self.workload_file_path, self.config.workload)
+        self.sampler = RecommendationEngine(
+            self.function_invoker, self.workload_file_path, self.config.workload
+        )
         # self.ml_model = self.select_model(model)
         # self.recommendation_engine = RecommendationEngine(
         #     self.config_file_path,
