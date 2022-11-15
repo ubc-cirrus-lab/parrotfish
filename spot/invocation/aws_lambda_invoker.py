@@ -1,5 +1,7 @@
 import json
 import base64
+import time
+
 import boto3
 import re
 import pandas as pd
@@ -73,6 +75,8 @@ class AWSLambdaInvoker:
         self.client.update_function_configuration(
             FunctionName=self.lambda_name, MemorySize=memory_mb
         )
+        # FIXME: properly handle memory change
+        time.sleep(5)
 
 
 class LambdaInvocationError(Exception):

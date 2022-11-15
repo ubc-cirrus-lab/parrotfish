@@ -67,18 +67,16 @@ class RecommendationEngine:
         )
 
     def sample(self, x):
-        # Cold start
         print(f"Sampling {x}")
-        self.function_invocator.invoke(invocation_count=2, parallelism=2, memory_mb=x,
-                                       payload_filename=self.payload)
+        # Cold start
         result = self.function_invocator.invoke(invocation_count=2, parallelism=2, memory_mb=x,
                                                 payload_filename=self.payload)
-        # TODO: better check
-        for memory in result['Memory Size'].tolist():
-            assert int(memory) == x
+        assert all(result['Memory Size'] == x), f"expected memory: {x}, lambda memory: {result.iloc[0]['Memory Size']}"
+        result = self.function_invocator.invoke(invocation_count=2, parallelism=2, memory_mb=x,
+                                                payload_filename=self.payload)
         values = result['Billed Duration'].tolist()
         if IS_DYNAMIC_SAMPLING_ENABLED:
-            while len(values) < 5 and Utility.cv(values) > 0.3:
+            while len(values) < DYNAMIC_SAMPLING_MAX and Utility.cv(values) > TERMINATION_CV:
                 result = self.function_invocator.invoke(invocation_count=1, parallelism=1, memory_mb=x,
                                                         payload_filename=self.payload)
                 values.append(result.iloc[0]['Billed Duration'])
@@ -90,14 +88,14 @@ class RecommendationEngine:
     def choose_sample_point(self):
         max_value = MEMORY_RANGE[0]
         max_obj = np.inf
-        for value in self.remainder_memories():
+        for value in self._remainder_memories():
             obj = self.objective.get_value(value)
             if obj < max_obj:
                 max_value = value
                 max_obj = obj
         return max_value
 
-    def remainder_memories(self):
+    def _remainder_memories(self):
         memories = range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1)
         sampled_memories = set(
             [datapoint.memory for datapoint in self.sampled_datapoints]
