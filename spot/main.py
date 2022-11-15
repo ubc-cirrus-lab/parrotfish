@@ -14,6 +14,12 @@ def main():
         "function", type=str, help="Name of the serverless function to use"
     )
     parser.add_argument(
+        "--optimize",
+        "-o",
+        action="store_true",
+        help="Return best memory configuration for lowest cost",
+    )
+    parser.add_argument(
         "--invoke",
         "-i",
         action="store_true",
@@ -97,6 +103,8 @@ def main():
         path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
         if os.path.isdir(path):
             function = Spot(path, args.model)
+            if args.optimize:
+                function.optimize()
             if args.invoke:
                 function.invoke()
             if args.profile:

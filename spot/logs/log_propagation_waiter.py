@@ -1,4 +1,3 @@
-from os import waitid_result
 import time
 import boto3
 from datetime import datetime

@@ -7,6 +7,7 @@ from datetime import datetime
 from spot.prices.aws_price_retriever import AWSPriceRetriever
 from spot.logs.aws_log_retriever import AWSLogRetriever
 from spot.invocation.aws_function_invocator import AWSFunctionInvocator
+from spot.invocation.aws_lambda_invoker import AWSLambdaInvoker
 from spot.configs.aws_config_retriever import AWSConfigRetriever
 from spot.mlModel.linear_regression import LinearRegressionModel
 from spot.invocation.config_updater import ConfigUpdater
@@ -53,27 +54,27 @@ class Spot:
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.db, self.config.region)
-        self.log_retriever = AWSLogRetriever(
-            self.config.function_name,
-            self.db,
-            self.last_log_timestamp,
-        )
-        self.function_invocator = AWSFunctionInvocator(
-            self.workload_file_path,
-            self.config.function_name,
-            self.config.mem_size,
-            self.config.region,
-            self.db,
-        )
+        self.log_retriever = AWSLogRetriever(self.config.function_name)
+        # self.function_invocator = AWSFunctionInvocator(
+        #     self.workload_file_path,
+        #     self.config.function_name,
+        #     self.config.mem_size,
+        #     self.config.region,
+        #     self.db,
+        # )
+        self.function_invoker = AWSLambdaInvoker(lambda_name=self.config.function_name)
         self.config_retriever = AWSConfigRetriever(self.config.function_name, self.db)
-        self.ml_model = self.select_model(model)
-        self.recommendation_engine = RecommendationEngine(
-            self.config_file_path,
-            self.config,
-            self.ml_model,
-            self.db,
-            self.benchmark_dir,
+        self.sampler = RecommendationEngine(
+            self.function_invoker, self.workload_file_path, self.config.workload
         )
+        # self.ml_model = self.select_model(model)
+        # self.recommendation_engine = RecommendationEngine(
+        #     self.config_file_path,
+        #     self.config,
+        #     self.ml_model,
+        #     self.db,
+        #     self.benchmark_dir,
+        # )
 
     def invoke(self):
         # fetch configs and most up to date prices
@@ -84,6 +85,9 @@ class Spot:
         start = datetime.now().timestamp()
         self.function_invocator.invoke_all()
         self.log_prop_waiter.wait_by_count(start, self.function_invocator.invoke_cnt)
+
+    def optimize(self):
+        self.sampler.run()
 
     def collect_data(self):
         # retrieve latest config, logs, pricing scheme

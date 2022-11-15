@@ -1,65 +1,124 @@
-import datetime
-from spot.benchmark_config import BenchmarkConfig
-from spot.db.db import DBClient
-from spot.invocation.config_updater import ConfigUpdater
-from spot.mlModel.ml_model_base_class import MlModelBaseClass
-from spot.visualize.Plot import Plot
+import os
+
+import numpy as np
+import random
+
+from spot.recommendation_engine.objectives import NormalObjective
+from spot.recommendation_engine.utility import Utility
+
 from spot.constants import *
 
 
+class DataPoint:
+    def __init__(self, memory, billed_time):
+        self.memory = memory
+        self.billed_time = billed_time
+
+
 class RecommendationEngine:
-    def __init__(
-        self,
-        config_file_path: str,
-        config: BenchmarkConfig,
-        model: MlModelBaseClass,
-        db: DBClient,
-        benchmark_dir: str,
-    ) -> None:
-        self.config_file_path = config_file_path
-        self._model = model
-        self.new_config = config
-        self.db = db
-        self.plotter = Plot(self.new_config.function_name, self.db, benchmark_dir)
-        self.x_min = None
-        self.y_min = None
-
-    """get optimal mem config from the model"""
-
-    def recommend(self) -> int:
-        self.x_min, self.y_min = self._model.get_optimal_config()
-        print("Best memory config: ", self.x_min, "  ", "Cost: ", self.y_min)
-        return int(round(self.x_min, 0))
-
-    def get_pred_cost(self) -> float:
-        return self.y_min
-
-    def update_config(self) -> None:
-
-        # Get the new recommended config
-        self.new_config.mem_size = self.recommend()
-
-        # Save the updated configurations
-        with open(self.config_file_path, "w") as f:
-            f.write(self.new_config.serialize())
-
-        # Update the memory config on AWS with the newly suggested memory size
-        ConfigUpdater(
-            self.new_config.function_name,
-            self.new_config.mem_size,
-            self.new_config.region,
+    def __init__(self, invocator, workload_path, workload):
+        self.payload = os.path.join(
+            os.path.dirname(workload_path),
+            workload["instances"]["instance1"]["payload"],
         )
-        timestamp = datetime.datetime.now()
+        self.function_invocator = invocator
+        self.sampled_datapoints = []
+        self.sampled_points = 0
+        self.fitted_function = None
+        self.function_parameters = {}
+        self.function_degree = 2
+        self.objective = NormalObjective(self, MEMORY_RANGE)
 
-        # Save model config suggestions
-        self.db.add_document_to_collection(
-            self.new_config.function_name,
-            "suggested_configs",
-            self.new_config.get_dict(),
+    def get_function(self):
+        return self.fitted_function, self.function_parameters
+
+    def run(self):
+        self.initial_sample()
+        self.sampled_points = 2
+        while (
+            len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
+            and self.objective.ratio > 0.2
+        ):
+            x = self.choose_sample_point()
+            self.sample(x)
+            self.sampled_points += 1
+            self.function_degree = self.sampled_points
+            self.fitted_function, self.function_parameters = Utility.fit_function(
+                self.sampled_datapoints, degree=self.function_degree
+            )
+
+            while (
+                Utility.check_function_validity(
+                    self.fitted_function, self.function_parameters, MEMORY_RANGE
+                )
+                is False
+            ):
+                self.function_degree -= 1
+                self.fitted_function, self.function_parameters = Utility.fit_function(
+                    self.sampled_datapoints, degree=self.function_degree
+                )
+        minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
+            self.fitted_function, self.function_parameters, MEMORY_RANGE
+        )
+        print(f"{minimum_memory=}, with {minimum_cost=}")
+
+    def initial_sample(self):
+        for x in SAMPLE_POINTS:
+            self.sample(x)
+        self.fitted_function, self.function_parameters = Utility.fit_function(
+            self.sampled_datapoints, degree=self.function_degree
         )
 
-    def plot_config_vs_epoch(self) -> None:
-        self.plotter.plot_config_vs_epoch()
+    def sample(self, x):
+        print(f"Sampling {x}")
+        # Cold start
+        result = self.function_invocator.invoke(
+            invocation_count=2,
+            parallelism=2,
+            memory_mb=x,
+            payload_filename=self.payload,
+        )
+        assert all(
+            result["Memory Size"] == x
+        ), f"expected memory: {x}, lambda memory: {result.iloc[0]['Memory Size']}"
+        result = self.function_invocator.invoke(
+            invocation_count=2,
+            parallelism=2,
+            memory_mb=x,
+            payload_filename=self.payload,
+        )
+        values = result["Billed Duration"].tolist()
+        if IS_DYNAMIC_SAMPLING_ENABLED:
+            while (
+                len(values) < DYNAMIC_SAMPLING_MAX
+                and Utility.cv(values) > TERMINATION_CV
+            ):
+                result = self.function_invocator.invoke(
+                    invocation_count=1,
+                    parallelism=1,
+                    memory_mb=x,
+                    payload_filename=self.payload,
+                )
+                values.append(result.iloc[0]["Billed Duration"])
+        for value in values:
+            self.sampled_datapoints.append(DataPoint(memory=x, billed_time=value))
+        print(f"finished sampling {x} with {len(values)} samples")
+        self.objective.update_knowledge(x)
 
-    def plot_error_vs_epoch(self) -> None:
-        self.plotter.plot_error_vs_epoch()
+    def choose_sample_point(self):
+        max_value = MEMORY_RANGE[0]
+        max_obj = np.inf
+        for value in self._remainder_memories():
+            obj = self.objective.get_value(value)
+            if obj < max_obj:
+                max_value = value
+                max_obj = obj
+        return max_value
+
+    def _remainder_memories(self):
+        memories = range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1)
+        sampled_memories = set(
+            [datapoint.memory for datapoint in self.sampled_datapoints]
+        )
+        remainder = [x for x in memories if x not in sampled_memories]
+        return remainder
