@@ -10,7 +10,6 @@ class AggregatedData:
 
 
 class Utility:
-
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
         min_cost = np.inf
@@ -81,5 +80,5 @@ class Utility:
     def fn(x, **kwargs):
         res = kwargs["a0"]
         for i in range(1, kwargs["n"]):
-            res += kwargs[f"a{i}"] / (x ** i)
+            res += kwargs[f"a{i}"] / (x**i)
         return res
