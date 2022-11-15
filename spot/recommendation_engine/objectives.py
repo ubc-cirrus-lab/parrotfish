@@ -42,7 +42,9 @@ class Objective(ABC):
 class NormalObjective(Objective):
     def __init__(self, sampler, memory_range):
         super().__init__(sampler, memory_range)
-        self.knowledge_values = {x: 0 for x in range(self.memory_range[0], self.memory_range[1] + 1)}
+        self.knowledge_values = {
+            x: 0 for x in range(self.memory_range[0], self.memory_range[1] + 1)
+        }
         self.ratio = 1
 
     def get_value(self, x):
