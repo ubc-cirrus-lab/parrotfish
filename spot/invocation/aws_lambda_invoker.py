@@ -75,8 +75,8 @@ class AWSLambdaInvoker:
         self.client.update_function_configuration(
             FunctionName=self.lambda_name, MemorySize=memory_mb
         )
-        # FIXME: properly handle memory change
-        time.sleep(5)
+        waiter = self.client.get_waiter("function_updated")
+        waiter.wait(FunctionName=self.lambda_name)
 
 
 class LambdaInvocationError(Exception):
