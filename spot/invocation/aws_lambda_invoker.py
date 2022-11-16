@@ -2,7 +2,6 @@ import json
 import base64
 import time
 
-import boto3
 import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
@@ -13,9 +12,9 @@ class AWSLambdaInvoker:
     Invokes AWS Lambda with the specified config.
     """
 
-    def __init__(self, lambda_name):
+    def __init__(self, aws_session, lambda_name):
         self.lambda_name = lambda_name
-        self.client = boto3.client("lambda")
+        self.client = aws_session.client("lambda")
 
     def invoke(self, invocation_count, parallelism, memory_mb, payload_filename):
         """

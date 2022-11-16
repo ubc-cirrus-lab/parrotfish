@@ -1,4 +1,5 @@
 import time
+import boto3
 import argparse
 import os
 from spot.constants import ROOT_DIR
@@ -20,132 +21,48 @@ def main():
         help="Return best memory configuration for lowest cost",
     )
     parser.add_argument(
-        "--invoke",
-        "-i",
-        action="store_true",
-        help="Run the function with the given workload",
-    )
-    parser.add_argument(
         "--fetch", "-f", action="store_true", help="Fetch log and config data from AWS"
     )
     parser.add_argument(
-        "--train",
-        "-t",
-        action="store_true",
-        help="Train the model based on the fetched log and config data",
+        "--invoke", "-i", action="store_true", help="Invoke the function"
     )
     parser.add_argument(
-        "--recommend",
-        "-r",
-        action="store_true",
-        help="Recommend a memory config based on the trained model",
+        "--memory_mb", "-m", type=int, help="Memory (MB) of the function"
     )
     parser.add_argument(
-        "--profile",
-        "-p",
-        action="store_true",
-        help="Test multiple memory configs to determine the optimal one",
-    )
-    parser.add_argument(
-        "--model",
-        "-m",
-        type=str,
-        help="The ML model to use to train the model",
-    )
-    parser.add_argument(
-        "--update_config",
-        "-u",
-        action="store_true",
-        help="Update lambda function config with the optimal config current model suggests",
-    )
-    parser.add_argument(
-        "--plot_error_vs_epoch",
-        "-ee",
-        action="store_true",
-        help="Plot error vs epoch",
-    )
-    parser.add_argument(
-        "--plot_config_vs_epoch",
-        "-ce",
-        action="store_true",
-        help="Plot config vs epoch",
-    )
-    parser.add_argument(
-        "--plot_memsize_vs_cost",
-        "-mc",
-        action="store_true",
-        help="Plot Memory Size vs Cost",
-    )
-    parser.add_argument(
-        "--full",
-        action="store_true",
-        help="End-to-end execution of full lifecycle: profiling then fetching newly created logs, then training the model, then recommending the optimal config and updating the serverless function config with the new config",
+        "--aws_profile", "-p", type=str, help="AWS profile"
     )
 
     args = parser.parse_args()
 
-    if args.full:
-        """
-        End-to-end execution of full lifecycle:
-            1. profiling
-            2. fetching newly created logs
-            3. training the model
-            4. recommending the optimal config
-            5. updating the serverless function config with the new config
-        """
-        if args.model:
-            args.profile = args.fetch = args.train = args.update_config = True
-        else:
-            print("Please specify model")
-            return
-
-    if args.function:
-        path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
-        if os.path.isdir(path):
-            function = Spot(path, args.model)
-            if args.optimize:
-                function.optimize()
-            if args.invoke:
-                function.invoke()
-            if args.profile:
-                function.profile()
-            if args.fetch:
-                function.collect_data()
-            if args.train:
-                if args.model:
-                    function.train_model()
-                else:
-                    print("Please specify model")
-                    return
-            if args.recommend:
-                if args.model:
-                    function.recommend()
-                else:
-                    print("Please specify model")
-                    return
-            if args.update_config:
-                if args.model:
-                    function.update_config()
-                    function.get_prediction_error_rate()
-                else:
-                    print("Please specify model")
-                    return
-            if args.plot_error_vs_epoch:
-                function.plot_error_vs_epoch()
-            if args.plot_config_vs_epoch:
-                function.plot_config_vs_epoch()
-            if args.plot_memsize_vs_cost:
-                if (args.train or args.full) and args.model:
-                    function.plot_memsize_vs_cost()
-                else:
-                    print("Memsize vs Cost plot can be generated only after training")
-                    return
-        else:
-            print(
-                f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
-            )
+    if args.aws_profile:
+        session = boto3.Session(profile_name=args.aws_profile)
     else:
+        session = boto3.Session()
+
+    if not args.function:
         print(f"Please specify a serverless function from the {FUNCTION_DIR} directory")
+        exit(1)
+
+    path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
+    if not os.path.isdir(path):
+        print(
+            f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
+        )
+        exit(1)
+
+    spot = Spot(path, session)
+    if args.optimize:
+        spot.optimize()
+    if args.fetch:
+        spot.collect_data()
+    if args.invoke:
+        if not args.memory_mb:
+            print("Please specify a memory value when invoking a function")
+            exit(1)
+        spot.invoke(args.memory_mb)
+
+    spot.teardown()
 
 
 if __name__ == "__main__":
