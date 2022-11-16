@@ -33,11 +33,11 @@ class Spot:
 
         self.benchmark_dir = self.path
 
-        #try:
+        # try:
         #    self.last_log_timestamp = self.ctx.execute_max_value(
         #        self.config.function_name, DB_NAME_LOGS, "timestamp"
         #    )
-        #except:
+        # except:
         #    print(
         #        "No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
         #    )
@@ -48,7 +48,9 @@ class Spot:
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.ctx, self.config.region)
-        self.log_retriever = AWSLogRetriever(self.ctx, aws_session, self.config.function_name)
+        self.log_retriever = AWSLogRetriever(
+            self.ctx, aws_session, self.config.function_name
+        )
         function_invoker = AWSLambdaInvoker(aws_session, self.config.function_name)
         self.recommendation_engine = RecommendationEngine(
             function_invoker, self.workload_file_path, self.config.workload

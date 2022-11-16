@@ -27,7 +27,7 @@ class AWSPriceRetriever(PriceRetriever):
             REQUEST_PRICE: request_price,
             DURATION_PRICE: duration_price,
             TIMESTAMP: int(time.time() * 1000),
-            REGION: self.region
+            REGION: self.region,
         }
         self.ctx.record_pricing(
             current_pricing,

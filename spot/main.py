@@ -29,9 +29,7 @@ def main():
     parser.add_argument(
         "--memory_mb", "-m", type=int, help="Memory (MB) of the function"
     )
-    parser.add_argument(
-        "--aws_profile", "-p", type=str, help="AWS profile"
-    )
+    parser.add_argument("--aws_profile", "-p", type=str, help="AWS profile")
 
     args = parser.parse_args()
 
