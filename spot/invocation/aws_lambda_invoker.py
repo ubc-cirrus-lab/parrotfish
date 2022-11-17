@@ -17,7 +17,14 @@ class AWSLambdaInvoker:
         self.client = aws_session.client("lambda")
         self.ctx = ctx
 
-    def invoke(self, invocation_count, parallelism, memory_mb, payload_filename, save_to_ctx = True):
+    def invoke(
+        self,
+        invocation_count,
+        parallelism,
+        memory_mb,
+        payload_filename,
+        save_to_ctx=True,
+    ):
         """
         Invokes the specified lambda with given memory config.
         Returns pandas DataFrame representing the execution logs

@@ -51,7 +51,9 @@ class Spot:
         self.log_retriever = AWSLogRetriever(
             self.ctx, aws_session, self.config.function_name
         )
-        function_invoker = AWSLambdaInvoker(self.ctx, aws_session, self.config.function_name)
+        function_invoker = AWSLambdaInvoker(
+            self.ctx, aws_session, self.config.function_name
+        )
         self.recommendation_engine = RecommendationEngine(
             function_invoker, self.workload_file_path, self.config.workload
         )
