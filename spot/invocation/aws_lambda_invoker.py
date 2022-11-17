@@ -2,7 +2,6 @@ import json
 import base64
 import time
 
-import boto3
 import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
@@ -13,11 +12,19 @@ class AWSLambdaInvoker:
     Invokes AWS Lambda with the specified config.
     """
 
-    def __init__(self, lambda_name):
+    def __init__(self, ctx, aws_session, lambda_name):
         self.lambda_name = lambda_name
-        self.client = boto3.client("lambda")
+        self.client = aws_session.client("lambda")
+        self.ctx = ctx
 
-    def invoke(self, invocation_count, parallelism, memory_mb, payload_filename):
+    def invoke(
+        self,
+        invocation_count,
+        parallelism,
+        memory_mb,
+        payload_filename,
+        save_to_ctx=True,
+    ):
         """
         Invokes the specified lambda with given memory config.
         Returns pandas DataFrame representing the execution logs
@@ -62,7 +69,10 @@ class AWSLambdaInvoker:
         if len(errors) != 0:
             raise LambdaInvocationError(errors)
 
-        return pd.DataFrame.from_dict(results)
+        result_df = pd.DataFrame.from_dict(results)
+        if save_to_ctx:
+            self.ctx.save_invokation_result(self.lambda_name, result_df)
+        return result_df
 
     def _check_and_set_memory_value(self, memory_mb):
         config = self.client.get_function_configuration(FunctionName=self.lambda_name)

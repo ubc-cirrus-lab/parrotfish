@@ -1,13 +1,17 @@
-import boto3
-import pandas as pd
+import time
 import re
+
+import pandas as pd
+
+from spot.context import Context
 
 
 class AWSLogRetriever:
-    def __init__(self, function_name, max_log_count=None):
+    def __init__(self, ctx: Context, aws_session, function_name, max_log_count=None):
         self.function_name = function_name
-        self.client = boto3.client("logs")
+        self.client = aws_session.client("logs")
         self.max_log_count = max_log_count
+        self.ctx = ctx
 
     def get_logs(self, start_timestamp=None):
         path = f"/aws/lambda/{self.function_name}"
@@ -52,7 +56,9 @@ class AWSLogRetriever:
             if not is_newly_added:
                 break
 
-        return self._parse_logs(response)
+        logs = self._parse_logs(response)
+        ctx.save_logs(logs)
+        return int(time.time() * 1000)
 
     def _parse_logs(self, response):
         df = pd.DataFrame(response, columns=["timestamp", "message", "ingestionTime"])

@@ -16,8 +16,6 @@ REQUEST_ID = "RequestId"
 DURATION_PRICE = "duration_price"
 REQUEST_PRICE = "request_price"
 
-DB_NAME_PRICING = "pricing"
-DB_NAME_CONFIG = "config"
 DB_NAME_LOGS = "logs"
 # TODO: maybe put config prediction and error into the same database?
 DB_NAME_RECOMMENDATION = "recommendation"
@@ -26,8 +24,7 @@ DB_NAME_CONFIG_SUGGESTION = "suggested_config"
 DB_ID = "_id"
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(ROOT_DIR, "data")
-
+CTX_DIR = os.path.join(ROOT_DIR, "__context_cache__")
 
 SAMPLE_POINTS = [128, 2048]
 MEMORY_RANGE = [128, 3008]
