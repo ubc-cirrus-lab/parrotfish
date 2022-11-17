@@ -77,6 +77,7 @@ class RecommendationEngine:
             parallelism=2,
             memory_mb=x,
             payload_filename=self.payload,
+            save_to_ctx=False,
         )
         assert all(
             result["Memory Size"] == x
@@ -104,6 +105,15 @@ class RecommendationEngine:
             self.sampled_datapoints.append(DataPoint(memory=x, billed_time=value))
         print(f"finished sampling {x} with {len(values)} samples")
         self.objective.update_knowledge(x)
+
+    def invoke_once(self, memory_mb):
+        result = self.function_invocator.invoke(
+            invocation_count=1,
+            parallelism=1,
+            memory_mb=memory_mb,
+            payload_filename=self.payload,
+        )
+        return result
 
     def choose_sample_point(self):
         max_value = MEMORY_RANGE[0]

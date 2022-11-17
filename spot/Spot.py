@@ -51,7 +51,7 @@ class Spot:
         self.log_retriever = AWSLogRetriever(
             self.ctx, aws_session, self.config.function_name
         )
-        function_invoker = AWSLambdaInvoker(aws_session, self.config.function_name)
+        function_invoker = AWSLambdaInvoker(self.ctx, aws_session, self.config.function_name)
         self.recommendation_engine = RecommendationEngine(
             function_invoker, self.workload_file_path, self.config.workload
         )
@@ -65,12 +65,11 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs(self.last_log_timestamp)
 
     def invoke(self, memory_mb):
-        self.recommendation_engine.sample(memory_mb)
+        self.recommendation_engine.invoke_once(memory_mb)
 
     def teardown(self):
         # Just saving the Context for now.
-        now = int(time.time() * 1000)
         os.makedirs(CTX_DIR, exist_ok=True)
-        ctx_file = os.path.join(CTX_DIR, f"{now}.pkl")
+        ctx_file = os.path.join(CTX_DIR, f"{int(time.time() * 1000)}.pkl")
         with open(ctx_file, "wb") as f:
             pickle.dump(self.ctx, f)
