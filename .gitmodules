@@ -1,0 +1,6 @@
+[submodule "benchmarks/formplug/formplug"]
+	path = benchmarks/formplug/formplug
+	url = https://github.com/danielireson/formplug
+[submodule "benchmarks/ocr/lambda-OCRmyPDF"]
+	path = benchmarks/ocr/lambda-OCRmyPDF
+	url = https://github.com/chronograph-pe/lambda-OCRmyPDF.git

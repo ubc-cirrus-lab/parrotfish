@@ -1,0 +1,12 @@
+{
+  "pages": "4",
+  "awsRegion": "us-east-1",
+  "s3": {
+    "bucket": {
+      "name": "larmol-public"
+    },
+    "object": {
+      "key": "socc21_multi-cloud_serverless.pdf"
+    }
+  }
+}
