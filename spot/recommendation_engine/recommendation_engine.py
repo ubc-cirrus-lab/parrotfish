@@ -38,8 +38,8 @@ class RecommendationEngine:
         self.initial_sample()
         self.sampled_points = 2
         while (
-                len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
-                and self.objective.ratio > 0.2
+            len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
+            and self.objective.ratio > 0.2
         ):
             x = self.choose_sample_point()
             self.sample(x)
@@ -50,10 +50,10 @@ class RecommendationEngine:
             )
 
             while (
-                    Utility.check_function_validity(
-                        self.fitted_function, self.function_parameters, MEMORY_RANGE
-                    )
-                    is False
+                Utility.check_function_validity(
+                    self.fitted_function, self.function_parameters, MEMORY_RANGE
+                )
+                is False
             ):
                 self.function_degree -= 1
                 self.fitted_function, self.function_parameters = Utility.fit_function(
@@ -68,7 +68,7 @@ class RecommendationEngine:
         result = {
             "Minimum Cost Memory": [minimum_memory],
             "Expected Cost": [minimum_cost],
-            "Exploration Cost": [self.exploration_cost]
+            "Exploration Cost": [self.exploration_cost],
         }
         return pd.DataFrame.from_dict(result)
 
@@ -101,8 +101,8 @@ class RecommendationEngine:
         values = result["Billed Duration"].tolist()
         if IS_DYNAMIC_SAMPLING_ENABLED:
             while (
-                    len(values) < DYNAMIC_SAMPLING_MAX
-                    and Utility.cv(values) > TERMINATION_CV
+                len(values) < DYNAMIC_SAMPLING_MAX
+                and Utility.cv(values) > TERMINATION_CV
             ):
                 result = self.function_invocator.invoke(
                     invocation_count=1,
