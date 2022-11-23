@@ -40,7 +40,7 @@ class Spot:
             self.ctx, aws_session, self.config.function_name
         )
         self.recommendation_engine = RecommendationEngine(
-            function_invoker, self.payload_file_path
+            function_invoker, self.payload_file_path, self.config.mem_bounds
         )
 
     def optimize(self):

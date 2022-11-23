@@ -1,10 +1,10 @@
 {
     "function_name": "markdown2html",
     "mem_bounds": [
-        128,
+        256,
         1024
     ],
-    "mem_size": 128,
     "region": "us-east-1",
+    "random_seed": 100,
     "vendor": "AWS"
 }

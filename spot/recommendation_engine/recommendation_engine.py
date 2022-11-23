@@ -16,7 +16,7 @@ class DataPoint:
 
 
 class RecommendationEngine:
-    def __init__(self, invocator, payload_path):
+    def __init__(self, invocator, payload_path, memory_range):
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
@@ -24,7 +24,8 @@ class RecommendationEngine:
         self.fitted_function = None
         self.function_parameters = {}
         self.function_degree = 2
-        self.objective = NormalObjective(self, MEMORY_RANGE)
+        self.memory_range = memory_range
+        self.objective = NormalObjective(self, self.memory_range)
 
         self.exploration_cost = 0
 
@@ -48,7 +49,7 @@ class RecommendationEngine:
 
             while (
                 Utility.check_function_validity(
-                    self.fitted_function, self.function_parameters, MEMORY_RANGE
+                    self.fitted_function, self.function_parameters, self.memory_range
                 )
                 is False
             ):
@@ -60,7 +61,7 @@ class RecommendationEngine:
 
     def report(self):
         minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
-            self.fitted_function, self.function_parameters, MEMORY_RANGE
+            self.fitted_function, self.function_parameters, self.memory_range
         )
         result = {
             "Minimum Cost Memory": [minimum_memory],
@@ -70,7 +71,7 @@ class RecommendationEngine:
         return pd.DataFrame.from_dict(result)
 
     def initial_sample(self):
-        for x in SAMPLE_POINTS:
+        for x in self.memory_range:
             self.sample(x)
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints, degree=self.function_degree
@@ -124,7 +125,7 @@ class RecommendationEngine:
         return result
 
     def choose_sample_point(self):
-        max_value = MEMORY_RANGE[0]
+        max_value = self.memory_range[0]
         max_obj = np.inf
         for value in self._remainder_memories():
             obj = self.objective.get_value(value)
@@ -134,7 +135,7 @@ class RecommendationEngine:
         return max_value
 
     def _remainder_memories(self):
-        memories = range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1)
+        memories = range(self.memory_range[0], self.memory_range[1] + 1)
         sampled_memories = set(
             [datapoint.memory for datapoint in self.sampled_datapoints]
         )
