@@ -59,7 +59,7 @@ class Spot:
         )
 
     def optimize(self):
-        self.recommendation_engine.run()
+        return self.recommendation_engine.run()
 
     def collect_data(self):
         # retrieve latest config, logs, pricing scheme
@@ -67,7 +67,7 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs(self.last_log_timestamp)
 
     def invoke(self, memory_mb):
-        self.recommendation_engine.invoke_once(memory_mb)
+        return self.recommendation_engine.invoke_once(memory_mb)
 
     def teardown(self):
         # Just saving the Context for now.
