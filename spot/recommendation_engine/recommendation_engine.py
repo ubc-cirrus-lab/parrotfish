@@ -16,11 +16,8 @@ class DataPoint:
 
 
 class RecommendationEngine:
-    def __init__(self, invocator, workload_path, workload):
-        self.payload = os.path.join(
-            os.path.dirname(workload_path),
-            workload["instances"]["instance1"]["payload"],
-        )
+    def __init__(self, invocator, payload_path):
+        self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
         self.sampled_points = 0
@@ -86,7 +83,7 @@ class RecommendationEngine:
             invocation_count=2,
             parallelism=2,
             memory_mb=x,
-            payload_filename=self.payload,
+            payload_filename=self.payload_path,
             save_to_ctx=False,
         )
         assert all(
@@ -96,7 +93,7 @@ class RecommendationEngine:
             invocation_count=2,
             parallelism=2,
             memory_mb=x,
-            payload_filename=self.payload,
+            payload_filename=self.payload_path,
         )
         values = result["Billed Duration"].tolist()
         if IS_DYNAMIC_SAMPLING_ENABLED:
@@ -108,7 +105,7 @@ class RecommendationEngine:
                     invocation_count=1,
                     parallelism=1,
                     memory_mb=x,
-                    payload_filename=self.payload,
+                    payload_filename=self.payload_path,
                 )
                 values.append(result.iloc[0]["Billed Duration"])
         for value in values:
@@ -122,7 +119,7 @@ class RecommendationEngine:
             invocation_count=1,
             parallelism=1,
             memory_mb=memory_mb,
-            payload_filename=self.payload,
+            payload_filename=self.payload_path,
         )
         return result
 

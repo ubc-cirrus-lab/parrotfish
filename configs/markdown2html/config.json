@@ -6,16 +6,5 @@
     ],
     "mem_size": 128,
     "region": "us-east-1",
-    "vendor": "AWS",
-    "workload": {
-        "instances": {
-            "instance1": {
-                "application": "markdown2html",
-                "payload": "payload.json"
-            }
-        },
-        "random_seed": 100,
-        "test_duration_in_seconds": 15,
-        "test_name": "IntegrationTest1"
-    }
+    "vendor": "AWS"
 }

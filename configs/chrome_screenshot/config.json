@@ -6,26 +6,5 @@
     ],
     "mem_size": 639,
     "region": "us-east-2",
-    "vendor": "AWS",
-    "workload": {
-        "blocking_cli": false,
-        "instances": {
-            "instance1": {
-                "activity_window": [
-                    0,
-                    5
-                ],
-                "application": "screenshot-service-dev-capture",
-                "distribution": "Poisson",
-                "host": "odez8iwqs8.execute-api.us-east-2.amazonaws.com",
-                "payload": "payload.json",
-                "rate": 3,
-                "resource": "capture",
-                "stage": "dev"
-            }
-        },
-        "random_seed": 100,
-        "test_duration_in_seconds": 5,
-        "test_name": "IntegrationTest1"
-    }
+    "vendor": "AWS"
 }
