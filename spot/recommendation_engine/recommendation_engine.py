@@ -16,18 +16,16 @@ class DataPoint:
 
 
 class RecommendationEngine:
-    def __init__(self, invocator, workload_path, workload):
-        self.payload = os.path.join(
-            os.path.dirname(workload_path),
-            workload["instances"]["instance1"]["payload"],
-        )
+    def __init__(self, invocator, payload_path, memory_range):
+        self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
         self.sampled_points = 0
         self.fitted_function = None
         self.function_parameters = {}
         self.function_degree = 2
-        self.objective = NormalObjective(self, MEMORY_RANGE)
+        self.memory_range = memory_range
+        self.objective = NormalObjective(self, self.memory_range)
 
         self.exploration_cost = 0
 
@@ -51,7 +49,7 @@ class RecommendationEngine:
 
             while (
                 Utility.check_function_validity(
-                    self.fitted_function, self.function_parameters, MEMORY_RANGE
+                    self.fitted_function, self.function_parameters, self.memory_range
                 )
                 is False
             ):
@@ -63,7 +61,7 @@ class RecommendationEngine:
 
     def report(self):
         minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
-            self.fitted_function, self.function_parameters, MEMORY_RANGE
+            self.fitted_function, self.function_parameters, self.memory_range
         )
         result = {
             "Minimum Cost Memory": [minimum_memory],
@@ -73,7 +71,7 @@ class RecommendationEngine:
         return pd.DataFrame.from_dict(result)
 
     def initial_sample(self):
-        for x in SAMPLE_POINTS:
+        for x in self.memory_range:
             self.sample(x)
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints, degree=self.function_degree
@@ -86,7 +84,7 @@ class RecommendationEngine:
             invocation_count=2,
             parallelism=2,
             memory_mb=x,
-            payload_filename=self.payload,
+            payload_filename=self.payload_path,
             save_to_ctx=False,
         )
         assert all(
@@ -96,7 +94,7 @@ class RecommendationEngine:
             invocation_count=2,
             parallelism=2,
             memory_mb=x,
-            payload_filename=self.payload,
+            payload_filename=self.payload_path,
         )
         values = result["Billed Duration"].tolist()
         if IS_DYNAMIC_SAMPLING_ENABLED:
@@ -108,7 +106,7 @@ class RecommendationEngine:
                     invocation_count=1,
                     parallelism=1,
                     memory_mb=x,
-                    payload_filename=self.payload,
+                    payload_filename=self.payload_path,
                 )
                 values.append(result.iloc[0]["Billed Duration"])
         for value in values:
@@ -122,12 +120,12 @@ class RecommendationEngine:
             invocation_count=1,
             parallelism=1,
             memory_mb=memory_mb,
-            payload_filename=self.payload,
+            payload_filename=self.payload_path,
         )
         return result
 
     def choose_sample_point(self):
-        max_value = MEMORY_RANGE[0]
+        max_value = self.memory_range[0]
         max_obj = np.inf
         for value in self._remainder_memories():
             obj = self.objective.get_value(value)
@@ -137,7 +135,7 @@ class RecommendationEngine:
         return max_value
 
     def _remainder_memories(self):
-        memories = range(MEMORY_RANGE[0], MEMORY_RANGE[1] + 1)
+        memories = range(self.memory_range[0], self.memory_range[1] + 1)
         sampled_memories = set(
             [datapoint.memory for datapoint in self.sampled_datapoints]
         )

@@ -26,13 +26,9 @@ DB_ID = "_id"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CTX_DIR = os.path.join(ROOT_DIR, "__context_cache__")
 
-SAMPLE_POINTS = [128, 2048]
-MEMORY_RANGE = [128, 3008]
 IS_DYNAMIC_SAMPLING_ENABLED = True
 DYNAMIC_SAMPLING_MAX = 5
 TOTAL_SAMPLE_COUNT = 20
-RANDOM_SAMPLING = True
-RANDOM_SEED = 0
 IS_MULTI_FUNCTION = True
 TERMINATION_CV = 0.3
 

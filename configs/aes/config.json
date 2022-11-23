@@ -4,28 +4,7 @@
         128,
         1024
     ],
-    "mem_size": 128,
     "region": "us-east-1",
-    "vendor": "AWS",
-    "workload": {
-        "blocking_cli": false,
-        "instances": {
-            "instance1": {
-                "activity_window": [
-                    5,
-                    10
-                ],
-                "application": "pyaes",
-                "distribution": "Poisson",
-                "host": "x8siu0es68.execute-api.us-east-2.amazonaws.com",
-                "payload": "payload.json",
-                "rate": 5,
-                "resource": "/pyaes?format=json",
-                "stage": "default"
-            }
-        },
-        "random_seed": 100,
-        "test_duration_in_seconds": 15,
-        "test_name": "IntegrationTest1"
-    }
+    "random_seed": 100,
+    "vendor": "AWS"
 }

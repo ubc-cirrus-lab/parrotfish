@@ -17,33 +17,18 @@ from spot.constants import *
 class Spot:
     def __init__(self, config_dir: str, aws_session):
         # Load configuration values from config.json
-        self.config: BenchmarkConfig
         self.path: str = config_dir
-        self.workload_file_path = os.path.join(self.path, "workload.json")
-        self.config_file_path = os.path.join(self.path, "config.json")
+        self.workload_file_path = os.path.join(config_dir, "workload.json")
+        self.config_file_path = os.path.join(config_dir, "config.json")
+        self.payload_file_path = os.path.join(config_dir, "payload.json")
 
         # TODO: implement checkpoint & restore on Context (loading from pickle?).
         self.ctx = Context()
 
         with open(self.config_file_path) as f:
-            self.config = BenchmarkConfig()
-            self.config.deserialize(f)
-            with open(self.workload_file_path, "w") as json_file:
-                json.dump(self.config.workload, json_file, indent=4)
+            self.config: BenchmarkConfig = BenchmarkConfig(f)
 
-        self.benchmark_dir = self.path
-
-        # try:
-        #    self.last_log_timestamp = self.ctx.execute_max_value(
-        #        self.config.function_name, DB_NAME_LOGS, "timestamp"
-        #    )
-        # except:
-        #    print(
-        #        "No data for the serverless function found yet. Setting last timestamp for the serverless function to 0.",
-        #    )
-        #    self.last_log_timestamp = None
         self.last_log_timestamp = None
-
         self.ctx.create_function_df(self.config.function_name)
 
         # Instantiate SPOT system components
@@ -55,7 +40,7 @@ class Spot:
             self.ctx, aws_session, self.config.function_name
         )
         self.recommendation_engine = RecommendationEngine(
-            function_invoker, self.workload_file_path, self.config.workload
+            function_invoker, self.payload_file_path, self.config.mem_bounds
         )
 
     def optimize(self):

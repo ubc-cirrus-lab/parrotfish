@@ -7,7 +7,6 @@ class BenchmarkConfig:
         self.vendor: str
         self.region: str
         self.mem_size: int
-        self.workload: dict
         self.mem_bounds: list
 
         if f is not None:
@@ -24,18 +23,14 @@ class BenchmarkConfig:
         function_name: str,
         vendor: str,
         region: str,
-        mem_size: int,
-        workload: dict,
-        mem_bounds: list = None,
+        mem_bounds: list,
+        random_seed: int,
     ):
         self.function_name = function_name
         self.vendor = vendor
         self.region = region
-        self.mem_size = mem_size
-        self.workload = workload
-        self.mem_bounds = (
-            mem_bounds if mem_bounds else [128, 10280]
-        )  # List cannot be declared in optional arguments otherwise all instances will refer to that same list
+        self.mem_bounds = mem_bounds
+        self.random_seed = random_seed
 
     def deserialize(self, f):
         try:
