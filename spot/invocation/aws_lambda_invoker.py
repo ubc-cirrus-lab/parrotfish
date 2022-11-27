@@ -78,15 +78,19 @@ class AWSLambdaInvoker:
         config = self.client.get_function_configuration(FunctionName=self.lambda_name)
         if config["MemorySize"] != memory_mb:
             self._set_memory_value(memory_mb)
-        config = self.client.get_function_configuration(FunctionName=self.lambda_name)
-        assert config["MemorySize"] == memory_mb
 
     def _set_memory_value(self, memory_mb):
-        self.client.update_function_configuration(
-            FunctionName=self.lambda_name, MemorySize=memory_mb
-        )
-        waiter = self.client.get_waiter("function_updated")
-        waiter.wait(FunctionName=self.lambda_name)
+        MAX_RETRIES = 3
+        for _ in range(MAX_RETRIES):
+            self.client.update_function_configuration(
+                FunctionName=self.lambda_name, MemorySize=memory_mb
+            )
+            waiter = self.client.get_waiter("function_updated")
+            waiter.wait(FunctionName=self.lambda_name)
+            config = self.client.get_function_configuration(FunctionName=self.lambda_name)
+            if config["MemorySize"] == memory_mb:
+                return
+        raise LambdaMemoryConfigError
 
 
 class LambdaInvocationError(Exception):
@@ -97,6 +101,10 @@ class LambdaInvocationError(Exception):
 class _SingleInvocationError(Exception):
     def __init__(self, msg):
         self.msg = msg
+
+
+class LambdaMemoryConfigError(Exception):
+    pass
 
 
 def parse_log(log, keys):
