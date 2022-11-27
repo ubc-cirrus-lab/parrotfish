@@ -80,16 +80,13 @@ class RecommendationEngine:
     def sample(self, x):
         print(f"Sampling {x}")
         # Cold start
-        result = self.function_invocator.invoke(
+        self.function_invocator.invoke(
             invocation_count=2,
             parallelism=2,
             memory_mb=x,
             payload_filename=self.payload_path,
             save_to_ctx=False,
         )
-        assert all(
-            result["Memory Size"] == x
-        ), f"expected memory: {x}, lambda memory: {result.iloc[0]['Memory Size']}"
         result = self.function_invocator.invoke(
             invocation_count=2,
             parallelism=2,

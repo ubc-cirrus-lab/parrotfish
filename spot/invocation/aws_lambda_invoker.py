@@ -6,6 +6,7 @@ import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
+MEMORY_CONFIG_MAX_RETRIES = 3
 
 class AWSLambdaInvoker:
     """
@@ -50,21 +51,30 @@ class AWSLambdaInvoker:
             return result
 
         self._check_and_set_memory_value(memory_mb)
-        results = {key: [] for key in keys}
-        errors = []
-        with ThreadPoolExecutor(max_workers=parallelism) as executor:
-            invocation_chunks = [invocation_count // parallelism] * parallelism
-            invocation_chunks[-1] += (
-                invocation_count - invocation_count // parallelism * parallelism
-            )
-            for chunk in invocation_chunks:
-                try:
-                    res = executor.submit(invoke_sequential, chunk).result()
-                except _SingleInvocationError as e:
-                    errors.append(e.msg)
-                    continue
-                for key in keys:
-                    results[key].extend(res[key])
+        is_memory_config_ok = False
+
+        for _ in range(MEMORY_CONFIG_MAX_RETRIES):
+            results = {key: [] for key in keys}
+            errors = []
+            with ThreadPoolExecutor(max_workers=parallelism) as executor:
+                invocation_chunks = [invocation_count // parallelism] * parallelism
+                invocation_chunks[-1] += (
+                    invocation_count - invocation_count // parallelism * parallelism
+                )
+                for chunk in invocation_chunks:
+                    try:
+                        res = executor.submit(invoke_sequential, chunk).result()
+                    except _SingleInvocationError as e:
+                        errors.append(e.msg)
+                        continue
+                    for key in keys:
+                        results[key].extend(res[key])
+            if all([m == memory_mb for m in results["Memory Size"]]):
+                is_memory_config_ok = True
+                break
+
+        if not is_memory_config_ok:
+            raise LambdaInvocationError([f"Failed to set memory after {MEMORY_CONFIG_MAX_RETRIES} retries."])
 
         if len(errors) != 0:
             raise LambdaInvocationError(errors)
@@ -80,8 +90,7 @@ class AWSLambdaInvoker:
             self._set_memory_value(memory_mb)
 
     def _set_memory_value(self, memory_mb):
-        MAX_RETRIES = 3
-        for _ in range(MAX_RETRIES):
+        for _ in range(MEMORY_CONFIG_MAX_RETRIES):
             self.client.update_function_configuration(
                 FunctionName=self.lambda_name, MemorySize=memory_mb
             )
