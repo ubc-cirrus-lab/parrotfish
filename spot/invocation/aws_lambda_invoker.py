@@ -74,7 +74,7 @@ class AWSLambdaInvoker:
                 break
 
         if not is_memory_config_ok:
-            raise LambdaInvocationError([f"Failed to set memory after {MEMORY_CONFIG_MAX_RETRIES} retries."])
+            raise LambdaMemoryConfigError
 
         if len(errors) != 0:
             raise LambdaInvocationError(errors)
