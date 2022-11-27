@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 MEMORY_CONFIG_MAX_RETRIES = 3
 
+
 class AWSLambdaInvoker:
     """
     Invokes AWS Lambda with the specified config.
