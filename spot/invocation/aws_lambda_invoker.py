@@ -87,7 +87,9 @@ class AWSLambdaInvoker:
             )
             waiter = self.client.get_waiter("function_updated")
             waiter.wait(FunctionName=self.lambda_name)
-            config = self.client.get_function_configuration(FunctionName=self.lambda_name)
+            config = self.client.get_function_configuration(
+                FunctionName=self.lambda_name
+            )
             if config["MemorySize"] == memory_mb:
                 return
         raise LambdaMemoryConfigError
