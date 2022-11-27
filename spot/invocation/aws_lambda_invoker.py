@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 MEMORY_CONFIG_MAX_RETRIES = 3
 
+
 class AWSLambdaInvoker:
     """
     Invokes AWS Lambda with the specified config.
@@ -74,7 +75,9 @@ class AWSLambdaInvoker:
                 break
 
         if not is_memory_config_ok:
-            raise LambdaInvocationError([f"Failed to set memory after {MEMORY_CONFIG_MAX_RETRIES} retries."])
+            raise LambdaInvocationError(
+                [f"Failed to set memory after {MEMORY_CONFIG_MAX_RETRIES} retries."]
+            )
 
         if len(errors) != 0:
             raise LambdaInvocationError(errors)
