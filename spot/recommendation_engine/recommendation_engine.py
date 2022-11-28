@@ -23,7 +23,7 @@ class RecommendationEngine:
         self.sampled_points = 0
         self.fitted_function = None
         self.function_parameters = {}
-        self.function_degree = 0
+        self.function_degree = 2
         self.memory_range = memory_range
         self.objective = NormalObjective(self, self.memory_range)
 
@@ -33,9 +33,8 @@ class RecommendationEngine:
         return self.fitted_function, self.function_parameters
 
     def run(self):
-        self.function_degree = DYNAMIC_SAMPLING_INITIAL_STEP
         self.initial_sample()
-        self.sampled_points = DYNAMIC_SAMPLING_INITIAL_STEP
+        self.sampled_points = 2
         while (
             len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
@@ -72,16 +71,8 @@ class RecommendationEngine:
         return pd.DataFrame.from_dict(result)
 
     def initial_sample(self):
-        if DYNAMIC_SAMPLING_INITIAL_STEP == 1:
-            # sample the mean
-            self.sample((self.memory_range[0] + self.memory_range[1]) // 2)
-        else:
-            for x in np.linspace(
-                self.memory_range[0],
-                self.memory_range[1],
-                DYNAMIC_SAMPLING_INITIAL_STEP,
-            ):
-                self.sample(int(x))
+        for x in self.memory_range:
+            self.sample(x)
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints, degree=self.function_degree
@@ -91,8 +82,8 @@ class RecommendationEngine:
         print(f"Sampling {x}")
         # Cold start
         result = self.function_invocator.invoke(
-            invocation_count=2,
-            parallelism=2,
+            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+            parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
             memory_mb=x,
             payload_filename=self.payload_path,
             save_to_ctx=False,
@@ -100,8 +91,8 @@ class RecommendationEngine:
         for value in result["Billed Duration"].tolist():
             self.exploration_cost += Utility.calculate_cost(value, x)
         result = self.function_invocator.invoke(
-            invocation_count=2,
-            parallelism=2,
+            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+            parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
             memory_mb=x,
             payload_filename=self.payload_path,
         )
