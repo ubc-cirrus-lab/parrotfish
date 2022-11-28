@@ -68,6 +68,9 @@ class AWSLambdaInvoker:
                     except _SingleInvocationError as e:
                         errors.append(e.msg)
                         continue
+                    except LambdaTimeoutError:
+                        errors.append("Lambda timed out")
+                        continue
                     for key in keys:
                         results[key].extend(res[key])
             if all([m == memory_mb for m in results["Memory Size"]]):
@@ -119,8 +122,16 @@ class LambdaMemoryConfigError(Exception):
     pass
 
 
+class LambdaTimeoutError(Exception):
+    pass
+
+
 def parse_log(log, keys):
     res = {}
+    # check for timeout
+    if "Task timed out after" in log:
+        raise LambdaTimeoutError
+
     # check for errors
     m = re.match(r".*\[ERROR\] (?P<error>.*)END RequestId.*", log)
     if m is not None:
