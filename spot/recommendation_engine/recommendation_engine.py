@@ -73,6 +73,7 @@ class RecommendationEngine:
     def initial_sample(self):
         for x in self.memory_range:
             self.sample(x)
+
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints, degree=self.function_degree
         )
@@ -81,8 +82,8 @@ class RecommendationEngine:
         print(f"Sampling {x}")
         # Cold start
         result = self.function_invocator.invoke(
-            invocation_count=2,
-            parallelism=2,
+            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+            parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
             memory_mb=x,
             payload_filename=self.payload_path,
             save_to_ctx=False,
@@ -90,8 +91,8 @@ class RecommendationEngine:
         for value in result["Billed Duration"].tolist():
             self.exploration_cost += Utility.calculate_cost(value, x)
         result = self.function_invocator.invoke(
-            invocation_count=2,
-            parallelism=2,
+            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+            parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
             memory_mb=x,
             payload_filename=self.payload_path,
         )
