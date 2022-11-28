@@ -1,8 +1,8 @@
 {
     "function_name": "markdown2html",
     "mem_bounds": [
-        256,
-        1024
+        128,
+        3008
     ],
     "region": "us-east-1",
     "random_seed": 100,

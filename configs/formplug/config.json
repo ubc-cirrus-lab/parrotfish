@@ -2,7 +2,7 @@
     "function_name": "formplug-dev-receive",
     "mem_bounds": [
         128,
-        1024
+        3008
     ],
     "region": "us-east-1",
     "random_seed": 100,
