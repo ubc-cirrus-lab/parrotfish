@@ -27,14 +27,22 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CTX_DIR = os.path.join(ROOT_DIR, "__context_cache__")
 
 IS_DYNAMIC_SAMPLING_ENABLED = True
-DYNAMIC_SAMPLING_MAX = 5
-TOTAL_SAMPLE_COUNT = 20
 IS_MULTI_FUNCTION = True
-TERMINATION_CV = 0.3
-KNOWLEDGE_RATIO = 0.2
 
 LAMBDA_DURTION_COST = 0.0000166667
 LAMBDA_REQUEST_COST = 0.20 / 1000000
 
-ALPHA = 0
-NORMAL_SCALE = 100
+if os.environ.get("SPOT_MODE") == "dev":
+    ALPHA = int(os.environ.get("SPOT_ALPHA", 0))
+    NORMAL_SCALE = int(os.environ.get("SPOT_NORMAL_SCALE", 100))
+    TOTAL_SAMPLE_COUNT = int(os.environ.get("SPOT_SAMPLE_COUNT", 20))
+    TERMINATION_CV = float(os.environ.get("SPOT_TERMINATION_CV", 0.3))
+    KNOWLEDGE_RATIO = float(os.environ.get("SPOT_KNOWLEDGE_RATIO", 0.2))
+    DYNAMIC_SAMPLING_MAX = int(os.environ.get("SPOT_DYNAMIC_SAMPLING_MAX", 5))
+else:
+    ALPHA = 0
+    NORMAL_SCALE = 100
+    TOTAL_SAMPLE_COUNT = 20
+    TERMINATION_CV = 0.3
+    KNOWLEDGE_RATIO = 0.2
+    DYNAMIC_SAMPLING_MAX = 5
