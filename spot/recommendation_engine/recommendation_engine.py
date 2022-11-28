@@ -76,7 +76,11 @@ class RecommendationEngine:
             # sample the mean
             self.sample((self.memory_range[0] + self.memory_range[1]) // 2)
         else:
-            for x in np.linspace(self.memory_range[0], self.memory_range[1], DYNAMIC_SAMPLING_INITIAL_STEP):
+            for x in np.linspace(
+                self.memory_range[0],
+                self.memory_range[1],
+                DYNAMIC_SAMPLING_INITIAL_STEP,
+            ):
                 self.sample(int(x))
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
