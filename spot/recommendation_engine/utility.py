@@ -1,5 +1,5 @@
 from lmfit import Model, Parameters
-
+from spot.constants import LAMBDA_DURTION_COST, LAMBDA_REQUEST_COST
 import numpy as np
 
 
@@ -24,12 +24,11 @@ class Utility:
     @staticmethod
     def calculate_cost(duration, memory):
         # TODO: get cost from price retriever
-        return np.ceil(duration) * 2.1e-9 * (memory / 128)
-        # allocated_memory = 0.0009765625 * memory                    # convert MB to GB
-        # request_compute_time = np.ceil(duration) * 0.001            # convert ms to seconds
-        # total_compute = allocated_memory * request_compute_time
-        # compute_charge = LAMBDA_DURTION_COST * total_compute
-        # return LAMBDA_REQUEST_COST + compute_charge
+        allocated_memory = 0.0009765625 * memory  # convert MB to GB
+        request_compute_time = np.ceil(duration) * 0.001  # convert ms to seconds
+        total_compute = allocated_memory * request_compute_time
+        compute_charge = LAMBDA_DURTION_COST * total_compute
+        return LAMBDA_REQUEST_COST + compute_charge
 
     @staticmethod
     def cv(l):

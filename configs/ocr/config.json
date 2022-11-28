@@ -1,8 +1,8 @@
 {
     "function_name": "ocr",
     "mem_bounds": [
-        128,
-        1024
+        1600,
+        3008
     ],
     "region": "us-east-1",
     "random_seed": 100,

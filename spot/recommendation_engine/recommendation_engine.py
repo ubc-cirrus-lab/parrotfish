@@ -37,7 +37,7 @@ class RecommendationEngine:
         self.sampled_points = 2
         while (
             len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
-            and self.objective.ratio > 0.2
+            and self.objective.ratio > KNOWLEDGE_RATIO
         ):
             x = self.choose_sample_point()
             self.sample(x)
@@ -80,13 +80,15 @@ class RecommendationEngine:
     def sample(self, x):
         print(f"Sampling {x}")
         # Cold start
-        self.function_invocator.invoke(
+        result = self.function_invocator.invoke(
             invocation_count=2,
             parallelism=2,
             memory_mb=x,
             payload_filename=self.payload_path,
             save_to_ctx=False,
         )
+        for value in result["Billed Duration"].tolist():
+            self.exploration_cost += Utility.calculate_cost(value, x)
         result = self.function_invocator.invoke(
             invocation_count=2,
             parallelism=2,
