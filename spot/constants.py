@@ -39,6 +39,7 @@ if os.environ.get("SPOT_MODE") == "dev":
     TERMINATION_CV = float(os.environ.get("SPOT_TERMINATION_CV", 0.3))
     KNOWLEDGE_RATIO = float(os.environ.get("SPOT_KNOWLEDGE_RATIO", 0.2))
     DYNAMIC_SAMPLING_MAX = int(os.environ.get("SPOT_DYNAMIC_SAMPLING_MAX", 5))
+    DYNAMIC_SAMPLING_INITIAL_STEP = int(os.environ.get("SPOT_DYNAMIC_SAMPLING_INITIAL_STEP", 2))
 else:
     ALPHA = 0
     NORMAL_SCALE = 100

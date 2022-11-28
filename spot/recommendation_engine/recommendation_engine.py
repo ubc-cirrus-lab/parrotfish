@@ -23,7 +23,7 @@ class RecommendationEngine:
         self.sampled_points = 0
         self.fitted_function = None
         self.function_parameters = {}
-        self.function_degree = 2
+        self.function_degree = 0
         self.memory_range = memory_range
         self.objective = NormalObjective(self, self.memory_range)
 
@@ -33,8 +33,9 @@ class RecommendationEngine:
         return self.fitted_function, self.function_parameters
 
     def run(self):
+        self.function_degree = DYNAMIC_SAMPLING_INITIAL_STEP
         self.initial_sample()
-        self.sampled_points = 2
+        self.sampled_points = DYNAMIC_SAMPLING_INITIAL_STEP
         while (
             len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
@@ -71,8 +72,13 @@ class RecommendationEngine:
         return pd.DataFrame.from_dict(result)
 
     def initial_sample(self):
-        for x in self.memory_range:
-            self.sample(x)
+        if DYNAMIC_SAMPLING_INITIAL_STEP == 1:
+            # sample the mean
+            self.sample((self.memory_range[0] + self.memory_range[1]) // 2)
+        else:
+            for x in np.linspace(self.memory_range[0], self.memory_range[1], DYNAMIC_SAMPLING_INITIAL_STEP):
+                self.sample(int(x))
+
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints, degree=self.function_degree
         )
