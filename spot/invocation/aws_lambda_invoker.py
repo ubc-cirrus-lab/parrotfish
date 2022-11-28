@@ -2,6 +2,7 @@ import json
 import base64
 import time
 
+import botocore
 import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
@@ -69,6 +70,9 @@ class AWSLambdaInvoker:
                         errors.append(e.msg)
                         continue
                     except LambdaTimeoutError:
+                        errors.append("Lambda timed out")
+                        continue
+                    except botocore.exceptions.ReadTimeoutError:
                         errors.append("Lambda timed out")
                         continue
                     for key in keys:
