@@ -58,6 +58,8 @@ class Spot:
     def teardown(self):
         # Just saving the Context for now.
         os.makedirs(CTX_DIR, exist_ok=True)
-        ctx_file = os.path.join(CTX_DIR, f"{self.config.function_name}_{int(time.time() * 1000)}.pkl")
+        ctx_file = os.path.join(
+            CTX_DIR, f"{self.config.function_name}_{int(time.time() * 1000)}.pkl"
+        )
         with open(ctx_file, "wb") as f:
             pickle.dump(self.ctx, f)
