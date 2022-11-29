@@ -29,7 +29,6 @@ class Spot:
             self.config: BenchmarkConfig = BenchmarkConfig(f)
 
         self.last_log_timestamp = None
-        self.ctx.create_function_df(self.config.function_name)
 
         # Instantiate SPOT system components
         self.price_retriever = AWSPriceRetriever(self.ctx, self.config.region)
@@ -44,7 +43,9 @@ class Spot:
         )
 
     def optimize(self):
-        return self.recommendation_engine.run()
+        final_df = self.recommendation_engine.run()
+        self.ctx.save_final_result(final_df)
+        return final_df
 
     def collect_data(self):
         # retrieve latest config, logs, pricing scheme
@@ -57,6 +58,8 @@ class Spot:
     def teardown(self):
         # Just saving the Context for now.
         os.makedirs(CTX_DIR, exist_ok=True)
-        ctx_file = os.path.join(CTX_DIR, f"{int(time.time() * 1000)}.pkl")
+        ctx_file = os.path.join(
+            CTX_DIR, f"{self.config.function_name}_{int(time.time() * 1000)}.pkl"
+        )
         with open(ctx_file, "wb") as f:
             pickle.dump(self.ctx, f)

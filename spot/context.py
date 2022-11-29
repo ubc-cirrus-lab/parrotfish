@@ -9,16 +9,15 @@ from spot.constants import *
 
 class Context:
     def __init__(self):
-        self.function_dfs = {}
+        self.function_df = pd.DataFrame()
         self.pricing_df = pd.DataFrame()
+        self.final_df = None
 
-    # Creates database for the function name if the doesnt exist already
-    def create_function_df(self, function_name):
-        self.function_dfs[function_name] = pd.DataFrame()
+    def save_invocation_result(self, result_df):
+        self.function_df = pd.concat([self.function_df, result_df])
 
-    def save_invokation_result(self, function_name, result_df):
-        old = self.function_dfs.get(function_name, pd.DataFrame())
-        self.function_dfs[function_name] = pd.concat([old, result_df])
+    def save_final_result(self, final_df):
+        self.final_df = final_df
 
     def record_pricing(self, row):
         df = pd.DataFrame(row)

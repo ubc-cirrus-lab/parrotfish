@@ -89,7 +89,7 @@ class AWSLambdaInvoker:
 
         result_df = pd.DataFrame.from_dict(results)
         if save_to_ctx:
-            self.ctx.save_invokation_result(self.lambda_name, result_df)
+            self.ctx.save_invocation_result(result_df)
         return result_df
 
     def _check_and_set_memory_value(self, memory_mb):
