@@ -52,8 +52,9 @@ class Spot:
         self.price_retriever.fetch_current_pricing()
         self.last_log_timestamp = self.log_retriever.get_logs(self.last_log_timestamp)
 
-    def invoke(self, memory_mb):
-        return self.recommendation_engine.invoke_once(memory_mb)
+    def invoke(self, memory_mb, count):
+        for _ in range(count):
+            self.recommendation_engine.invoke_once(memory_mb)
 
     def teardown(self):
         # Just saving the Context for now.

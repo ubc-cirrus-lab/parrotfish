@@ -24,7 +24,7 @@ def main():
         "--fetch", "-f", action="store_true", help="Fetch log and config data from AWS"
     )
     parser.add_argument(
-        "--invoke", "-i", action="store_true", help="Invoke the function"
+        "--invoke", "-i", type=int, help="The number of times you invoke the function"
     )
     parser.add_argument(
         "--memory_mb", "-m", type=int, help="Memory (MB) of the function"
@@ -51,14 +51,15 @@ def main():
 
     spot = Spot(path, session)
     if args.optimize:
-        spot.optimize()
+        opt = spot.optimize()
+        args.memory_mb = int(opt["Minimum Cost Memory"][0])
     if args.fetch:
         spot.collect_data()
     if args.invoke:
         if not args.memory_mb:
             print("Please specify a memory value when invoking a function")
             exit(1)
-        spot.invoke(args.memory_mb)
+        spot.invoke(args.memory_mb, args.invoke)
 
     spot.teardown()
 
