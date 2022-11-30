@@ -23,7 +23,7 @@ class Context:
         df = pd.DataFrame(row)
         self.pricing_df = pd.concat([self.pricing_df, df])
 
-    def save_supplemantary_info(self, function_name: str):
+    def save_supplemantary_info(self, function_name: str, optimization_s):
         self.final_df["Benchmark Name"] = function_name
         self.final_df["Alpha"] = ALPHA
         self.final_df["Normal Scale"] = NORMAL_SCALE
@@ -32,6 +32,8 @@ class Context:
         self.final_df["Knowledge Ratio"] = KNOWLEDGE_RATIO
         self.final_df["Dynamic Sampling Max"] = DYNAMIC_SAMPLING_MAX
         self.final_df["Dynamic Sampling Initial Step"] = DYNAMIC_SAMPLING_INITIAL_STEP
+        if optimization_s:
+            self.final_df["Time Elapsed in Seconds"] = optimization_s
 
         self.invocation_df["Benchmark Name"] = function_name
         self.invocation_df["Alpha"] = ALPHA

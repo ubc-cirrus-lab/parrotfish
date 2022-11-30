@@ -41,6 +41,7 @@ class Spot:
         self.recommendation_engine = RecommendationEngine(
             function_invoker, self.payload_file_path, self.config.mem_bounds
         )
+        self.benchmark_name = os.path.basename(config_dir)
 
     def optimize(self):
         final_df = self.recommendation_engine.run()
@@ -56,12 +57,12 @@ class Spot:
         for _ in range(count):
             self.recommendation_engine.invoke_once(memory_mb)
 
-    def teardown(self):
+    def teardown(self, optimization_s):
         # Just saving the Context for now.
         os.makedirs(CTX_DIR, exist_ok=True)
         ctx_file = os.path.join(
-            CTX_DIR, f"{self.config.function_name}_{int(time.time() * 1000)}.pkl"
+            CTX_DIR, f"{self.benchmark_name}_{int(time.time() * 1000)}.pkl"
         )
         with open(ctx_file, "wb") as f:
-            self.ctx.save_supplemantary_info(self.config.function_name)
+            self.ctx.save_supplemantary_info(self.config.function_name, optimization_s)
             pickle.dump(self.ctx, f)
