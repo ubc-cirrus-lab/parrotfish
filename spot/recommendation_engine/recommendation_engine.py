@@ -32,11 +32,15 @@ class RecommendationEngine:
     def get_function(self):
         return self.fitted_function, self.function_parameters
 
+    @property
+    def sampled_memories_count(self):
+        return len(set([x.memory for x in self.sampled_datapoints]))
+
     def run(self):
         self.initial_sample()
         self.sampled_points = 2
         while (
-            len(self.sampled_datapoints) < TOTAL_SAMPLE_COUNT
+            self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
         ):
             x = self.choose_sample_point()
