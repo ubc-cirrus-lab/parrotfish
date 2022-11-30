@@ -49,10 +49,13 @@ def main():
         )
         exit(1)
 
+    start = time.time()
     spot = Spot(path, session)
+    optimization_time = None
     if args.optimize:
         opt = spot.optimize()
         args.memory_mb = int(opt["Minimum Cost Memory"][0])
+        optimization_time = time.time() - start
     if args.fetch:
         spot.collect_data()
     if args.invoke:
@@ -61,7 +64,7 @@ def main():
             exit(1)
         spot.invoke(args.memory_mb, args.invoke)
 
-    spot.teardown()
+    spot.teardown(optimization_time)
 
 
 if __name__ == "__main__":
