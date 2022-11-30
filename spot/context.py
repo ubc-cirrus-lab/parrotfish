@@ -40,4 +40,6 @@ class Context:
         self.invocation_df["Termination CV"] = TERMINATION_CV
         self.invocation_df["Knowledge Ratio"] = KNOWLEDGE_RATIO
         self.invocation_df["Dynamic Sampling Max"] = DYNAMIC_SAMPLING_MAX
-        self.invocation_df["Dynamic Sampling Initial Step"] = DYNAMIC_SAMPLING_INITIAL_STEP
+        self.invocation_df[
+            "Dynamic Sampling Initial Step"
+        ] = DYNAMIC_SAMPLING_INITIAL_STEP
