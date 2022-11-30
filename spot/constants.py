@@ -33,7 +33,7 @@ LAMBDA_DURTION_COST = 0.0000166667
 LAMBDA_REQUEST_COST = 0.20 / 1000000
 
 if os.environ.get("SPOT_MODE") == "dev":
-    ALPHA = int(os.environ.get("SPOT_ALPHA", 0))
+    ALPHA = float(os.environ.get("SPOT_ALPHA", 0))
     NORMAL_SCALE = int(os.environ.get("SPOT_NORMAL_SCALE", 100))
     TOTAL_SAMPLE_COUNT = int(os.environ.get("SPOT_SAMPLE_COUNT", 20))
     TERMINATION_CV = float(os.environ.get("SPOT_TERMINATION_CV", 0.3))

@@ -63,4 +63,5 @@ class Spot:
             CTX_DIR, f"{self.config.function_name}_{int(time.time() * 1000)}.pkl"
         )
         with open(ctx_file, "wb") as f:
+            self.ctx.save_supplemantary_info(self.config.function_name)
             pickle.dump(self.ctx, f)
