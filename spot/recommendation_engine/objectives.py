@@ -12,19 +12,19 @@ class Objective(ABC):
 
     def normalized_cost(self, x):
         return (
-                self.sampler.fitted_function(x, **self.sampler.function_parameters)
-                * x
-                / self._min_cost()
+            self.sampler.fitted_function(x, **self.sampler.function_parameters)
+            * x
+            / self._min_cost()
         )
 
     def _min_cost(self):
         min_cost = np.inf
         for memory_value in range(self.memory_range[0], self.memory_range[1] + 1):
             cost = (
-                    self.sampler.fitted_function(
-                        memory_value, **self.sampler.function_parameters
-                    )
-                    * memory_value
+                self.sampler.fitted_function(
+                    memory_value, **self.sampler.function_parameters
+                )
+                * memory_value
             )
             if cost < min_cost:
                 min_cost = cost
@@ -71,6 +71,8 @@ class SkewedNormalObjective(NormalObjective):
         super().__init__(sampler, memory_range)
 
     def get_normal_value(self, x, mean, std):
-        return self.ratio * stats.skewnorm.pdf(x, (3008 - x) / 100, mean, std) / stats.skewnorm.pdf(mean,
-                                                                                                    (3008 - x) / 100,
-                                                                                                    mean, std)
+        return (
+            self.ratio
+            * stats.skewnorm.pdf(x, (3008 - x) / 100, mean, std)
+            / stats.skewnorm.pdf(mean, (3008 - x) / 100, mean, std)
+        )
