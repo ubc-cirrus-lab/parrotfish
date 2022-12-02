@@ -73,6 +73,6 @@ class SkewedNormalObjective(NormalObjective):
     def get_normal_value(self, x, mean, std):
         return (
             self.ratio
-            * stats.skewnorm.pdf(x, (3008 - x) / 100, mean, std)
-            / stats.skewnorm.pdf(mean, (3008 - x) / 100, mean, std)
+            * stats.skewnorm.pdf(x, (self.memory_range[1] - x) / 100, mean, std)
+            / stats.skewnorm.pdf(mean, (self.memory_range[1] - x) / 100, mean, std)
         )
