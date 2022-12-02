@@ -42,7 +42,9 @@ if os.environ.get("SPOT_MODE") == "dev":
     DYNAMIC_SAMPLING_INITIAL_STEP = int(
         os.environ.get("SPOT_DYNAMIC_SAMPLING_INITIAL_STEP", 2)
     )
-    OPTIMIZATION_OBJECTIVE = str(os.environ.get("SPOT_OPTIMIZATION_OBJECTIVE", "normal"))
+    OPTIMIZATION_OBJECTIVE = str(
+        os.environ.get("SPOT_OPTIMIZATION_OBJECTIVE", "normal")
+    )
 
 else:
     ALPHA = 0
