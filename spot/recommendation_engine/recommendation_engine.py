@@ -25,7 +25,10 @@ class RecommendationEngine:
         self.function_parameters = {}
         self.function_degree = 2
         self.memory_range = memory_range
-        self.objective = SkewedNormalObjective(self, self.memory_range)
+        if OPTIMIZATION_OBJECTIVE == 'normal':
+            self.objective = NormalObjective(self, self.memory_range)
+        elif OPTIMIZATION_OBJECTIVE == 'skewnormal':
+            self.objective = SkewedNormalObjective(self, self.memory_range)
 
         self.exploration_cost = 0
 
