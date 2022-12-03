@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from spot.recommendation_engine.objectives import NormalObjective
+from spot.recommendation_engine.objectives import NormalObjective, SkewedNormalObjective
 from spot.recommendation_engine.utility import Utility
 
 from spot.constants import *
@@ -25,7 +25,10 @@ class RecommendationEngine:
         self.function_parameters = {}
         self.function_degree = 2
         self.memory_range = memory_range
-        self.objective = NormalObjective(self, self.memory_range)
+        if OPTIMIZATION_OBJECTIVE == "normal":
+            self.objective = NormalObjective(self, self.memory_range)
+        elif OPTIMIZATION_OBJECTIVE == "skewnormal":
+            self.objective = SkewedNormalObjective(self, self.memory_range)
 
         self.exploration_cost = 0
 
