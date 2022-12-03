@@ -7,7 +7,7 @@ import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
-MEMORY_CONFIG_MAX_RETRIES = 3
+MEMORY_CONFIG_MAX_RETRIES = 10
 
 
 class AWSLambdaInvoker:
