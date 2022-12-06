@@ -32,6 +32,7 @@ class Context:
         self.final_df["Knowledge Ratio"] = KNOWLEDGE_RATIO
         self.final_df["Dynamic Sampling Max"] = DYNAMIC_SAMPLING_MAX
         self.final_df["Dynamic Sampling Initial Step"] = DYNAMIC_SAMPLING_INITIAL_STEP
+        self.final_df["Optimization Objective"] = OPTIMIZATION_OBJECTIVE
         if optimization_s:
             self.final_df["Time Elapsed in Seconds"] = optimization_s
 
