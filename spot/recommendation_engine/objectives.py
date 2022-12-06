@@ -85,6 +85,6 @@ class DynamicNormalObjective(NormalObjective):
     def get_normal_value(self, x, mean, std):
         return (
             self.ratio
-            * stats.norm.pdf(x, mean, mean/5)
-            / stats.norm.pdf(mean, mean, mean/5)
+            * stats.norm.pdf(x, mean, mean / 5)
+            / stats.norm.pdf(mean, mean, mean / 5)
         )
