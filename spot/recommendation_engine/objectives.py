@@ -76,3 +76,15 @@ class SkewedNormalObjective(NormalObjective):
             * stats.skewnorm.pdf(x, (self.memory_range[1] - x) / 100, mean, std)
             / stats.skewnorm.pdf(mean, (self.memory_range[1] - x) / 100, mean, std)
         )
+
+
+class DynamicNormalObjective(NormalObjective):
+    def __init__(self, sampler, memory_range):
+        super().__init__(sampler, memory_range)
+
+    def get_normal_value(self, x, mean, std):
+        return (
+            self.ratio
+            * stats.norm.pdf(x, mean, mean / 5)
+            / stats.norm.pdf(mean, mean, mean / 5)
+        )
