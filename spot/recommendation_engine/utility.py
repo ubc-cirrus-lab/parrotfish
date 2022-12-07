@@ -86,5 +86,5 @@ class Utility:
     def fnp(x, **kwargs):
         res = 0
         for i in range(1, kwargs["n"]):
-            res -= i * kwargs[f"a{i}"] / (x**(i+1))
+            res -= i * kwargs[f"a{i}"] / (x ** (i + 1))
         return res

@@ -37,9 +37,9 @@ class RecommendationEngine:
             self.objective = SkewedNormalObjective(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "dynamicnormal":
             self.objective = DynamicNormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == 'dynamic_std1':
+        elif OPTIMIZATION_OBJECTIVE == "dynamic_std1":
             self.objective = DynamicSTDNormalObjective1(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == 'dynamic_std2':
+        elif OPTIMIZATION_OBJECTIVE == "dynamic_std2":
             self.objective = DynamicSTDNormalObjective2(self, self.memory_range)
 
         self.exploration_cost = 0
