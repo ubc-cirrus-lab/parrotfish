@@ -3,6 +3,7 @@ import scipy.stats as stats
 from abc import ABC, abstractmethod
 
 from spot.constants import ALPHA, NORMAL_SCALE
+from spot.recommendation_engine.utility import Utility
 
 
 class Objective(ABC):
@@ -87,4 +88,36 @@ class DynamicNormalObjective(NormalObjective):
             self.ratio
             * stats.norm.pdf(x, mean, mean / 5)
             / stats.norm.pdf(mean, mean, mean / 5)
+        )
+
+
+class DynamicSTDNormalObjective1(NormalObjective):
+    def __init__(self, sampler, memory_range):
+        super().__init__(sampler, memory_range)
+
+    def get_normal_value(self, x, mean, std):
+        try:
+            std = -1 / Utility.fnp(x, **self.sampler.function_parameters) + 20
+        except KeyError:
+            std = mean / 5
+        return (
+            self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
+        )
+
+
+class DynamicSTDNormalObjective2(NormalObjective):
+    def __init__(self, sampler, memory_range):
+        super().__init__(sampler, memory_range)
+
+    def get_normal_value(self, x, mean, std):
+        try:
+            std = (
+                1
+                - Utility.fn(x, **self.sampler.function_parameters)
+                / Utility.fn(self.memory_range[0], **self.sampler.function_parameters)
+            ) * 300 + 20
+        except KeyError:
+            std = mean / 5
+        return (
+            self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
         )
