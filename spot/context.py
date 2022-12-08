@@ -33,7 +33,7 @@ class Context:
         self.final_df["Dynamic Sampling Max"] = DYNAMIC_SAMPLING_MAX
         self.final_df["Dynamic Sampling Initial Step"] = DYNAMIC_SAMPLING_INITIAL_STEP
         self.final_df["Optimization Objective"] = OPTIMIZATION_OBJECTIVE
-        self.final_df["Initial Sample Memories"] = f'{INITIAL_SAMPLE_MEMORIES}'
+        self.final_df["Initial Sample Memories"] = f"{INITIAL_SAMPLE_MEMORIES}"
         if optimization_s:
             self.final_df["Time Elapsed in Seconds"] = optimization_s
 
