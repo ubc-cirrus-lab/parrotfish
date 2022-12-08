@@ -90,7 +90,8 @@ class RecommendationEngine:
         return pd.DataFrame.from_dict(result)
 
     def initial_sample(self):
-        for x in self.memory_range:
+        # TODO: ensure initial memories are in the accepted memory range.
+        for x in INITIAL_SAMPLE_MEMORIES:
             self.sample(x)
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
