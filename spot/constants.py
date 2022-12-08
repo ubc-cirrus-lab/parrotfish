@@ -43,7 +43,9 @@ if os.environ.get("SPOT_MODE") == "dev":
         os.environ.get("SPOT_DYNAMIC_SAMPLING_INITIAL_STEP", 2)
     )
     OPTIMIZATION_OBJECTIVE = os.environ.get("SPOT_OPTIMIZATION_OBJECTIVE", "normal")
-    INITIAL_SAMPLE_MEMORIES = list(map(int, os.environ.get("SPOT_INITIAL_SAMPLE_MEMORIES", "128,3008").split(',')))
+    INITIAL_SAMPLE_MEMORIES = list(
+        map(int, os.environ.get("SPOT_INITIAL_SAMPLE_MEMORIES", "128,3008").split(","))
+    )
 
 else:
     ALPHA = 0
