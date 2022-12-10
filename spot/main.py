@@ -54,7 +54,9 @@ def main():
     optimization_time = None
     if args.optimize:
         opt = spot.optimize()
-        args.memory_mb = int(opt["Minimum Cost Memory"][0])
+        mem = opt["Minimum Cost Memory"][0]
+        print(f"Optimization result: {mem} MB")
+        args.memory_mb = int(mem)
         optimization_time = time.time() - start
     if args.fetch:
         spot.collect_data()
