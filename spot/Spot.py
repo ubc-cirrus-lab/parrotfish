@@ -54,8 +54,8 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs(self.last_log_timestamp)
 
     def invoke(self, memory_mb, count):
-        for _ in range(count):
-            self.recommendation_engine.invoke_once(memory_mb)
+        for i in range(count):
+            self.recommendation_engine.invoke_once(memory_mb, is_warm=(i > 0))
 
     def teardown(self, optimization_s):
         # Just saving the Context for now.
