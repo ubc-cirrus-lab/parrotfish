@@ -135,7 +135,16 @@ class RecommendationEngine:
         print(f"finished sampling {x} with {len(values)} samples")
         self.objective.update_knowledge(x)
 
-    def invoke_once(self, memory_mb):
+    def invoke_once(self, memory_mb, is_warm=True):
+        if not is_warm:
+            # Cold start
+            self.function_invocator.invoke(
+                invocation_count=1,
+                parallelism=1,
+                memory_mb=memory_mb,
+                payload_filename=self.payload_path,
+                save_to_ctx=False,
+            )
         result = self.function_invocator.invoke(
             invocation_count=1,
             parallelism=1,

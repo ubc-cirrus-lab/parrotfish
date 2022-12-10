@@ -7,8 +7,6 @@ import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
-MEMORY_CONFIG_MAX_RETRIES = 10
-
 
 class AWSLambdaInvoker:
     """
@@ -55,7 +53,7 @@ class AWSLambdaInvoker:
         self._check_and_set_memory_value(memory_mb)
         is_memory_config_ok = False
 
-        for _ in range(MEMORY_CONFIG_MAX_RETRIES):
+        while True:
             results = {key: [] for key in keys}
             errors = []
             with ThreadPoolExecutor(max_workers=parallelism) as executor:
@@ -98,7 +96,7 @@ class AWSLambdaInvoker:
             self._set_memory_value(memory_mb)
 
     def _set_memory_value(self, memory_mb):
-        for _ in range(MEMORY_CONFIG_MAX_RETRIES):
+        while True:
             self.client.update_function_configuration(
                 FunctionName=self.lambda_name, MemorySize=memory_mb
             )
