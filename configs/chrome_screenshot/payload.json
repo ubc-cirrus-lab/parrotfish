@@ -1,32 +1,6 @@
-[
-    {
-        "queryStringParameters": {
-            "url": "https://google.com/",
-            "screen": "800,600"
-        }
-    },
-    {
-        "queryStringParameters": {
-            "url": "https://google.com/",
-            "screen": "100,100"
-        }
-    },
-    {
-        "queryStringParameters": {
-            "url": "https://google.com/",
-            "screen": "800,60000"
-        }
-    },
-    {
-        "queryStringParameters": {
-            "url": "https://colorhunt.co/palettes/",
-            "screen": "800,60"
-        }
-    },
-    {
-        "queryStringParameters": {
-            "url": "https://mshahrad.github.io/",
-            "screen": "800,25"
-        }
-    }
-]
+{
+  "params": {
+    "url": "https://cirrus.ece.ubc.ca",
+    "screen": "1920,1080"
+  }
+}
