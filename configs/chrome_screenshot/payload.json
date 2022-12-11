@@ -1,1 +1,6 @@
-{"params": {"url": "https://cirrus.ece.ubc.ca", "screen": "1920,1080"}}
+{
+  "params": {
+    "url": "https://cirrus.ece.ubc.ca",
+    "screen": "1920,1080"
+  }
+}
