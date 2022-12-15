@@ -91,18 +91,31 @@ class DynamicNormalObjective(NormalObjective):
         )
 
 
+class SkewedDynamicNormalObjective(NormalObjective):
+    def __init__(self, sampler, memory_range):
+        super().__init__(sampler, memory_range)
+
+    def get_normal_value(self, x, mean, std):
+        skewness = (self.memory_range[1] - mean) / 100
+        std = mean / 5
+        return (
+            self.ratio
+            * stats.skewnorm.pdf(x, skewness, mean, std)
+            / stats.skewnorm.pdf(mean, skewness, mean, std)
+        )
+
+
 class DynamicSTDNormalObjective1(NormalObjective):
     def __init__(self, sampler, memory_range):
         super().__init__(sampler, memory_range)
 
     def get_normal_value(self, x, mean, std):
         try:
-            std = -1 / Utility.fnp(x, **self.sampler.function_parameters) + 100
+            std = -1 / Utility.fnp(x, **self.sampler.function_parameters) + 20
         except KeyError:
             std = mean / 5
-        skewness = (self.memory_range[1] - x) / 100
         return (
-            self.ratio * stats.skewnorm.pdf(x, skewness, mean, std) / stats.skewnorm.pdf(mean, skewness, mean, std)
+            self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
         )
 
 

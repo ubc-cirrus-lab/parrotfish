@@ -3,13 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from spot.recommendation_engine.objectives import (
-    NormalObjective,
-    SkewedNormalObjective,
-    DynamicNormalObjective,
-    DynamicSTDNormalObjective1,
-    DynamicSTDNormalObjective2,
-)
+from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
 
 from spot.constants import *
@@ -35,6 +29,8 @@ class RecommendationEngine:
             self.objective = NormalObjective(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "skewnormal":
             self.objective = SkewedNormalObjective(self, self.memory_range)
+        elif OPTIMIZATION_OBJECTIVE == "skewdynamicnormal":
+            self.objective = SkewedDynamicNormalObjective(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "dynamicnormal":
             self.objective = DynamicNormalObjective(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "dynamic_std1":
@@ -130,6 +126,7 @@ class RecommendationEngine:
                     parallelism=1,
                     memory_mb=x,
                     payload_filename=self.payload_path,
+                    save_to_ctx=False,
                 )
                 values.append(result.iloc[0]["Billed Duration"])
         for value in values:
@@ -138,7 +135,7 @@ class RecommendationEngine:
         print(f"finished sampling {x} with {len(values)} samples")
         self.objective.update_knowledge(x)
 
-    def invoke_once(self, memory_mb, is_warm=True):
+    def invoke_once(self, memory_mb, is_warm):
         if not is_warm:
             # Cold start
             self.function_invocator.invoke(
@@ -153,6 +150,7 @@ class RecommendationEngine:
             parallelism=1,
             memory_mb=memory_mb,
             payload_filename=self.payload_path,
+            save_to_ctx=True,
         )
 
     def _choose_sample_point(self):

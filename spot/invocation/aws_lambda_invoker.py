@@ -24,7 +24,7 @@ class AWSLambdaInvoker:
         parallelism,
         memory_mb,
         payload_filename,
-        save_to_ctx=True,
+        save_to_ctx,
     ):
         """
         Invokes the specified lambda with given memory config.
