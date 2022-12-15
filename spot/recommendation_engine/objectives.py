@@ -53,7 +53,7 @@ class NormalObjective(Objective):
 
     def update_knowledge(self, x):
         for key in self.knowledge_values:
-            self.knowledge_values[key] += self.get_normal_value(key, x, NORMAL_SCALE)
+            self.knowledge_values[key] += self.get_normal_value(key, x, None)
         # self.ratio *= 1 / sum(list(self.knowledge_values.values()))
         # self.normalize()
 
@@ -97,7 +97,7 @@ class SkewedDynamicNormalObjective(NormalObjective):
 
     def get_normal_value(self, x, mean, std):
         skewness = (self.memory_range[1] - mean) / 100
-        std = mean / 5
+        std = mean / 3
         return (
             self.ratio
             * stats.skewnorm.pdf(x, skewness, mean, std)
@@ -111,9 +111,13 @@ class DynamicSTDNormalObjective1(NormalObjective):
 
     def get_normal_value(self, x, mean, std):
         try:
-            std = -1 / Utility.fnp(x, **self.sampler.function_parameters) + 20
-        except KeyError:
-            std = mean / 5
+            rate = Utility.fnp(mean, **self.sampler.function_parameters)
+            min_ = Utility.fnp(self.memory_range[0], **self.sampler.function_parameters)
+            max_ = Utility.fnp(self.memory_range[1], **self.sampler.function_parameters)
+            std = (rate - min_) * 400 / (max_ - min_) + 50
+        except:
+            std = 20
+        # skewness = (self.memory_range[1] - x) / 100
         return (
             self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
         )

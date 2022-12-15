@@ -1,5 +1,5 @@
 {
-    "function_name": "pyaes",
+    "function_name": "pyaes2",
     "mem_bounds": [
         128,
         3008
