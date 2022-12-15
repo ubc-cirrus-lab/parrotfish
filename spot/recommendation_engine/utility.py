@@ -12,14 +12,10 @@ class AggregatedData:
 class Utility:
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
-        min_cost = np.inf
-        min_memory = 0
-        for memory in range(memory_range[0], memory_range[1] + 1):
-            cost = Utility.calculate_cost(f(memory, **params), memory)
-            if cost < min_cost:
-                min_cost = cost
-                min_memory = memory
-        return min_memory, min_cost
+        mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=float)
+        costs = Utility.calculate_cost(f(mems, **params), mems)
+        min_index = np.argmin(costs)
+        return mems[min_index], costs[min_index]
 
     @staticmethod
     def calculate_cost(duration, memory):
@@ -38,10 +34,8 @@ class Utility:
     def check_function_validity(f, params, memory_range):
         if all(v >= 0 for v in params.values()):
             return True
-        for x in range(memory_range[0], memory_range[1] + 1):
-            if f(x, **params) < 0:
-                return False
-        return True
+        mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=float)
+        return np.all(f(mems, **params) >= 0)
 
     @staticmethod
     def fit_function(datapoints, degree):
@@ -65,14 +59,9 @@ class Utility:
     @staticmethod
     def aggregate_data(data):
         aggregated_data = []
-        for memory_value in [x.memory for x in data]:
-            billed_times = []
-            for d in data:
-                if d.memory == memory_value:
-                    billed_times.append(d.billed_time)
-            aggregated_data.append(
-                AggregatedData(memory_value, np.median(billed_times))
-            )
+        for x in data:
+            aggregated_data.append(AggregatedData(x.memory, x.billed_time))
+        aggregated_data.sort(key=lambda x: x.memory)
         return aggregated_data
 
     @staticmethod

@@ -58,7 +58,9 @@ class RecommendationEngine:
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
         ):
-            x = self.choose_sample_point()
+            x = self._choose_sample_point()
+            if not x:
+                break
             self.sample(x)
             self.sampled_points += 1
             self.function_degree = self.sampled_points
@@ -115,6 +117,7 @@ class RecommendationEngine:
             parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
             memory_mb=x,
             payload_filename=self.payload_path,
+            save_to_ctx=False,
         )
         values = result["Billed Duration"].tolist()
         if IS_DYNAMIC_SAMPLING_ENABLED:
@@ -145,23 +148,35 @@ class RecommendationEngine:
                 payload_filename=self.payload_path,
                 save_to_ctx=False,
             )
-        result = self.function_invocator.invoke(
+        return self.function_invocator.invoke(
             invocation_count=1,
             parallelism=1,
             memory_mb=memory_mb,
             payload_filename=self.payload_path,
         )
-        return result
 
-    def choose_sample_point(self):
-        max_value = self.memory_range[0]
-        max_obj = np.inf
-        for value in self._remainder_memories():
-            obj = self.objective.get_value(value)
-            if obj < max_obj:
-                max_value = value
-                max_obj = obj
-        return max_value
+    def _choose_sample_point(self):
+        next_memory_value = None
+        max_gain = -1
+        known_values = self._get_known_values()
+        for mem in self._remainder_memories():
+            diff = self._knowledge_diff(mem, known_values)
+            if max_gain < diff:
+                max_gain = diff
+                next_memory_value = mem
+        return next_memory_value if max_gain > 0 else None
+
+    def _knowledge_diff(self, x, known_values):
+        mems = np.arange(self.memory_range[0], self.memory_range[1] + 1, dtype=float)
+        diffs = self.objective.get_normal_value(mems, x, None) - known_values
+        diffs[np.isnan(diffs) | (diffs < 0)] = 0
+        return np.sum(diffs)
+
+    def _get_known_values(self):
+        mems = []
+        for x in range(self.memory_range[0], self.memory_range[1] + 1):
+            mems.append(self.objective.knowledge_values[x])
+        return np.array(mems)
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
