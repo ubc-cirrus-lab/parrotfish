@@ -121,3 +121,19 @@ class DynamicSTDNormalObjective2(NormalObjective):
         return (
             self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
         )
+
+
+class FitToRealCostObjective(Objective):
+    def __init__(self, sampler, memory_range):
+        super().__init__(sampler, memory_range)
+        self.ratio = 1
+
+    def get_value(self, x):
+        duration = Utility.fn(x, **self.sampler.function_parameters)
+        real_cost = duration * x
+        if isinstance(x, np.ndarray):
+            assert np.all(x > 0)
+        return real_cost
+
+    def update_knowledge(self, x):
+        pass

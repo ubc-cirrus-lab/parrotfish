@@ -3,13 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from spot.recommendation_engine.objectives import (
-    NormalObjective,
-    SkewedNormalObjective,
-    DynamicNormalObjective,
-    DynamicSTDNormalObjective1,
-    DynamicSTDNormalObjective2,
-)
+from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
 
 from spot.constants import *
@@ -41,6 +35,9 @@ class RecommendationEngine:
             self.objective = DynamicSTDNormalObjective1(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "dynamic_std2":
             self.objective = DynamicSTDNormalObjective2(self, self.memory_range)
+        elif OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
+            assert len(INITIAL_SAMPLE_MEMORIES) == 3
+            self.objective = FitToRealCostObjective(self, self.memory_range)
 
         self.exploration_cost = 0
 
@@ -58,7 +55,7 @@ class RecommendationEngine:
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
         ):
-            x = self.choose_sample_point()
+            x = self._choose_sample_point()
             self.sample(x)
             self.sampled_points += 1
             self.function_degree = self.sampled_points
@@ -153,15 +150,11 @@ class RecommendationEngine:
         )
         return result
 
-    def choose_sample_point(self):
-        max_value = self.memory_range[0]
-        max_obj = np.inf
-        for value in self._remainder_memories():
-            obj = self.objective.get_value(value)
-            if obj < max_obj:
-                max_value = value
-                max_obj = obj
-        return max_value
+    def _choose_sample_point(self):
+        mems = np.array(self._remainder_memories())
+        values = self.objective.get_value(mems)
+        index = np.argmin(values)
+        return int(mems[index])
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
