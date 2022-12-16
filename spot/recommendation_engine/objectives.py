@@ -134,8 +134,6 @@ class FitToRealCostObjective(Objective):
     def get_value(self, x):
         duration = Utility.fn(x, **self.sampler.function_parameters)
         real_cost = duration * x
-        if isinstance(x, np.ndarray):
-            assert np.all(x > 0)
         knowledge = self._get_normalized_knowledge(x)
         return real_cost * knowledge
 

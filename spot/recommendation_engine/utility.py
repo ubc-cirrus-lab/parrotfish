@@ -32,12 +32,8 @@ class Utility:
 
     @staticmethod
     def check_function_validity(f, params, memory_range):
-        if all(v >= 0 for v in params.values()):
-            return True
-        for x in range(memory_range[0], memory_range[1] + 1):
-            if f(x, **params) < 0:
-                return False
-        return True
+        mems = np.arange(memory_range[0], memory_range[1] + 1)
+        return np.all(f(mems, **params) >= 0)
 
     @staticmethod
     def fit_function(datapoints, degree):

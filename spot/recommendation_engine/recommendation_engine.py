@@ -105,8 +105,8 @@ class RecommendationEngine:
             payload_filename=self.payload_path,
             save_to_ctx=False,
         )
-        for value in result["Billed Duration"].tolist():
-            self.exploration_cost += Utility.calculate_cost(value, x)
+        durations = result["Billed Duration"].to_numpy()
+        self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
         result = self.function_invocator.invoke(
             invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
             parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
@@ -160,7 +160,7 @@ class RecommendationEngine:
         return result
 
     def _choose_sample_point(self):
-        mems = np.array(self._remainder_memories())
+        mems = np.array(self._remainder_memories(), dtype=float)
         values = self.objective.get_value(mems)
         index = np.argmin(values)
         return int(mems[index])
