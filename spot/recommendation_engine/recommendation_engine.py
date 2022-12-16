@@ -166,13 +166,20 @@ class RecommendationEngine:
 
     def _knowledge_diff(self, x, known_values):
         mems = np.arange(self.memory_range[0], self.memory_range[1] + 1, dtype=float)
-        r = 1 + 2 * (self.memory_range[1] - x) / (self.memory_range[1] - self.memory_range[0])
+        r = 1 + 2 * (self.memory_range[1] - x) / (
+            self.memory_range[1] - self.memory_range[0]
+        )
         diffs = self.objective.get_normal_value(mems, x, None) * r - known_values
         diffs[np.isnan(diffs) | (diffs < 0)] = 0
         return np.sum(diffs)
 
     def _get_known_values(self):
-        return np.array([self.objective.knowledge_values[x] for x in range(self.memory_range[0], self.memory_range[1] + 1)])
+        return np.array(
+            [
+                self.objective.knowledge_values[x]
+                for x in range(self.memory_range[0], self.memory_range[1] + 1)
+            ]
+        )
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
