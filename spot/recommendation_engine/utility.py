@@ -12,7 +12,7 @@ class AggregatedData:
 class Utility:
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
-        mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=float)
+        mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
         costs = Utility.calculate_cost(f(mems, **params), mems)
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]

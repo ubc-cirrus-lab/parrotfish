@@ -20,7 +20,7 @@ class RecommendationEngine:
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
-        self.sampled_points = 0
+        self.sampled_point_count = 0
         self.fitted_function = None
         self.function_parameters = {}
         self.function_degree = 2
@@ -50,15 +50,15 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.sampled_points = 2
+        self.sampled_point_count = 2
         while (
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
         ):
             x = self._choose_sample_point()
             self.sample(x)
-            self.sampled_points += 1
-            self.function_degree = self.sampled_points
+            self.sampled_point_count += 1
+            self.function_degree = min(self.sampled_point_count, 4)
             self.fitted_function, self.function_parameters = Utility.fit_function(
                 self.sampled_datapoints, degree=self.function_degree
             )
@@ -160,7 +160,7 @@ class RecommendationEngine:
         return result
 
     def _choose_sample_point(self):
-        mems = np.array(self._remainder_memories(), dtype=float)
+        mems = np.array(self._remainder_memories(), dtype=np.double)
         values = self.objective.get_value(mems)
         index = np.argmin(values)
         return int(mems[index])

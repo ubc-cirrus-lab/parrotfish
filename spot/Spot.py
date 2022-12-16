@@ -55,7 +55,7 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs(self.last_log_timestamp)
 
     def invoke(self, memory_mb, count):
-        billed_duration = np.arange(count, dtype=float)
+        billed_duration = np.arange(count, dtype=np.double)
         for i in range(count):
             df = self.recommendation_engine.invoke_once(memory_mb, is_warm=(i > 0))
             billed_duration[i] = df["Billed Duration"][0]
