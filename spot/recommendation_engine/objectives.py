@@ -139,13 +139,13 @@ class FitToRealCostObjective(Objective):
 
     def update_knowledge(self, x):
         for key in self.knowledge_values:
-            self.knowledge_values[key] += stats.norm.pdf(key, x, 20) / stats.norm.pdf(x, x, 20)
+            self.knowledge_values[key] += stats.norm.pdf(key, x, 100) / stats.norm.pdf(x, x, 100)
 
     def _get_normalized_knowledge(self, x):
         if isinstance(x, np.ndarray):
             knowledge = np.array([self.knowledge_values[xs] for xs in x])
         else:
-            knowledge = self.knowledge[x]
+            knowledge = self.knowledge_values[x]
         min_ = np.min(knowledge)
         max_ = np.max(knowledge)
-        return 1. + 2. * (knowledge - min_) / (max_ - min_)
+        return 1. + .5 * (knowledge - min_) / (max_ - min_)
