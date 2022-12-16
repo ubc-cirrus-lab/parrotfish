@@ -127,13 +127,27 @@ class FitToRealCostObjective(Objective):
     def __init__(self, sampler, memory_range):
         super().__init__(sampler, memory_range)
         self.ratio = 1
+        self.knowledge_values = {
+            x: 0 for x in range(self.memory_range[0], self.memory_range[1] + 1)
+        }
 
     def get_value(self, x):
         duration = Utility.fn(x, **self.sampler.function_parameters)
         real_cost = duration * x
         if isinstance(x, np.ndarray):
             assert np.all(x > 0)
-        return real_cost
+        knowledge = self._get_normalized_knowledge(x)
+        return real_cost * knowledge
 
     def update_knowledge(self, x):
-        pass
+        for key in self.knowledge_values:
+            self.knowledge_values[key] += stats.norm.pdf(key, x, 50) / stats.norm.pdf(x, x, 50)
+
+    def _get_normalized_knowledge(self, x):
+        if isinstance(x, np.ndarray):
+            knowledge = np.array([self.knowledge_values[xs] for xs in x])
+        else:
+            knowledge = self.knowledge[x]
+        min_ = np.min(knowledge)
+        max_ = np.max(knowledge)
+        return 1. + (knowledge - min_) / (max_ - min_)

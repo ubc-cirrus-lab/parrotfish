@@ -126,9 +126,18 @@ class RecommendationEngine:
                     payload_filename=self.payload_path,
                 )
                 values.append(result.iloc[0]["Billed Duration"])
-        for value in values:
+
+        if len(values) > 2:
+            values.sort()
+            selected_values = values[len(values)//2 - 1:len(values)//2]
+        else:
+            selected_values = values
+
+        self.exploration_cost += np.sum(Utility.calculate_cost(np.array(values), x))
+
+        for value in selected_values:
             self.sampled_datapoints.append(DataPoint(memory=x, billed_time=value))
-            self.exploration_cost += Utility.calculate_cost(value, x)
+
         print(f"finished sampling {x} with {len(values)} samples")
         self.objective.update_knowledge(x)
 
