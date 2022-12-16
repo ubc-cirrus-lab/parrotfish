@@ -129,7 +129,7 @@ class RecommendationEngine:
 
         if len(values) > 2:
             values.sort()
-            selected_values = values[len(values)//2 - 1:len(values)//2]
+            selected_values = values[len(values) // 2 - 1 : len(values) // 2]
         else:
             selected_values = values
 
