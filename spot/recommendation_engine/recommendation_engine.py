@@ -3,13 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from spot.recommendation_engine.objectives import (
-    NormalObjective,
-    SkewedNormalObjective,
-    DynamicNormalObjective,
-    DynamicSTDNormalObjective1,
-    DynamicSTDNormalObjective2,
-)
+from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
 
 from spot.constants import *
@@ -26,7 +20,7 @@ class RecommendationEngine:
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
-        self.sampled_points = 0
+        self.sampled_point_count = 0
         self.fitted_function = None
         self.function_parameters = {}
         self.function_degree = 2
@@ -41,6 +35,9 @@ class RecommendationEngine:
             self.objective = DynamicSTDNormalObjective1(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "dynamic_std2":
             self.objective = DynamicSTDNormalObjective2(self, self.memory_range)
+        elif OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
+            assert len(INITIAL_SAMPLE_MEMORIES) == 3
+            self.objective = FitToRealCostObjective(self, self.memory_range)
 
         self.exploration_cost = 0
 
@@ -53,15 +50,15 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.sampled_points = 2
+        self.sampled_point_count = 2
         while (
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
         ):
-            x = self.choose_sample_point()
+            x = self._choose_sample_point()
             self.sample(x)
-            self.sampled_points += 1
-            self.function_degree = self.sampled_points
+            self.sampled_point_count += 1
+            self.function_degree = min(self.sampled_point_count, 4)
             self.fitted_function, self.function_parameters = Utility.fit_function(
                 self.sampled_datapoints, degree=self.function_degree
             )
@@ -108,8 +105,8 @@ class RecommendationEngine:
             payload_filename=self.payload_path,
             save_to_ctx=False,
         )
-        for value in result["Billed Duration"].tolist():
-            self.exploration_cost += Utility.calculate_cost(value, x)
+        durations = result["Billed Duration"].to_numpy()
+        self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
         result = self.function_invocator.invoke(
             invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
             parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
@@ -129,9 +126,18 @@ class RecommendationEngine:
                     payload_filename=self.payload_path,
                 )
                 values.append(result.iloc[0]["Billed Duration"])
-        for value in values:
+
+        if len(values) > 2:
+            values.sort()
+            selected_values = values[len(values) // 2 - 1 : len(values) // 2]
+        else:
+            selected_values = values
+
+        self.exploration_cost += np.sum(Utility.calculate_cost(np.array(values), x))
+
+        for value in selected_values:
             self.sampled_datapoints.append(DataPoint(memory=x, billed_time=value))
-            self.exploration_cost += Utility.calculate_cost(value, x)
+
         print(f"finished sampling {x} with {len(values)} samples")
         self.objective.update_knowledge(x)
 
@@ -153,15 +159,11 @@ class RecommendationEngine:
         )
         return result
 
-    def choose_sample_point(self):
-        max_value = self.memory_range[0]
-        max_obj = np.inf
-        for value in self._remainder_memories():
-            obj = self.objective.get_value(value)
-            if obj < max_obj:
-                max_value = value
-                max_obj = obj
-        return max_value
+    def _choose_sample_point(self):
+        mems = np.array(self._remainder_memories(), dtype=np.double)
+        values = self.objective.get_value(mems)
+        index = np.argmin(values)
+        return int(mems[index])
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)

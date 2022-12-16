@@ -12,14 +12,10 @@ class AggregatedData:
 class Utility:
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
-        min_cost = np.inf
-        min_memory = 0
-        for memory in range(memory_range[0], memory_range[1] + 1):
-            cost = Utility.calculate_cost(f(memory, **params), memory)
-            if cost < min_cost:
-                min_cost = cost
-                min_memory = memory
-        return min_memory, min_cost
+        mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
+        costs = Utility.calculate_cost(f(mems, **params), mems)
+        min_index = np.argmin(costs)
+        return mems[min_index], costs[min_index]
 
     @staticmethod
     def calculate_cost(duration, memory):
@@ -36,12 +32,8 @@ class Utility:
 
     @staticmethod
     def check_function_validity(f, params, memory_range):
-        if all(v >= 0 for v in params.values()):
-            return True
-        for x in range(memory_range[0], memory_range[1] + 1):
-            if f(x, **params) < 0:
-                return False
-        return True
+        mems = np.arange(memory_range[0], memory_range[1] + 1)
+        return np.all(f(mems, **params) >= 0)
 
     @staticmethod
     def fit_function(datapoints, degree):

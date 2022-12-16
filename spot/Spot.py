@@ -11,6 +11,7 @@ from spot.invocation.aws_lambda_invoker import AWSLambdaInvoker
 from spot.context import Context
 from spot.benchmark_config import BenchmarkConfig
 from spot.recommendation_engine.recommendation_engine import RecommendationEngine
+from spot.recommendation_engine.utility import Utility
 from spot.constants import *
 
 
@@ -54,8 +55,11 @@ class Spot:
         self.last_log_timestamp = self.log_retriever.get_logs(self.last_log_timestamp)
 
     def invoke(self, memory_mb, count):
+        billed_duration = np.arange(count, dtype=np.double)
         for i in range(count):
-            self.recommendation_engine.invoke_once(memory_mb, is_warm=(i > 0))
+            df = self.recommendation_engine.invoke_once(memory_mb, is_warm=(i > 0))
+            billed_duration[i] = df["Billed Duration"][0]
+        print("Real cost:", Utility.calculate_cost(np.mean(billed_duration), memory_mb))
 
     def teardown(self, optimization_s):
         # Just saving the Context for now.

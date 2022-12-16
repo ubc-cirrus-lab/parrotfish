@@ -121,3 +121,33 @@ class DynamicSTDNormalObjective2(NormalObjective):
         return (
             self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
         )
+
+
+class FitToRealCostObjective(Objective):
+    def __init__(self, sampler, memory_range):
+        super().__init__(sampler, memory_range)
+        self.ratio = 1
+        self.knowledge_values = {
+            x: 0 for x in range(self.memory_range[0], self.memory_range[1] + 1)
+        }
+
+    def get_value(self, x):
+        duration = Utility.fn(x, **self.sampler.function_parameters)
+        real_cost = duration * x
+        knowledge = self._get_normalized_knowledge(x)
+        return real_cost * knowledge
+
+    def update_knowledge(self, x):
+        for key in self.knowledge_values:
+            self.knowledge_values[key] += stats.norm.pdf(key, x, 100) / stats.norm.pdf(
+                x, x, 100
+            )
+
+    def _get_normalized_knowledge(self, x):
+        if isinstance(x, np.ndarray):
+            knowledge = np.array([self.knowledge_values[xs] for xs in x])
+        else:
+            knowledge = self.knowledge_values[x]
+        min_ = np.min(knowledge)
+        max_ = np.max(knowledge)
+        return 1.0 + 0.5 * (knowledge - min_) / (max_ - min_)
