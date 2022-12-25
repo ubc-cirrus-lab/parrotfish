@@ -96,6 +96,16 @@ class RecommendationEngine:
         )
 
     def sample(self, x):
+        def _closest_termination_cv_and_values(values):
+            _min = 1000
+            _min_val = None
+            for i in range(len(values) - 1):
+                cv = Utility.cv(values[i:i+2])
+                if _min > cv:
+                    _min = cv
+                    _min_val = values[i:i+2]
+            return _min, _min_val
+
         print(f"Sampling {x}")
         # Cold start
         result = self.function_invocator.invoke(
@@ -117,7 +127,7 @@ class RecommendationEngine:
         if IS_DYNAMIC_SAMPLING_ENABLED:
             while (
                 len(values) < DYNAMIC_SAMPLING_MAX
-                and Utility.cv(values) > TERMINATION_CV
+                and _closest_termination_cv_and_values(values)[0] > TERMINATION_CV
             ):
                 result = self.function_invocator.invoke(
                     invocation_count=1,
@@ -127,9 +137,8 @@ class RecommendationEngine:
                 )
                 values.append(result.iloc[0]["Billed Duration"])
 
-        if len(values) > 2:
-            values.sort()
-            selected_values = values[len(values) // 2 - 1 : len(values) // 2]
+        if len(values) > DYNAMIC_SAMPLING_INITIAL_STEP:
+            selected_values = _closest_termination_cv_and_values(values)[1]
         else:
             selected_values = values
 
