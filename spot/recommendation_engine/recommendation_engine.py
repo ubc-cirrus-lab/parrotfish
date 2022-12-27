@@ -137,6 +137,7 @@ class RecommendationEngine:
                 )
                 values.append(result.iloc[0]["Billed Duration"])
 
+        values.sort()
         if len(values) > DYNAMIC_SAMPLING_INITIAL_STEP:
             selected_values = _closest_termination_cv_and_values(values)[1]
         else:
