@@ -177,7 +177,7 @@ class RecommendationEngine:
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
         sampled_memories = set()
-        mask = 64
+        mask = 128
         for datapoint in self.sampled_datapoints:
             for i in range(-mask, mask + 1):
                 sampled_memories.add(datapoint.memory + i)
