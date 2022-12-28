@@ -178,7 +178,7 @@ class RecommendationEngine:
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
         sampled_memories = set()
         for datapoint in self.sampled_datapoints:
-            for i in range(-128, 128):
+            for i in range(-64, 64):
                 sampled_memories.add(datapoint.memory + i)
         remainder = [x for x in memories if x not in sampled_memories]
         return remainder
