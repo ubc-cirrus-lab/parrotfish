@@ -64,16 +64,16 @@ class RecommendationEngine:
         return self.report()
 
     def report(self):
-        import matplotlib.pyplot as plt
-        plt.clf()
-        fig, ax = plt.subplots()
-        mems = np.arange(128, 3008)
-        ax.plot(mems, Utility.fn(mems, **self.function_parameters))
-        ax.plot([x.memory for x in self.sampled_datapoints], [x.billed_time for x in self.sampled_datapoints], 'o')
-        ax2 = ax.twinx()
-        ax2.plot(mems, Utility.fn(mems, **self.function_parameters) * mems)
-        fig.tight_layout()
-        plt.savefig("tmp.png")
+        #import matplotlib.pyplot as plt
+        #plt.clf()
+        #fig, ax = plt.subplots()
+        #mems = np.arange(128, 3008)
+        #ax.plot(mems, Utility.fn(mems, **self.function_parameters))
+        #ax.plot([x.memory for x in self.sampled_datapoints], [x.billed_time for x in self.sampled_datapoints], 'o')
+        #ax2 = ax.twinx()
+        #ax2.plot(mems, Utility.fn(mems, **self.function_parameters) * mems)
+        #fig.tight_layout()
+        #plt.savefig("tmp.png")
 
         minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
             self.fitted_function, self.function_parameters, self.memory_range
