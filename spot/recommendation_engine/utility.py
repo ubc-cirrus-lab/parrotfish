@@ -7,7 +7,8 @@ class Utility:
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
-        costs = f(mems, **params) * mems
+        # costs = f(mems, **params) * mems
+        costs = f(mems, **params)
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
 
@@ -39,9 +40,11 @@ class Utility:
         f = Utility.fn
         fmodel = Model(f)
         datapoints.sort(key=lambda d: d.memory)
+        mems = np.array([x.memory for x in datapoints])
+        billed_time = np.array([x.billed_time for x in datapoints])
         fresult = fmodel.fit(
-            [x.billed_time for x in datapoints],
-            x=[x.memory for x in datapoints],
+            billed_time * mems,
+            x=mems,
             params=params,
         )
         fparams = fresult.params.valuesdict()
@@ -51,7 +54,7 @@ class Utility:
     def fn(x, **kwargs):
         res = 0
         for i in range(0, kwargs["n"]):
-            res += kwargs[f"a{i}"] / (x**i)
+            res += kwargs[f"a{i}"] * np.power(x, -i+2)
         return res
 
     @staticmethod

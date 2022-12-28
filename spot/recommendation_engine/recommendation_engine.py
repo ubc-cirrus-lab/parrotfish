@@ -64,16 +64,16 @@ class RecommendationEngine:
         return self.report()
 
     def report(self):
-        #import matplotlib.pyplot as plt
-        #plt.clf()
-        #fig, ax = plt.subplots()
-        #mems = np.arange(128, 3008)
-        #ax.plot(mems, Utility.fn(mems, **self.function_parameters))
-        #ax.plot([x.memory for x in self.sampled_datapoints], [x.billed_time for x in self.sampled_datapoints], 'o')
-        #ax2 = ax.twinx()
-        #ax2.plot(mems, Utility.fn(mems, **self.function_parameters) * mems)
-        #fig.tight_layout()
-        #plt.savefig("tmp.png")
+        # import matplotlib.pyplot as plt
+        # plt.clf()
+        # fig, ax = plt.subplots()
+        # mems = np.arange(128, 3008, dtype=np.double)
+        # ax.plot(mems, Utility.fn(mems, **self.function_parameters))
+        # x_mems = np.array([x.memory for x in self.sampled_datapoints])
+        # billed_time = np.array([x.billed_time for x in self.sampled_datapoints])
+        # ax.plot(x_mems, billed_time * x_mems, 'o')
+        # fig.tight_layout()
+        # plt.savefig("tmp.png")
 
         minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
             self.fitted_function, self.function_parameters, self.memory_range
@@ -176,8 +176,9 @@ class RecommendationEngine:
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
-        sampled_memories = set(
-            [datapoint.memory for datapoint in self.sampled_datapoints]
-        )
+        sampled_memories = set()
+        for datapoint in self.sampled_datapoints:
+            for i in range(-128, 128):
+                sampled_memories.add(datapoint.memory + i)
         remainder = [x for x in memories if x not in sampled_memories]
         return remainder
