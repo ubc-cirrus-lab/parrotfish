@@ -34,9 +34,12 @@ class Utility:
     def fit_function(datapoints, degree):
         params = Parameters()
         params.add("n", value=degree, vary=False)
-        params.add("a0", min=0, value=20)
-        for i in range(1, degree):
-            params.add(f"a{i}", min=0, value=10000)
+        params.add("a0", min=0, value=10000)
+        params.add("a1", value=0)
+        params.add("a2", min=0, value=10000)
+        for i in range(3, degree):
+            params.add(f"a{i}", min=0, value=1e8)
+            params.add(f"b{i}", min=0, value=100)
         f = Utility.fn
         fmodel = Model(f)
         datapoints.sort(key=lambda d: d.memory)
@@ -53,8 +56,10 @@ class Utility:
     @staticmethod
     def fn(x, **kwargs):
         res = 0
-        for i in range(0, kwargs["n"]):
-            res += kwargs[f"a{i}"] * np.power(x, -i+2)
+        for i in range(0, 3):
+            res += kwargs[f"a{i}"] * np.power(x, -i + 2)
+        for i in range(3, kwargs["n"]):
+            res += kwargs[f"a{i}"] * np.power(x - kwargs[f"b{i}"], -i + 2)
         return res
 
     @staticmethod
