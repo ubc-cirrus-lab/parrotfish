@@ -23,7 +23,6 @@ class RecommendationEngine:
         self.sampled_point_count = 0
         self.fitted_function = None
         self.function_parameters = {}
-        self.function_degree = 2
         self.memory_range = memory_range
         if OPTIMIZATION_OBJECTIVE == "normal":
             self.objective = NormalObjective(self, self.memory_range)
@@ -50,7 +49,7 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.sampled_point_count = 2
+        self.sampled_point_count = len(INITIAL_SAMPLE_MEMORIES)
         while (
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
@@ -58,24 +57,24 @@ class RecommendationEngine:
             x = self._choose_sample_point()
             self.sample(x)
             self.sampled_point_count += 1
-            self.function_degree = min(self.sampled_point_count, 4)
+            function_degree = min(self.sampled_point_count, 10)
             self.fitted_function, self.function_parameters = Utility.fit_function(
-                self.sampled_datapoints, degree=self.function_degree
+                self.sampled_datapoints, degree=function_degree
             )
-
-            while (
-                Utility.check_function_validity(
-                    self.fitted_function, self.function_parameters, self.memory_range
-                )
-                is False
-            ):
-                self.function_degree -= 1
-                self.fitted_function, self.function_parameters = Utility.fit_function(
-                    self.sampled_datapoints, degree=self.function_degree
-                )
         return self.report()
 
     def report(self):
+        import matplotlib.pyplot as plt
+        plt.clf()
+        fig, ax = plt.subplots()
+        mems = np.arange(128, 3008)
+        ax.plot(mems, Utility.fn(mems, **self.function_parameters))
+        ax.plot([x.memory for x in self.sampled_datapoints], [x.billed_time for x in self.sampled_datapoints], 'o')
+        ax2 = ax.twinx()
+        ax2.plot(mems, Utility.fn(mems, **self.function_parameters) * mems)
+        fig.tight_layout()
+        plt.savefig("tmp.png")
+
         minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
             self.fitted_function, self.function_parameters, self.memory_range
         )
@@ -92,7 +91,7 @@ class RecommendationEngine:
             self.sample(x)
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
-            self.sampled_datapoints, degree=self.function_degree
+            self.sampled_datapoints, degree=self.sampled_memories_count
         )
 
     def sample(self, x):

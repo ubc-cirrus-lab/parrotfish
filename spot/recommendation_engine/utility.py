@@ -3,17 +3,11 @@ from spot.constants import LAMBDA_DURTION_COST, LAMBDA_REQUEST_COST
 import numpy as np
 
 
-class AggregatedData:
-    def __init__(self, memory, billed_time):
-        self.memory = memory
-        self.billed_time = billed_time
-
-
 class Utility:
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
-        costs = Utility.calculate_cost(f(mems, **params), mems)
+        costs = f(mems, **params) * mems
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
 
@@ -37,40 +31,26 @@ class Utility:
 
     @staticmethod
     def fit_function(datapoints, degree):
-        f = Utility.fn
-        fmodel = Model(f)
         params = Parameters()
         params.add("n", value=degree, vary=False)
-        params.add("a0", value=20)
-        params.add("a1", value=100000)
-        for i in range(2, degree):
-            params.add(f"a{i}", value=1000)
-        aggregated_datapoints = Utility.aggregate_data(datapoints)
+        params.add("a0", min=0, value=20)
+        for i in range(1, degree):
+            params.add(f"a{i}", min=0, value=10000)
+        f = Utility.fn
+        fmodel = Model(f)
+        datapoints.sort(key=lambda d: d.memory)
         fresult = fmodel.fit(
-            [x.billed_time for x in aggregated_datapoints],
-            x=[x.memory for x in aggregated_datapoints],
+            [x.billed_time for x in datapoints],
+            x=[x.memory for x in datapoints],
             params=params,
         )
         fparams = fresult.params.valuesdict()
         return f, fparams
 
     @staticmethod
-    def aggregate_data(data):
-        aggregated_data = []
-        for memory_value in [x.memory for x in data]:
-            billed_times = []
-            for d in data:
-                if d.memory == memory_value:
-                    billed_times.append(d.billed_time)
-            aggregated_data.append(
-                AggregatedData(memory_value, np.median(billed_times))
-            )
-        return aggregated_data
-
-    @staticmethod
     def fn(x, **kwargs):
-        res = kwargs["a0"]
-        for i in range(1, kwargs["n"]):
+        res = 0
+        for i in range(0, kwargs["n"]):
             res += kwargs[f"a{i}"] / (x**i)
         return res
 
