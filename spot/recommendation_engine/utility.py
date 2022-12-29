@@ -34,12 +34,12 @@ class Utility:
     def fit_function(datapoints, degree):
         params = Parameters()
         params.add("n", value=degree, vary=False)
-        params.add("a0", min=0, value=1e9)
-        params.add("a1", value=1e9)
-        params.add("a2", value=0)
+        params.add("a0", min=0, value=10000)
+        params.add("a1", value=0)
+        params.add("a2", value=10000)
         for i in range(3, degree):
-            params.add(f"a{i}", value=1e9)
-            params.add(f"b{i}", value=0)
+            params.add(f"a{i}", value=1e8)
+            params.add(f"b{i}", value=100)
         f = Utility.fn
         fmodel = Model(f)
         datapoints.sort(key=lambda d: d.memory)
@@ -49,7 +49,6 @@ class Utility:
             billed_time * mems,
             x=mems,
             params=params,
-            method='least_squares',
         )
         fparams = fresult.params.valuesdict()
         return f, fparams
