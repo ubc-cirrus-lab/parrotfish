@@ -8,7 +8,6 @@ class Utility:
     @staticmethod
     def find_minimum_memory_cost(f, params, memory_range):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
-        # costs = f(mems, **params) * mems
         costs = f(mems, *params)
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
@@ -37,13 +36,13 @@ class Utility:
         mems = np.array([x.memory for x in datapoints], dtype=np.double)
         billed_time = np.array([x.billed_time for x in datapoints], dtype=np.double)
         real_cost = mems * billed_time
-        initial_values = Utility.guess_initial_values(mems, real_cost)
-        popt = curve_fit(Utility.fn, mems, real_cost, p0=initial_values, maxfev=int(1e8))[0]
+        initial_values, bounds = Utility.guess_initial_values(mems, real_cost)
+        popt = curve_fit(Utility.fn, mems, real_cost, p0=initial_values, maxfev=int(1e8), bounds=bounds)[0]
         return Utility.fn, popt
 
     @staticmethod
-    def fn(x, a0, a1, a2, b):
-        return a0 * x + a1 + a2 / (x-b)
+    def fn(x, a0, a1, a2, a3, b0, b1):
+        return a0 * x + a1 + a2 / (x-b0) + a3 / (x-b1)**2
 
     @staticmethod
     def fnp(x, **kwargs):
@@ -56,8 +55,10 @@ class Utility:
     @staticmethod
     def guess_initial_values(x, y):
         assert len(x) >= 4 and len(x) == len(y)
-        a0 = (y[-1] - y[-3]) / (x[-1] - x[-3])
+        a0 = max((y[-1] - y[-3]) / (x[-1] - x[-3]), 0)
         a1 = -a0 * x[-1] + y[-1]
         y2 = y - a0 * x - a1
-        a2 = y2[2] * x[2]
-        return [a0, a1, a2, 0]
+        a2 = max(y2[2] * x[2], 0)
+        y3 = y2 - a2 / x
+        a3 = max(y3[1] * x[1], 0)
+        return [a0, a1, a2, a3, 0, 0], ([0, -np.inf, 0, 0, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf, 0, 0])

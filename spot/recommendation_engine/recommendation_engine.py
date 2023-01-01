@@ -172,10 +172,5 @@ class RecommendationEngine:
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
-        sampled_memories = set()
-        mask = 128
-        for datapoint in self.sampled_datapoints:
-            for i in range(-mask, mask + 1):
-                sampled_memories.add(datapoint.memory + i)
-        remainder = [x for x in memories if x not in sampled_memories]
-        return remainder
+        sampled_memories = [datapoint.memory for datapoint in self.sampled_datapoints]
+        return [x for x in memories if x not in sampled_memories]
