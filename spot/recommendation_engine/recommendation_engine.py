@@ -20,7 +20,6 @@ class RecommendationEngine:
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
-        self.sampled_point_count = 0
         self.fitted_function = None
         self.function_parameters = {}
         self.memory_range = memory_range
@@ -49,17 +48,14 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.sampled_point_count = len(INITIAL_SAMPLE_MEMORIES)
         while (
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
             and self.objective.ratio > KNOWLEDGE_RATIO
         ):
             x = self._choose_sample_point()
             self.sample(x)
-            self.sampled_point_count += 1
-            function_degree = min(self.sampled_point_count, 10)
             self.fitted_function, self.function_parameters = Utility.fit_function(
-                self.sampled_datapoints, degree=function_degree
+                self.sampled_datapoints
             )
         return self.report()
 
@@ -68,7 +64,7 @@ class RecommendationEngine:
         # plt.clf()
         # fig, ax = plt.subplots()
         # mems = np.arange(128, 3008, dtype=np.double)
-        # ax.plot(mems, Utility.fn(mems, **self.function_parameters))
+        # ax.plot(mems, self.fitted_function(mems, *self.function_parameters))
         # x_mems = np.array([x.memory for x in self.sampled_datapoints])
         # billed_time = np.array([x.billed_time for x in self.sampled_datapoints])
         # ax.plot(x_mems, billed_time * x_mems, 'o')
@@ -91,7 +87,7 @@ class RecommendationEngine:
             self.sample(x)
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
-            self.sampled_datapoints, degree=self.sampled_memories_count
+            self.sampled_datapoints
         )
 
     def sample(self, x):

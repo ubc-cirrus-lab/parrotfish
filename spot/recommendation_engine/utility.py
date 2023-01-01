@@ -1,6 +1,7 @@
 from lmfit import Model, Parameters
 from spot.constants import LAMBDA_DURTION_COST, LAMBDA_REQUEST_COST
 import numpy as np
+from scipy.optimize import curve_fit
 
 
 class Utility:
@@ -8,7 +9,7 @@ class Utility:
     def find_minimum_memory_cost(f, params, memory_range):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
         # costs = f(mems, **params) * mems
-        costs = f(mems, **params)
+        costs = f(mems, *params)
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
 
@@ -31,36 +32,18 @@ class Utility:
         return np.all(f(mems, **params) >= 0)
 
     @staticmethod
-    def fit_function(datapoints, degree):
-        params = Parameters()
-        params.add("n", value=degree, vary=False)
-        params.add("a0", min=0, value=10000)
-        params.add("a1", value=0)
-        params.add("a2", value=10000)
-        for i in range(3, degree):
-            params.add(f"a{i}", value=1e8)
-            params.add(f"b{i}", value=100)
-        f = Utility.fn
-        fmodel = Model(f)
+    def fit_function(datapoints):
         datapoints.sort(key=lambda d: d.memory)
-        mems = np.array([x.memory for x in datapoints])
-        billed_time = np.array([x.billed_time for x in datapoints])
-        fresult = fmodel.fit(
-            billed_time * mems,
-            x=mems,
-            params=params,
-        )
-        fparams = fresult.params.valuesdict()
-        return f, fparams
+        mems = np.array([x.memory for x in datapoints], dtype=np.double)
+        billed_time = np.array([x.billed_time for x in datapoints], dtype=np.double)
+        real_cost = mems * billed_time
+        initial_values = Utility.guess_initial_values(mems, real_cost)
+        popt = curve_fit(Utility.fn, mems, real_cost, p0=initial_values, maxfev=int(1e8))[0]
+        return Utility.fn, popt
 
     @staticmethod
-    def fn(x, **kwargs):
-        res = 0
-        for i in range(0, 3):
-            res += kwargs[f"a{i}"] * np.power(x, -i + 2)
-        for i in range(3, kwargs["n"]):
-            res += kwargs[f"a{i}"] * np.power(x - kwargs[f"b{i}"], -i + 2)
-        return res
+    def fn(x, a0, a1, a2, b):
+        return a0 * x + a1 + a2 / (x-b)
 
     @staticmethod
     def fnp(x, **kwargs):
@@ -68,3 +51,13 @@ class Utility:
         for i in range(1, kwargs["n"]):
             res -= i * kwargs[f"a{i}"] / (x ** (i + 1))
         return res
+
+
+    @staticmethod
+    def guess_initial_values(x, y):
+        assert len(x) >= 4 and len(x) == len(y)
+        a0 = (y[-1] - y[-3]) / (x[-1] - x[-3])
+        a1 = -a0 * x[-1] + y[-1]
+        y2 = y - a0 * x - a1
+        a2 = y2[2] * x[2]
+        return [a0, a1, a2, 0]

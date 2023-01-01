@@ -132,8 +132,7 @@ class FitToRealCostObjective(Objective):
         }
 
     def get_value(self, x):
-        real_cost = Utility.fn(x, **self.sampler.function_parameters)
-        # real_cost = duration * x
+        real_cost = self.sampler.fitted_function(x, *self.sampler.function_parameters)
         knowledge = self._get_normalized_knowledge(x)
         return real_cost * knowledge
 
@@ -149,6 +148,3 @@ class FitToRealCostObjective(Objective):
         else:
             knowledge = self.knowledge_values[x]
         return 1.0 + knowledge
-        # min_ = np.min(knowledge)
-        # max_ = np.max(knowledge)
-        # return 1.0 + (knowledge - min_) / (max_ - min_)
