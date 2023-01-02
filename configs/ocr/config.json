@@ -1,7 +1,7 @@
 {
     "function_name": "ocr",
     "mem_bounds": [
-        1600,
+        256,
         3008
     ],
     "region": "us-east-1",
