@@ -50,14 +50,12 @@ class RecommendationEngine:
     def run(self):
         self.initial_sample()
         self.initial_max_min_ratio = self._get_max_min_ratio()
-        print(f"initial max min ratio: {self.initial_max_min_ratio}")
         while self.sampled_memories_count < TOTAL_SAMPLE_COUNT:
             x = self._choose_sample_point()
             self.sample(x)
             self.fitted_function, self.function_parameters = Utility.fit_function(
                 self.sampled_datapoints
             )
-            print(f"max min ratio is {self._get_max_min_ratio()}")
             if self._get_max_min_ratio() < self.initial_max_min_ratio * 2 / 3:
                 break
         return self.report()
