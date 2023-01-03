@@ -55,7 +55,6 @@ class Utility:
     @staticmethod
     def _guess_initial_values(x, y):
         assert len(x) >= 4 and len(x) == len(y)
-        breakpoint()
         a0 = np.max((y[-1] - y[-3]) / (x[-1] - x[-3]), 0)
         a1 = -a0 * x[-1] + y[-1]
         y2 = y - a0 * x - a1
