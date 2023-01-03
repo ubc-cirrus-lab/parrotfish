@@ -54,13 +54,17 @@ class Utility:
 
     @staticmethod
     def _guess_initial_values(x, y):
-        assert len(x) >= 4 and len(x) == len(y)
         mins = [0, -np.inf, 0, 0, -np.inf, -np.inf]
         maxs = [np.inf, np.inf, np.inf, np.inf, 0, 0]
-        a0 = np.clip((y[-1] - y[-3]) / (x[-1] - x[-3]), mins[0], maxs[0])
-        a1 = -a0 * x[-1] + y[-1]
+
+        x, unique_indice = np.unique(x, return_index=True)
+        y_indice = np.unique(unique_indice)
+        y = np.array([y[yi] for yi in y_indice])
+
+        a0 = np.clip((y[-1] - y[-2]) / (x[-1] - x[-2]), mins[0], maxs[0])
+        a1 = -a0 * x[-1] + x[-1]
         y2 = y - a0 * x - a1
-        a2 = np.clip(y2[2] * x[2], mins[2], maxs[2])
+        a2 = np.clip(y2[1] * x[1], mins[2], maxs[2])
         y3 = y2 - a2 / x
-        a3 = np.clip(y3[1] * x[1], mins[3], maxs[3])
+        a3 = np.clip(y3[0] * x[0], mins[3], maxs[3])
         return [a0, a1, a2, a3, 0, 0], (mins, maxs)
