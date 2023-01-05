@@ -193,6 +193,6 @@ class RecommendationEngine:
             v = mems * knowledge
             return v.max() / v.min()
         elif TERMINATION_LOGIC == "knowledge_max":
-            return v.max()
+            return knowledge.max()
         elif TERMINATION_LOGIC == "knowledge_min":
-            return v.min()
+            return knowledge.min()
