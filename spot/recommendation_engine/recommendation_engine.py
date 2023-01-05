@@ -38,7 +38,9 @@ class RecommendationEngine:
             self.objective = FitToRealCostObjective(self, self.memory_range)
 
         self.exploration_cost = 0
-        self.initial_max_min_ratio = None
+        self.initial_termination_value = None
+
+        assert TERMINATION_LOGIC in ["knowledge_of_optimal", "max_min_ratio", "knowledge_max", "knowledge_min"]
 
     def get_function(self):
         return self.fitted_function, self.function_parameters
@@ -49,15 +51,19 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.initial_max_min_ratio = self._get_max_min_ratio()
+        self.initial_termination_value = self._termination_value()
         while self.sampled_memories_count < TOTAL_SAMPLE_COUNT:
+            if TERMINATION_LOGIC == "max_min_ratio":
+                if self._termination_value() < TERMINATION_THRESHOLD * self.initial_termination_value:
+                    break
+            else:
+                if self._termination_value() > TERMINATION_THRESHOLD:
+                    break
             x = self._choose_sample_point()
             self.sample(x)
             self.fitted_function, self.function_parameters = Utility.fit_function(
                 self.sampled_datapoints
             )
-            if self._get_max_min_ratio() < self.initial_max_min_ratio * 2 / 3:
-                break
         return self.report()
 
     def report(self):
@@ -176,7 +182,17 @@ class RecommendationEngine:
         sampled_memories = set([datapoint.memory for datapoint in self.sampled_datapoints])
         return [x for x in memories if x not in sampled_memories]
 
-    def _get_max_min_ratio(self):
+    def _termination_value(self):
         mems = np.arange(self.memory_range[0], self.memory_range[1] + 1)
-        values = self.objective.get_value(mems)
-        return np.max(values) / np.min(values)
+        knowledge = self.objective.get_knowledge(mems)
+        if TERMINATION_LOGIC == "knowledge_of_optimal":
+            y = self.fitted_function(mems, *self.function_parameters)
+            idx = np.argmin(y)
+            return knowledge[idx]
+        elif TERMINATION_LOGIC == "max_min_ratio":
+            v = mems * knowledge
+            return v.max() / v.min()
+        elif TERMINATION_LOGIC == "knowledge_max":
+            return v.max()
+        elif TERMINATION_LOGIC == "knowledge_min":
+            return v.min()

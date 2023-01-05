@@ -46,6 +46,8 @@ if os.environ.get("SPOT_MODE") == "dev":
     INITIAL_SAMPLE_MEMORIES = list(
         map(int, os.environ.get("SPOT_INITIAL_SAMPLE_MEMORIES", "128,3008").split(","))
     )
+    TERMINATION_LOGIC = os.environ.get("SPOT_TERMINATION_LOGIC", "knowledge_of_optimal")
+    TERMINATION_THRESHOLD = float(os.environ.get("SPOT_TERMINATION_THRESHOLD", 2))
 
 else:
     ALPHA = 0
@@ -57,3 +59,5 @@ else:
     DYNAMIC_SAMPLING_INITIAL_STEP = 2
     OPTIMIZATION_OBJECTIVE = "normal"
     INITIAL_SAMPLE_MEMORIES = [128, 3008]
+    TERMINATION_LOGIC = "knowledge_of_optimal"
+    TERMINATION_THRESHOLD = 2

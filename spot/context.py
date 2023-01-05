@@ -34,6 +34,8 @@ class Context:
         self.final_df["Dynamic Sampling Initial Step"] = DYNAMIC_SAMPLING_INITIAL_STEP
         self.final_df["Optimization Objective"] = OPTIMIZATION_OBJECTIVE
         self.final_df["Initial Sample Memories"] = f"{INITIAL_SAMPLE_MEMORIES}"
+        self.final_df["Termination Logic"] = TERMINATION_LOGIC
+        self.final_df["Termination Threshold"] = TERMINATION_THRESHOLD
         if optimization_s:
             self.final_df["Time Elapsed in Seconds"] = optimization_s
 

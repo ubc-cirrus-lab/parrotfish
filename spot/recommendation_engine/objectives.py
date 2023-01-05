@@ -133,16 +133,16 @@ class FitToRealCostObjective(Objective):
 
     def get_value(self, x):
         real_cost = self.sampler.fitted_function(x, *self.sampler.function_parameters)
-        knowledge = self._get_normalized_knowledge(x)
+        knowledge = self.get_knowledge(x)
         return real_cost * knowledge
 
     def update_knowledge(self, x):
         for key in self.knowledge_values:
-            self.knowledge_values[key] += stats.norm.pdf(key, x, 200) / stats.norm.pdf(
-                x, x, 200
+            self.knowledge_values[key] += stats.norm.pdf(key, x, 300) / stats.norm.pdf(
+                x, x, 300
             )
 
-    def _get_normalized_knowledge(self, x):
+    def get_knowledge(self, x):
         if isinstance(x, np.ndarray):
             knowledge = np.array([self.knowledge_values[xs] for xs in x])
         else:
