@@ -38,9 +38,6 @@ class RecommendationEngine:
             self.objective = FitToRealCostObjective(self, self.memory_range)
 
         self.exploration_cost = 0
-        self.initial_termination_value = None
-
-        assert TERMINATION_LOGIC in ["knowledge_of_optimal", "max_min_ratio", "knowledge_max", "knowledge_min"]
 
     def get_function(self):
         return self.fitted_function, self.function_parameters
@@ -51,14 +48,7 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.initial_termination_value = self._termination_value()
-        while self.sampled_memories_count < TOTAL_SAMPLE_COUNT:
-            if TERMINATION_LOGIC == "max_min_ratio":
-                if self._termination_value() < TERMINATION_THRESHOLD * self.initial_termination_value:
-                    break
-            else:
-                if self._termination_value() > TERMINATION_THRESHOLD:
-                    break
+        while self.sampled_memories_count < TOTAL_SAMPLE_COUNT and self._termination_value() < TERMINATION_THRESHOLD:
             x = self._choose_sample_point()
             self.sample(x)
             self.fitted_function, self.function_parameters = Utility.fit_function(
@@ -185,14 +175,6 @@ class RecommendationEngine:
     def _termination_value(self):
         mems = np.arange(self.memory_range[0], self.memory_range[1] + 1)
         knowledge = self.objective.get_knowledge(mems)
-        if TERMINATION_LOGIC == "knowledge_of_optimal":
-            y = self.fitted_function(mems, *self.function_parameters)
-            idx = np.argmin(y)
-            return knowledge[idx]
-        elif TERMINATION_LOGIC == "max_min_ratio":
-            v = mems * knowledge
-            return v.max() / v.min()
-        elif TERMINATION_LOGIC == "knowledge_max":
-            return knowledge.max()
-        elif TERMINATION_LOGIC == "knowledge_min":
-            return knowledge.min()
+        y = self.fitted_function(mems, *self.function_parameters)
+        idx = np.argmin(y)
+        return knowledge[idx]
