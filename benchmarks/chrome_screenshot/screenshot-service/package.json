@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sparticuz/chromium": "^109.0.1",
     "chrome-aws-lambda": "^10.1.0"
   }
 }
