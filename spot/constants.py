@@ -26,10 +26,12 @@ DB_ID = "_id"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CTX_DIR = os.path.join(ROOT_DIR, "__context_cache__")
 
-IS_DYNAMIC_SAMPLING_ENABLED = True
+IS_DYNAMIC_SAMPLING_ENABLED = False
+MINIMUM_SAMPLING = True
 IS_MULTI_FUNCTION = True
+HANDLE_COLD_START = False
 
-LAMBDA_DURTION_COST = 0.0000166667
+LAMBDA_DURATION_COST = 0.0000166667
 LAMBDA_REQUEST_COST = 0.20 / 1000000
 
 if os.environ.get("SPOT_MODE") == "dev":
@@ -48,6 +50,7 @@ if os.environ.get("SPOT_MODE") == "dev":
     )
     TERMINATION_LOGIC = os.environ.get("SPOT_TERMINATION_LOGIC", "knowledge_of_optimal")
     TERMINATION_THRESHOLD = float(os.environ.get("SPOT_TERMINATION_THRESHOLD", 1.5))
+    CACHED_DATA_CSV_PATH = os.environ.get("SPOT_CACHED_DATA_CSV_PATH")
 
 else:
     ALPHA = 0
@@ -61,3 +64,4 @@ else:
     INITIAL_SAMPLE_MEMORIES = [128, 1024, 3008]
     TERMINATION_LOGIC = "knowledge_of_optimal"
     TERMINATION_THRESHOLD = 1.5
+    CACHED_DATA_CSV_PATH = None

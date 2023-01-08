@@ -1,5 +1,4 @@
-from lmfit import Model, Parameters
-from spot.constants import LAMBDA_DURTION_COST, LAMBDA_REQUEST_COST
+from spot.constants import LAMBDA_DURATION_COST, LAMBDA_REQUEST_COST
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -18,7 +17,7 @@ class Utility:
         allocated_memory = 0.0009765625 * memory  # convert MB to GB
         request_compute_time = np.ceil(duration) * 0.001  # convert ms to seconds
         total_compute = allocated_memory * request_compute_time
-        compute_charge = LAMBDA_DURTION_COST * total_compute
+        compute_charge = LAMBDA_DURATION_COST * total_compute
         return LAMBDA_REQUEST_COST + compute_charge
 
     @staticmethod

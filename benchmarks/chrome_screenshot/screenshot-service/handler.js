@@ -15,7 +15,6 @@ const capture = async (event) => {
   }
 
   const executablePath = await chromium.executablePath();
-  console.log(executablePath);
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
@@ -31,6 +30,7 @@ const capture = async (event) => {
   const title = await page.title();
   const screenshot = await page.screenshot({ encoding: "base64" });
   
+  console.log("Success: ", screenshot);
   return {
     statusCode: 200,
     body: `<img src="data:image/png;base64,${screenshot}">`,

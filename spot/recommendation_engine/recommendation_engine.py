@@ -1,11 +1,8 @@
-import os
-
 import numpy as np
 import pandas as pd
 
 from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
-
 from spot.constants import *
 
 
@@ -54,6 +51,8 @@ class RecommendationEngine:
             self.fitted_function, self.function_parameters = Utility.fit_function(
                 self.sampled_datapoints
             )
+            if MINIMUM_SAMPLING:
+                break
         return self.report()
 
     def report(self):
@@ -100,15 +99,16 @@ class RecommendationEngine:
 
         print(f"Sampling {x}")
         # Cold start
-        result = self.function_invocator.invoke(
-            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
-            parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
-            memory_mb=x,
-            payload_filename=self.payload_path,
-            save_to_ctx=False,
-        )
-        durations = result["Billed Duration"].to_numpy()
-        self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
+        if HANDLE_COLD_START:
+            result = self.function_invocator.invoke(
+                invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+                parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
+                memory_mb=x,
+                payload_filename=self.payload_path,
+                save_to_ctx=False,
+            )
+            durations = result["Billed Duration"].to_numpy()
+            self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
         result = self.function_invocator.invoke(
             invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
             parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
