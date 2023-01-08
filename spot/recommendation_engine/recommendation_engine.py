@@ -45,14 +45,19 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        while self.sampled_memories_count < TOTAL_SAMPLE_COUNT and self._termination_value() < TERMINATION_THRESHOLD:
+        if MINIMUM_SAMPLING:
             x = self._choose_sample_point()
             self.sample(x)
             self.fitted_function, self.function_parameters = Utility.fit_function(
                 self.sampled_datapoints
             )
-            if MINIMUM_SAMPLING:
-                break
+        else:
+            while self.sampled_memories_count < TOTAL_SAMPLE_COUNT and self._termination_value() < TERMINATION_THRESHOLD:
+                x = self._choose_sample_point()
+                self.sample(x)
+                self.fitted_function, self.function_parameters = Utility.fit_function(
+                    self.sampled_datapoints
+                )
         return self.report()
 
     def report(self):
