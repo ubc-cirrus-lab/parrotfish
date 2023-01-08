@@ -1,5 +1,6 @@
 import pandas as pd
 import pickle
+from filelock import FileLock
 
 from spot.constants import *
 
@@ -11,8 +12,14 @@ class Context:
         self.final_df = None
         if CACHED_DATA_CSV_PATH is None:
             self.cached_df = None
+            self.lock_path = None
+            self.additional_cache = None
         else:
-            self.cached_df = pd.read_csv(CACHED_DATA_CSV_PATH)
+            self.lock_path = CACHED_DATA_CSV_PATH + ".lock"
+            self.lock = FileLock(self.lock_path)
+            with self.lock:
+                self.cached_df = pd.read_csv(CACHED_DATA_CSV_PATH)
+                self.additional_cache = pd.DataFrame({key: [] for key in self.cached_df.keys()})
 
     def save_invocation_result(self, result_df):
         self.invocation_df = pd.concat([self.invocation_df, result_df])
@@ -21,11 +28,14 @@ class Context:
         self.final_df = final_df
 
     def record_cached_data(self, cached_df):
-        self.cached_df = pd.concat([self.cached_df, cached_df])
+        self.additional_cache = pd.concat([self.additional_cache, cached_df])
 
     def record_pricing(self, row):
         df = pd.DataFrame(row)
         self.pricing_df = pd.concat([self.pricing_df, df])
+
+    def cached_data(self):
+        return pd.concat([self.cached_df, self.additional_cache])
 
     def _save_supplementary_info(self, function_name: str, optimization_s):
         self.final_df["Benchmark Name"] = function_name
@@ -59,9 +69,12 @@ class Context:
 
     def save_context(self, fn_name, ctx_file, elapsed):
         if CACHED_DATA_CSV_PATH is not None:
-            cached_df = self.cached_df
-            cached_df.to_csv(CACHED_DATA_CSV_PATH)
+            df = self.cached_data()
+            with self.lock:
+                df.to_csv(CACHED_DATA_CSV_PATH, index=False)
             self.cached_df = None
+            self.lock = None
+            self.additional_cache = None
 
         with open(ctx_file, "wb") as f:
             self._save_supplementary_info(fn_name, elapsed)

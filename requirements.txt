@@ -8,3 +8,4 @@ sklearn
 numpy==1.23.4
 lmfit==1.0.3
 scipy==1.9.3
+filelock

@@ -83,7 +83,7 @@ class Spot:
         self.ctx.save_context(self.config.function_name, ctx_file, optimization_s)
 
     def _cached_duration(self, mem):
-        cached_data = self.ctx.cached_df
+        cached_data = self.ctx.cached_data()
         if cached_data is None:
             return None
         cached_function_data = cached_data[(cached_data["function_name"] == self.config.function_name) & (cached_data["memory"] == mem)]
