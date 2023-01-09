@@ -55,7 +55,7 @@ class Spot:
         if force:
             cached_duration = None
         else:
-            cached_duration = self._cached_duration(memory_mb)
+            cached_duration = self._cached_duration(memory_mb, count)
 
         if cached_duration is None:
             billed_duration = np.arange(count, dtype=np.double)
@@ -82,11 +82,11 @@ class Spot:
         )
         self.ctx.save_context(self.config.function_name, ctx_file, optimization_s)
 
-    def _cached_duration(self, mem):
+    def _cached_duration(self, mem, count):
         cached_data = self.ctx.cached_data()
         if cached_data is None:
             return None
         cached_function_data = cached_data[(cached_data["function_name"] == self.config.function_name) & (cached_data["memory"] == mem)]
-        if len(cached_function_data) < 10:
+        if len(cached_function_data) < count:
             return None
-        return cached_function_data["duration"].to_numpy()
+        return cached_function_data["duration"].to_numpy()[:count]

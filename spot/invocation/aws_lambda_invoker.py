@@ -1,4 +1,3 @@
-import json
 import base64
 import time
 
@@ -39,11 +38,19 @@ class AWSLambdaInvoker:
             # TODO: maybe support different payload across invocations?
             result = {key: [] for key in keys}
             for _ in range(count):
-                response = self.client.invoke(
-                    FunctionName=self.lambda_name,
-                    LogType="Tail",
-                    Payload=payload,
-                )
+                interval = 1
+                while True:
+                    try:
+                        response = self.client.invoke(
+                            FunctionName=self.lambda_name,
+                            LogType="Tail",
+                            Payload=payload,
+                        )
+                    except botocore.errorfactory.TooManyRequestsException:
+                        time.sleep(interval)
+                        interval *= 2
+                    else:
+                        break
                 log = str(base64.b64decode(response["LogResult"]))
                 parsed_log = parse_log(log, keys)
                 for key in keys:
@@ -115,7 +122,6 @@ class AWSLambdaInvoker:
             )
             if config["MemorySize"] == memory_mb:
                 return
-        raise LambdaMemoryConfigError
 
 
 class LambdaInvocationError(Exception):
