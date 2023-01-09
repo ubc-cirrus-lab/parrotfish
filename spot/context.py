@@ -50,7 +50,6 @@ class Context:
         self.final_df["Initial Sample Memories"] = f"{INITIAL_SAMPLE_MEMORIES}"
         self.final_df["Termination Logic"] = TERMINATION_LOGIC
         self.final_df["Termination Threshold"] = TERMINATION_THRESHOLD
-        self.final_df["minimum_sampling"] = MINIMUM_SAMPLING
         self.final_df["handle_cold_start"] = HANDLE_COLD_START
         self.final_df["dynamic_sampling_enabled"] = HANDLE_COLD_START
         self.final_df["version"] = VERSION

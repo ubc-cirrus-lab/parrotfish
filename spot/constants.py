@@ -27,7 +27,6 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 CTX_DIR = os.path.join(ROOT_DIR, "__context_cache__")
 
 IS_DYNAMIC_SAMPLING_ENABLED = False
-MINIMUM_SAMPLING = True
 IS_MULTI_FUNCTION = True
 HANDLE_COLD_START = False
 
