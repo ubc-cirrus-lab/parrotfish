@@ -46,7 +46,7 @@ class AWSLambdaInvoker:
                             LogType="Tail",
                             Payload=payload,
                         )
-                    except botocore.errorfactory.TooManyRequestsException:
+                    except:
                         time.sleep(interval)
                         interval *= 2
                     else:
