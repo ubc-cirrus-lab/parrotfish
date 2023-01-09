@@ -51,6 +51,7 @@ if os.environ.get("SPOT_MODE") == "dev":
     TERMINATION_LOGIC = os.environ.get("SPOT_TERMINATION_LOGIC", "knowledge_of_optimal")
     TERMINATION_THRESHOLD = float(os.environ.get("SPOT_TERMINATION_THRESHOLD", 1.5))
     CACHED_DATA_CSV_PATH = os.environ.get("SPOT_CACHED_DATA_CSV_PATH")
+    VERSION = os.environ.get("SPOT_VERSION", "0")
 
 else:
     ALPHA = 0
@@ -65,3 +66,4 @@ else:
     TERMINATION_LOGIC = "knowledge_of_optimal"
     TERMINATION_THRESHOLD = 1.5
     CACHED_DATA_CSV_PATH = None
+    VERSION = "0"

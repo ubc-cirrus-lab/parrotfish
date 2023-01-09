@@ -168,7 +168,10 @@ class RecommendationEngine:
 
     def _choose_sample_point(self):
         mems = np.array(self._remainder_memories(), dtype=np.double)
-        values = self.objective.get_value(mems)
+        if MINIMUM_SAMPLING:
+            values = self.fitted_function(mems, *self.function_parameters)
+        else:
+            values = self.objective.get_value(mems)
         index = np.argmin(values)
         return int(mems[index])
 

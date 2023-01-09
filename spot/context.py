@@ -53,6 +53,7 @@ class Context:
         self.final_df["minimum_sampling"] = MINIMUM_SAMPLING
         self.final_df["handle_cold_start"] = HANDLE_COLD_START
         self.final_df["dynamic_sampling_enabled"] = HANDLE_COLD_START
+        self.final_df["version"] = VERSION
         if optimization_s:
             self.final_df["Time Elapsed in Seconds"] = optimization_s
 
