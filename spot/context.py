@@ -70,7 +70,7 @@ class Context:
     def save_context(self, fn_name, ctx_file, elapsed):
         if CACHED_DATA_CSV_PATH is not None:
             with self.lock:
-                self.additional_cache.to_csv(CACHED_DATA_CSV_PATH, index=False, mode='a')
+                self.additional_cache.to_csv(CACHED_DATA_CSV_PATH, index=False, mode='a', header=False)
             self.cached_df = None
             self.lock = None
             self.additional_cache = None
