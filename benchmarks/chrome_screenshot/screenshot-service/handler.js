@@ -21,11 +21,15 @@ const capture = async (event) => {
     executablePath: executablePath,
     headless: chromium.headless,
     ignoreHTTPSErrors: true,
+    timeout: 0,
   });
 
   const page = await browser.newPage();
 
-  await page.goto(url);
+  await page.goto(url, {
+    waitUntil: "load",
+    timeout: 0,
+  });
 
   const title = await page.title();
   const screenshot = await page.screenshot({ encoding: "base64" });
