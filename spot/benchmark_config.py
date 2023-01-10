@@ -8,6 +8,7 @@ class BenchmarkConfig:
         self.region: str
         self.mem_size: int
         self.mem_bounds: list
+        self.nickname: str
 
         if f is not None:
             self.deserialize(f)
@@ -25,12 +26,14 @@ class BenchmarkConfig:
         region: str,
         mem_bounds: list,
         random_seed: int,
+        nickname: str,
     ):
         self.function_name = function_name
         self.vendor = vendor
         self.region = region
         self.mem_bounds = mem_bounds
         self.random_seed = random_seed
+        self.nickname = nickname
 
     def deserialize(self, f):
         try:

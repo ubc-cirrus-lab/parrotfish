@@ -64,6 +64,7 @@ class Spot:
                 billed_duration[i] = df["Billed Duration"][0]
             print("Real cost:", Utility.calculate_cost(billed_duration, memory_mb).mean())
         else:
+            print("cache hit!")
             result_df = pd.DataFrame({
                 "Duration": cached_duration, # TODO
                 "Max Memory Used": cached_duration, # TODO
@@ -86,7 +87,7 @@ class Spot:
         cached_data = self.ctx.cached_data()
         if cached_data is None:
             return None
-        cached_function_data = cached_data[(cached_data["function_name"] == self.config.function_name) & (cached_data["memory"] == mem)]
+        cached_function_data = cached_data[(cached_data["function_name"].str.contains(self.config.nickname)) & (cached_data["memory"] == mem)]
         if len(cached_function_data) < count:
             return None
         return cached_function_data["duration"].to_numpy()[:count]
