@@ -19,7 +19,7 @@ const capture = async (event) => {
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
     executablePath: executablePath,
-    headless: chromium.headless,
+    headless: true,
     ignoreHTTPSErrors: true,
     timeout: 0,
   });
