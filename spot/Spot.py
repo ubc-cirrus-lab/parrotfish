@@ -67,12 +67,14 @@ class Spot:
             )
         else:
             print("cache hit!")
-            result_df = pd.DataFrame({
-                "Duration": [cached_duration] * count, # TODO
-                "Max Memory Used": [cached_duration] * count, # TODO
-                "Billed Duration": [cached_duration] * count,
-                "Memory Size": [memory_mb] * count,
-            })
+            result_df = pd.DataFrame(
+                {
+                    "Duration": [cached_duration] * count,  # TODO
+                    "Max Memory Used": [cached_duration] * count,  # TODO
+                    "Billed Duration": [cached_duration] * count,
+                    "Memory Size": [memory_mb] * count,
+                }
+            )
             self.ctx.save_invocation_result(result_df)
             print(
                 "Real cost:", Utility.calculate_cost(cached_duration, memory_mb).mean()
