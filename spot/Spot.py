@@ -62,18 +62,23 @@ class Spot:
             for i in range(count):
                 df = self.recommendation_engine.invoke_once(memory_mb, is_warm=(i > 0))
                 billed_duration[i] = df["Billed Duration"][0]
-            print("Real cost:", Utility.calculate_cost(billed_duration, memory_mb).mean())
+            print(
+                "Real cost:", Utility.calculate_cost(billed_duration, memory_mb).mean()
+            )
         else:
             print("cache hit!")
-            result_df = pd.DataFrame({
-                "Duration": cached_duration, # TODO
-                "Max Memory Used": cached_duration, # TODO
-                "Billed Duration": cached_duration,
-                "Memory Size": [memory_mb] * len(cached_duration),
-            })
+            result_df = pd.DataFrame(
+                {
+                    "Duration": cached_duration,  # TODO
+                    "Max Memory Used": cached_duration,  # TODO
+                    "Billed Duration": cached_duration,
+                    "Memory Size": [memory_mb] * len(cached_duration),
+                }
+            )
             self.ctx.save_invocation_result(result_df)
-            print("Real cost:", Utility.calculate_cost(cached_duration, memory_mb).mean())
-
+            print(
+                "Real cost:", Utility.calculate_cost(cached_duration, memory_mb).mean()
+            )
 
     def teardown(self, optimization_s):
         # Just saving the Context for now.
@@ -87,7 +92,10 @@ class Spot:
         cached_data = self.ctx.cached_data()
         if cached_data is None:
             return None
-        cached_function_data = cached_data[(cached_data["function_name"].str.contains(self.config.nickname)) & (cached_data["memory"] == mem)]
+        cached_function_data = cached_data[
+            (cached_data["function_name"].str.contains(self.config.nickname))
+            & (cached_data["memory"] == mem)
+        ]
         if len(cached_function_data) < count:
             return None
         return cached_function_data["duration"].to_numpy()[:count]

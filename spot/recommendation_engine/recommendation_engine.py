@@ -45,7 +45,10 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        while self.sampled_memories_count < TOTAL_SAMPLE_COUNT and self._termination_value() < TERMINATION_THRESHOLD:
+        while (
+            self.sampled_memories_count < TOTAL_SAMPLE_COUNT
+            and self._termination_value() < TERMINATION_THRESHOLD
+        ):
             x = self._choose_sample_point()
             self.sample(x)
             self.fitted_function, self.function_parameters = Utility.fit_function(
@@ -89,10 +92,10 @@ class RecommendationEngine:
             _min = 1000
             _min_val = None
             for i in range(len(values) - 1):
-                cv = Utility.cv(values[i:i+2])
+                cv = Utility.cv(values[i : i + 2])
                 if _min > cv:
                     _min = cv
-                    _min_val = values[i:i+2]
+                    _min_val = values[i : i + 2]
             return _min, _min_val
 
         print(f"Sampling {x}")
@@ -167,7 +170,9 @@ class RecommendationEngine:
 
     def _remainder_memories(self):
         memories = range(self.memory_range[0], self.memory_range[1] + 1)
-        sampled_memories = set([datapoint.memory for datapoint in self.sampled_datapoints])
+        sampled_memories = set(
+            [datapoint.memory for datapoint in self.sampled_datapoints]
+        )
         return [x for x in memories if x not in sampled_memories]
 
     def _termination_value(self):

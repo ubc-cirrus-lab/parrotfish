@@ -19,7 +19,9 @@ class Context:
             self.lock = FileLock(self.lock_path)
             with self.lock:
                 self.cached_df = pd.read_csv(CACHED_DATA_CSV_PATH)
-                self.additional_cache = pd.DataFrame({key: [] for key in self.cached_df.keys()})
+                self.additional_cache = pd.DataFrame(
+                    {key: [] for key in self.cached_df.keys()}
+                )
 
     def save_invocation_result(self, result_df):
         self.invocation_df = pd.concat([self.invocation_df, result_df])
@@ -70,7 +72,9 @@ class Context:
     def save_context(self, fn_name, ctx_file, elapsed):
         if CACHED_DATA_CSV_PATH is not None:
             with self.lock:
-                self.additional_cache.to_csv(CACHED_DATA_CSV_PATH, index=False, mode='a', header=False)
+                self.additional_cache.to_csv(
+                    CACHED_DATA_CSV_PATH, index=False, mode="a", header=False
+                )
             self.cached_df = None
             self.lock = None
             self.additional_cache = None

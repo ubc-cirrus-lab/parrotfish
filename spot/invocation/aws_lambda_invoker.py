@@ -97,11 +97,13 @@ class AWSLambdaInvoker:
             self.ctx.save_invocation_result(result_df)
 
         durations = results["Billed Duration"]
-        cached_df = pd.DataFrame({
-            "duration": durations,
-            "function_name": [self.lambda_name] * len(durations),
-            "memory": [memory_mb] * len(durations),
-        })
+        cached_df = pd.DataFrame(
+            {
+                "duration": durations,
+                "function_name": [self.lambda_name] * len(durations),
+                "memory": [memory_mb] * len(durations),
+            }
+        )
         self.ctx.record_cached_data(cached_df)
         return result_df
 
