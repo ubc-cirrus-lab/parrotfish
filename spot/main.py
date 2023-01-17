@@ -21,7 +21,7 @@ def main():
         help="Return best memory configuration for lowest cost",
     )
     parser.add_argument(
-        "--fetch", "-f", action="store_true", help="Fetch log and config data from AWS"
+        "--force", "-f", action="store_true", help="Ignore the invokation cache"
     )
     parser.add_argument(
         "--invoke", "-i", type=int, help="The number of times you invoke the function"
@@ -58,13 +58,11 @@ def main():
         print(f"Optimization result: {mem} MB")
         args.memory_mb = int(mem)
         optimization_time = time.time() - start
-    if args.fetch:
-        spot.collect_data()
     if args.invoke:
         if not args.memory_mb:
             print("Please specify a memory value when invoking a function")
             exit(1)
-        spot.invoke(args.memory_mb, args.invoke)
+        spot.invoke(args.memory_mb, args.invoke, args.force)
 
     spot.teardown(optimization_time)
 

@@ -1,5 +1,5 @@
-import json
 import base64
+import sys
 import time
 
 import botocore
@@ -39,11 +39,22 @@ class AWSLambdaInvoker:
             # TODO: maybe support different payload across invocations?
             result = {key: [] for key in keys}
             for _ in range(count):
-                response = self.client.invoke(
-                    FunctionName=self.lambda_name,
-                    LogType="Tail",
-                    Payload=payload,
-                )
+                interval = 1
+                while True:
+                    try:
+                        response = self.client.invoke(
+                            FunctionName=self.lambda_name,
+                            LogType="Tail",
+                            Payload=payload,
+                        )
+                    except:
+                        print(
+                            "possible Too Many Request Error. Retrying", file=sys.stderr
+                        )
+                        time.sleep(interval)
+                        interval *= 2
+                    else:
+                        break
                 log = str(base64.b64decode(response["LogResult"]))
                 parsed_log = parse_log(log, keys)
                 for key in keys:
@@ -88,6 +99,16 @@ class AWSLambdaInvoker:
         result_df = pd.DataFrame.from_dict(results)
         if save_to_ctx:
             self.ctx.save_invocation_result(result_df)
+
+        durations = results["Billed Duration"]
+        cached_df = pd.DataFrame(
+            {
+                "duration": durations,
+                "function_name": [self.lambda_name] * len(durations),
+                "memory": [memory_mb] * len(durations),
+            }
+        )
+        self.ctx.record_cached_data(cached_df)
         return result_df
 
     def _check_and_set_memory_value(self, memory_mb):
@@ -107,7 +128,6 @@ class AWSLambdaInvoker:
             )
             if config["MemorySize"] == memory_mb:
                 return
-        raise LambdaMemoryConfigError
 
 
 class LambdaInvocationError(Exception):

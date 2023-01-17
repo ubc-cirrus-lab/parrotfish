@@ -1,5 +1,5 @@
 const puppeteer = require("puppeteer-core");
-const chrome = require("chrome-aws-lambda");
+const chromium = require("@sparticuz/chromium");
 
 const capture = async (event) => {
   const { queryStringParameters } = event;
@@ -14,20 +14,27 @@ const capture = async (event) => {
     return { statusCode: 400 };
   }
 
+  const executablePath = await chromium.executablePath();
   const browser = await puppeteer.launch({
-    executablePath: await chrome.executablePath,
-    args: chrome.args
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: executablePath,
+    headless: true,
+    ignoreHTTPSErrors: true,
+    timeout: 0,
   });
 
   const page = await browser.newPage();
-  await page.setViewport({
-    width: Number(width),
-    height: Number(height)
+
+  await page.goto(url, {
+    waitUntil: "load",
+    timeout: 0,
   });
 
-  await page.goto(url);
+  const title = await page.title();
   const screenshot = await page.screenshot({ encoding: "base64" });
-
+  
+  console.log("Success: ", screenshot);
   return {
     statusCode: 200,
     body: `<img src="data:image/png;base64,${screenshot}">`,

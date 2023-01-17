@@ -1,9 +1,6 @@
 {
     "function_name": "pyaes",
-    "mem_bounds": [
-        128,
-        3008
-    ],
+    "nickname": "aes",
     "region": "us-east-1",
     "random_seed": 100,
     "vendor": "AWS"

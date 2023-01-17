@@ -1,10 +1,10 @@
-service: screenshot-service
-frameworkVersion: '2'
+service: screenshot-service2
+frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs14.x
-  region: us-east-2
+  runtime: nodejs16.x
+  region: us-east-1
 
 functions:
   capture:

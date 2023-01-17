@@ -1,9 +1,10 @@
 {
     "function_name": "ocr",
     "mem_bounds": [
-        1600,
+        1024,
         3008
     ],
+    "nickname": "ocr",
     "region": "us-east-1",
     "random_seed": 100,
     "vendor": "AWS"

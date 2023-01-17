@@ -1,11 +1,8 @@
-import os
-
 import numpy as np
 import pandas as pd
 
 from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
-
 from spot.constants import *
 
 
@@ -20,21 +17,11 @@ class RecommendationEngine:
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
-        self.sampled_point_count = 0
         self.fitted_function = None
         self.function_parameters = {}
-        self.function_degree = 2
         self.memory_range = memory_range
         if OPTIMIZATION_OBJECTIVE == "normal":
             self.objective = NormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "skewnormal":
-            self.objective = SkewedNormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "dynamicnormal":
-            self.objective = DynamicNormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "dynamic_std1":
-            self.objective = DynamicSTDNormalObjective1(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "dynamic_std2":
-            self.objective = DynamicSTDNormalObjective2(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
             assert len(INITIAL_SAMPLE_MEMORIES) == 3
             self.objective = FitToRealCostObjective(self, self.memory_range)
@@ -50,29 +37,15 @@ class RecommendationEngine:
 
     def run(self):
         self.initial_sample()
-        self.sampled_point_count = 2
         while (
             self.sampled_memories_count < TOTAL_SAMPLE_COUNT
-            and self.objective.ratio > KNOWLEDGE_RATIO
+            and self._termination_value() < TERMINATION_THRESHOLD
         ):
             x = self._choose_sample_point()
             self.sample(x)
-            self.sampled_point_count += 1
-            self.function_degree = min(self.sampled_point_count, 4)
             self.fitted_function, self.function_parameters = Utility.fit_function(
-                self.sampled_datapoints, degree=self.function_degree
+                self.sampled_datapoints
             )
-
-            while (
-                Utility.check_function_validity(
-                    self.fitted_function, self.function_parameters, self.memory_range
-                )
-                is False
-            ):
-                self.function_degree -= 1
-                self.fitted_function, self.function_parameters = Utility.fit_function(
-                    self.sampled_datapoints, degree=self.function_degree
-                )
         return self.report()
 
     def report(self):
@@ -92,21 +65,32 @@ class RecommendationEngine:
             self.sample(x)
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
-            self.sampled_datapoints, degree=self.function_degree
+            self.sampled_datapoints
         )
 
     def sample(self, x):
+        def _closest_termination_cv_and_values(values):
+            _min = 1000
+            _min_val = None
+            for i in range(len(values) - 1):
+                cv = Utility.cv(values[i : i + 2])
+                if _min > cv:
+                    _min = cv
+                    _min_val = values[i : i + 2]
+            return _min, _min_val
+
         print(f"Sampling {x}")
         # Cold start
-        result = self.function_invocator.invoke(
-            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
-            parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
-            memory_mb=x,
-            payload_filename=self.payload_path,
-            save_to_ctx=False,
-        )
-        durations = result["Billed Duration"].to_numpy()
-        self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
+        if HANDLE_COLD_START:
+            result = self.function_invocator.invoke(
+                invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+                parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
+                memory_mb=x,
+                payload_filename=self.payload_path,
+                save_to_ctx=False,
+            )
+            durations = result["Billed Duration"].to_numpy()
+            self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
         result = self.function_invocator.invoke(
             invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
             parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
@@ -117,7 +101,7 @@ class RecommendationEngine:
         if IS_DYNAMIC_SAMPLING_ENABLED:
             while (
                 len(values) < DYNAMIC_SAMPLING_MAX
-                and Utility.cv(values) > TERMINATION_CV
+                and _closest_termination_cv_and_values(values)[0] > TERMINATION_CV
             ):
                 result = self.function_invocator.invoke(
                     invocation_count=1,
@@ -127,9 +111,9 @@ class RecommendationEngine:
                 )
                 values.append(result.iloc[0]["Billed Duration"])
 
-        if len(values) > 2:
-            values.sort()
-            selected_values = values[len(values) // 2 - 1 : len(values) // 2]
+        values.sort()
+        if len(values) > DYNAMIC_SAMPLING_INITIAL_STEP:
+            selected_values = _closest_termination_cv_and_values(values)[1]
         else:
             selected_values = values
 
@@ -170,5 +154,11 @@ class RecommendationEngine:
         sampled_memories = set(
             [datapoint.memory for datapoint in self.sampled_datapoints]
         )
-        remainder = [x for x in memories if x not in sampled_memories]
-        return remainder
+        return [x for x in memories if x not in sampled_memories]
+
+    def _termination_value(self):
+        mems = np.arange(self.memory_range[0], self.memory_range[1] + 1)
+        knowledge = self.objective.get_knowledge(mems)
+        y = self.fitted_function(mems, *self.function_parameters)
+        idx = np.argmin(y)
+        return knowledge[idx]
