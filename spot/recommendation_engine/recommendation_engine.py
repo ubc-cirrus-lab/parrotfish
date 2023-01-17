@@ -22,14 +22,6 @@ class RecommendationEngine:
         self.memory_range = memory_range
         if OPTIMIZATION_OBJECTIVE == "normal":
             self.objective = NormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "skewnormal":
-            self.objective = SkewedNormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "dynamicnormal":
-            self.objective = DynamicNormalObjective(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "dynamic_std1":
-            self.objective = DynamicSTDNormalObjective1(self, self.memory_range)
-        elif OPTIMIZATION_OBJECTIVE == "dynamic_std2":
-            self.objective = DynamicSTDNormalObjective2(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
             assert len(INITIAL_SAMPLE_MEMORIES) == 3
             self.objective = FitToRealCostObjective(self, self.memory_range)
@@ -57,17 +49,6 @@ class RecommendationEngine:
         return self.report()
 
     def report(self):
-        # import matplotlib.pyplot as plt
-        # plt.clf()
-        # fig, ax = plt.subplots()
-        # mems = np.arange(128, 3008, dtype=np.double)
-        # ax.plot(mems, self.fitted_function(mems, *self.function_parameters))
-        # x_mems = np.array([x.memory for x in self.sampled_datapoints])
-        # billed_time = np.array([x.billed_time for x in self.sampled_datapoints])
-        # ax.plot(x_mems, billed_time * x_mems, 'o')
-        # fig.tight_layout()
-        # plt.savefig("tmp.png")
-
         minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
             self.fitted_function, self.function_parameters, self.memory_range
         )

@@ -67,66 +67,9 @@ class NormalObjective(Objective):
             knowledge[k] /= sum
 
 
-class SkewedNormalObjective(NormalObjective):
-    def __init__(self, sampler, memory_range):
-        super().__init__(sampler, memory_range)
-
-    def get_normal_value(self, x, mean, std):
-        return (
-            self.ratio
-            * stats.skewnorm.pdf(x, (self.memory_range[1] - x) / 100, mean, std)
-            / stats.skewnorm.pdf(mean, (self.memory_range[1] - x) / 100, mean, std)
-        )
-
-
-class DynamicNormalObjective(NormalObjective):
-    def __init__(self, sampler, memory_range):
-        super().__init__(sampler, memory_range)
-
-    def get_normal_value(self, x, mean, std):
-        return (
-            self.ratio
-            * stats.norm.pdf(x, mean, mean / 5)
-            / stats.norm.pdf(mean, mean, mean / 5)
-        )
-
-
-class DynamicSTDNormalObjective1(NormalObjective):
-    def __init__(self, sampler, memory_range):
-        super().__init__(sampler, memory_range)
-
-    def get_normal_value(self, x, mean, std):
-        try:
-            std = -1 / Utility.fnp(x, **self.sampler.function_parameters) + 20
-        except KeyError:
-            std = mean / 5
-        return (
-            self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
-        )
-
-
-class DynamicSTDNormalObjective2(NormalObjective):
-    def __init__(self, sampler, memory_range):
-        super().__init__(sampler, memory_range)
-
-    def get_normal_value(self, x, mean, std):
-        try:
-            std = (
-                1
-                - Utility.fn(x, **self.sampler.function_parameters)
-                / Utility.fn(self.memory_range[0], **self.sampler.function_parameters)
-            ) * 300 + 20
-        except KeyError:
-            std = mean / 5
-        return (
-            self.ratio * stats.norm.pdf(x, mean, std) / stats.norm.pdf(mean, mean, std)
-        )
-
-
 class FitToRealCostObjective(Objective):
     def __init__(self, sampler, memory_range):
         super().__init__(sampler, memory_range)
-        self.ratio = 1
         self.knowledge_values = {
             x: 0 for x in range(self.memory_range[0], self.memory_range[1] + 1)
         }

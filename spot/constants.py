@@ -32,6 +32,7 @@ HANDLE_COLD_START = False
 
 LAMBDA_DURATION_COST = 0.0000166667
 LAMBDA_REQUEST_COST = 0.20 / 1000000
+DEFAULT_MEM_BOUNDS = [128, 3008]
 
 if os.environ.get("SPOT_MODE") == "dev":
     ALPHA = float(os.environ.get("SPOT_ALPHA", 0))

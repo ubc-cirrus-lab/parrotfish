@@ -1,4 +1,5 @@
 import base64
+import sys
 import time
 
 import botocore
@@ -47,6 +48,7 @@ class AWSLambdaInvoker:
                             Payload=payload,
                         )
                     except:
+                        print("possible Too Many Request Error. Retrying", file=sys.stderr)
                         time.sleep(interval)
                         interval *= 2
                     else:

@@ -1,4 +1,7 @@
 import json
+from typing import Optional
+
+from spot.constants import DEFAULT_MEM_BOUNDS
 
 
 class BenchmarkConfig:
@@ -24,14 +27,14 @@ class BenchmarkConfig:
         function_name: str,
         vendor: str,
         region: str,
-        mem_bounds: list,
         random_seed: int,
         nickname: str,
+        mem_bounds: Optional[list] = None,
     ):
         self.function_name = function_name
         self.vendor = vendor
         self.region = region
-        self.mem_bounds = mem_bounds
+        self.mem_bounds = DEFAULT_MEM_BOUNDS if mem_bounds is None else mem_bounds
         self.random_seed = random_seed
         self.nickname = nickname
 

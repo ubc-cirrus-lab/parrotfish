@@ -69,8 +69,8 @@ class Spot:
             print("cache hit!")
             result_df = pd.DataFrame(
                 {
-                    "Duration": [cached_duration] * count,  # TODO
-                    "Max Memory Used": [cached_duration] * count,  # TODO
+                    "Duration": [cached_duration] * count,  # TODO: fill in Duration instead of Billed Duration
+                    "Max Memory Used": [cached_duration] * count,  # TODO: fill in Max Memory Used instead of Billed Duration
                     "Billed Duration": [cached_duration] * count,
                     "Memory Size": [memory_mb] * count,
                 }
