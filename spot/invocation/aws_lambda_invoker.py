@@ -48,7 +48,9 @@ class AWSLambdaInvoker:
                             Payload=payload,
                         )
                     except:
-                        print("possible Too Many Request Error. Retrying", file=sys.stderr)
+                        print(
+                            "possible Too Many Request Error. Retrying", file=sys.stderr
+                        )
                         time.sleep(interval)
                         interval *= 2
                     else:
