@@ -67,6 +67,7 @@ class AWSLambdaInvoker:
         while True:
             results = {key: [] for key in keys}
             errors = []
+            enomem = False
             with ThreadPoolExecutor(max_workers=parallelism) as executor:
                 invocation_chunks = [invocation_count // parallelism] * parallelism
                 invocation_chunks[-1] += (
@@ -81,11 +82,16 @@ class AWSLambdaInvoker:
                     except LambdaTimeoutError:
                         errors.append("Lambda timed out")
                         continue
+                    except LambdaENOMEM:
+                        enomem = True
+                        break
                     except botocore.exceptions.ReadTimeoutError:
                         errors.append("Lambda timed out")
                         continue
                     for key in keys:
                         results[key].extend(res[key])
+            if enomem:
+                raise LambdaENOMEM
             if all([m == memory_mb for m in results["Memory Size"]]):
                 is_memory_config_ok = True
                 break
@@ -148,11 +154,19 @@ class LambdaTimeoutError(Exception):
     pass
 
 
+class LambdaENOMEM(Exception):
+    pass
+
+
 def parse_log(log, keys):
     res = {}
     # check for timeout
     if "Task timed out after" in log:
         raise LambdaTimeoutError
+
+    # check for ENOMEM
+    if "ENOMEM" in log and "errorType" in log:
+        raise LambdaENOMEM
 
     # check for errors
     m = re.match(r".*\[ERROR\] (?P<error>.*)END RequestId.*", log)
