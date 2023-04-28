@@ -78,7 +78,7 @@ class RecommendationEngine:
             if not enomem:
                 break
             update_sample_memories(sample_memories)
-            print('ENOMEM: trying with new memories', sample_memories)
+            print("ENOMEM: trying with new memories", sample_memories)
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints

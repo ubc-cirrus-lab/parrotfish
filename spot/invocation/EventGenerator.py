@@ -66,7 +66,7 @@ def GenericEventGenerator(workload):
     random_seed = workload["random_seed"]
     # logger_eg.info('random_seed: ' + str(random_seed))
 
-    for (instance, desc) in workload["instances"].items():
+    for instance, desc in workload["instances"].items():
         if "interarrivals_list" in desc.keys():
             instance_events = desc["interarrivals_list"]
             # logger_eg.info('Read the invocation time trace for ' + instance)
