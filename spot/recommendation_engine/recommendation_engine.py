@@ -4,6 +4,7 @@ import pandas as pd
 from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
 from spot.constants import *
+from spot.invocation.aws_lambda_invoker import LambdaENOMEM
 
 
 class DataPoint:
@@ -61,8 +62,30 @@ class RecommendationEngine:
 
     def initial_sample(self):
         # TODO: ensure initial memories are in the accepted memory range.
-        for x in INITIAL_SAMPLE_MEMORIES:
-            self.sample(x)
+        def update_sample_memories(mems):
+            mems[0] += 128
+            mems[1] = (mems[0] * 2 + mems[2]) // 3
+
+        sample_memories = INITIAL_SAMPLE_MEMORIES
+        sample_memories[0] = max(sample_memories[0], self.memory_range[0])
+        sample_memories[-1] = min(sample_memories[-1], self.memory_range[-1])
+        sample_memories[1] = (sample_memories[0] * 2 + sample_memories[-1]) // 3
+
+        while True:
+            enomem = False
+            for x in sample_memories:
+                try:
+                    self.sample(x)
+                except LambdaENOMEM:
+                    enomem = True
+                    break
+            if not enomem:
+                break
+            update_sample_memories(sample_memories)
+            print("ENOMEM: trying with new memories", sample_memories)
+
+        self.memory_range[0] = sample_memories[0]
+        self.memory_range[-1] = sample_memories[-1]
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints

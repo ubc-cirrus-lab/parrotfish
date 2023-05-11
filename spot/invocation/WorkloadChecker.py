@@ -40,7 +40,7 @@ def CheckWorkloadValidity(workload):
     # # 3 - Check if invocation scripts exists for all functions/applications in the workload
     application_set = set()
     distribution_set = set()
-    for (instance, specs) in workload["instances"].items():
+    for instance, specs in workload["instances"].items():
         application_set.add(specs["application"])
         try:
             distribution_set.add(specs["distribution"])
