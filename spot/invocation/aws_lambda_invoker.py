@@ -81,6 +81,7 @@ class AWSLambdaInvoker:
                         continue
                     except LambdaTimeoutError:
                         errors.append("Lambda timed out")
+                        enomem = True
                         continue
                     except LambdaENOMEM:
                         enomem = True

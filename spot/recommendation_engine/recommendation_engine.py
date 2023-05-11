@@ -67,6 +67,10 @@ class RecommendationEngine:
             mems[1] = (mems[0] * 2 + mems[2]) // 3
 
         sample_memories = INITIAL_SAMPLE_MEMORIES
+        sample_memories[0] = max(sample_memories[0], self.memory_range[0])
+        sample_memories[-1] = min(sample_memories[-1], self.memory_range[-1])
+        sample_memories[1] = (sample_memories[0] * 2 + sample_memories[-1]) // 3
+
         while True:
             enomem = False
             for x in sample_memories:
@@ -79,6 +83,9 @@ class RecommendationEngine:
                 break
             update_sample_memories(sample_memories)
             print("ENOMEM: trying with new memories", sample_memories)
+
+        self.memory_range[0] = sample_memories[0]
+        self.memory_range[-1] = sample_memories[-1]
 
         self.fitted_function, self.function_parameters = Utility.fit_function(
             self.sampled_datapoints
