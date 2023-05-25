@@ -4,3 +4,6 @@
 [submodule "benchmarks/ocr/lambda-OCRmyPDF"]
 	path = benchmarks/ocr/lambda-OCRmyPDF
 	url = https://github.com/chronograph-pe/lambda-OCRmyPDF.git
+[submodule "benchmarks/video-processing/video-processing"]
+	path = benchmarks/video-processing/video-processing
+	url = https://github.com/spcl/serverless-benchmarks.git

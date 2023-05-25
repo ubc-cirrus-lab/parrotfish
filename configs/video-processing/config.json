@@ -1,0 +1,11 @@
+{
+    "function_name": "video-processing",
+    "mem_bounds": [
+        512,
+        3008
+    ],
+    "nickname": "video-processing",
+    "region": "us-east-1",
+    "random_seed": 100,
+    "vendor": "AWS"
+}
