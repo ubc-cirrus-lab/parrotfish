@@ -2,5 +2,5 @@ This benchmark is taken from [https://github.com/spcl/serverless-benchmarks](htt
 After installing their tool, you can deploy the video-processing function by running this command:
 
 ```bash
-./sebs.py benchmark invoke 220.video-processing test --config config/example.json --deployment aws
+./sebs.py benchmark invoke 220.video_processing test --config config/example.json --deployment aws
 ```

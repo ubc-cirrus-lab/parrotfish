@@ -1,7 +1,7 @@
 {
     "instances": {
         "instance1": {
-            "application": "video-processing",
+            "application": "video_processing",
             "payload": "payload.json"
         }
     },
