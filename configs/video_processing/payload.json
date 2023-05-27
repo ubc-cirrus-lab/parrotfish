@@ -1,0 +1,11 @@
+{
+  "bucket": {
+    "input": "larmol-public",
+    "output": "larmol-public"
+  },
+  "object": {
+    "key": "IMG_2943.mov",
+    "op": "watermark",
+    "duration": 1
+  }
+}
