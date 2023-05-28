@@ -49,7 +49,7 @@ class Utility:
 
     @staticmethod
     def fn(x, a0, a1, a2):
-        return a0 * x + a1 * np.exp(-x/a2) * x
+        return a0 * x + a1 * np.exp(-x / a2) * x
 
     @staticmethod
     def fnp(x, **kwargs):
