@@ -1,0 +1,2 @@
+class LambdaTimeoutError(Exception):
+    pass

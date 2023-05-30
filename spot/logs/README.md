@@ -6,27 +6,32 @@ Logs for a particular function can be retrieved through the CLI tool using the â
 
 
 ### Example Log Output:
-```json
+```
 {
-        "_id" : ObjectId("61b3b35cb537d4c93cb3c8b7"),
-        "events" : [
-                {
-                        "timestamp" : NumberLong("1637821607905"),
-                        "message" : "START RequestId: 0fb4aad7-d79f-450a-ba14-be3a69f322ac Version: $LATEST\n",
-                        "ingestionTime" : NumberLong("1637821610412")
-                },
-                {
-                        "timestamp" : NumberLong("1637821607910"),
-                        "message" : "END RequestId: 0fb4aad7-d79f-450a-ba14-be3a69f322ac\n",
-                        "ingestionTime" : NumberLong("1637821610412")
-                },
-                {
-                        "timestamp" : NumberLong("1637821607910"),
-                        "message" : "REPORT RequestId: 0fb4aad7-d79f-450a-ba14-be3a69f322ac\tDuration: 1.26 ms\tBilled Duration: 2 ms\tMemory Size: 150 MB\tMax Memory Used: 39 MB\tInit Duration: 127.51 ms\t\n",
-                        "ingestionTime" : NumberLong("1637821610412")
-                }
-        ],
-        "nextForwardToken" : "f/36524642358648637365024290440755907809751973742718156802/s",
-        "nextBackwardToken" : "b/36524642358537133639031637325048229218388731935188254720/s"
+  "ResponseMetadata": {
+    "RequestId": "03d92713-a4b2-4b07-a07a-653087817262", 
+    "HTTPStatusCode": 200, 
+    "HTTPHeaders": {
+      "date": "Thu, 25 May 2023 21:46:52 GMT", 
+      "content-type": "application/json", 
+      "content-length": "508", 
+      "connection": "keep-alive", 
+      "x-amzn-requestid": "03d92713-a4b2-4b07-a07a-653087817262", 
+      "x-amzn-remapped-content-length": "0", 
+      "x-amz-executed-version": "$LATEST", 
+      "x-amz-log-result": "U1RBUlQgUmVxdWVzdElkOiAwM2Q5MjcxMy1hNGIyLTRiMDctYTA3YS02NTMwODc4MTcyNjIgVmVyc2lvbjogJExBVEVTVApFTkQgUmVxdWVzdElkOiAwM2Q5MjcxMy1hNGIyLTRiMDctYTA3YS02NTMwODc4MTcyNjIKUkVQT1JUIFJlcXVlc3RJZDogMDNkOTI3MTMtYTRiMi00YjA3LWEwN2EtNjUzMDg3ODE3MjYyCUR1cmF0aW9uOiAxODE3OS44NCBtcwlCaWxsZWQgRHVyYXRpb246IDE4MTgwIG1zCU1lbW9yeSBTaXplOiA1MTIgTUIJTWF4IE1lbW9yeSBVc2VkOiA1MDYgTUIJCg==", 
+      "x-amzn-trace-id": "root=1-646fd739-681416254b94dc0e0cb32d4f;sampled=0;lineage=cd888fb0:0"
+    }, 
+    "RetryAttempts": 0
+  }, 
+  "StatusCode": 200, 
+  "LogResult": "U1RBUlQgUmVxdWVzdElkOiAwM2Q5MjcxMy1hNGIyLTRiMDctYTA3YS02NTMwODc4MTcyNjIgVmVyc2lvbjogJExBVEVTVApFTkQgUmVxdWVzdElkOiAwM2Q5MjcxMy1hNGIyLTRiMDctYTA3YS02NTMwODc4MTcyNjIKUkVQT1JUIFJlcXVlc3RJZDogMDNkOTI3MTMtYTRiMi00YjA3LWEwN2EtNjUzMDg3ODE3MjYyCUR1cmF0aW9uOiAxODE3OS44NCBtcwlCaWxsZWQgRHVyYXRpb246IDE4MTgwIG1zCU1lbW9yeSBTaXplOiA1MTIgTUIJTWF4IE1lbW9yeSBVc2VkOiA1MDYgTUIJCg==", 
+  "ExecutedVersion": "$LATEST", 
+  "Payload": <botocore.response.StreamingBody object at 0x11f4835e0>
 }
+```
+
+### Example of logs we are parsing
+```
+"b'START RequestId: 03d92713-a4b2-4b07-a07a-653087817262 Version: $LATEST\\nEND RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\nREPORT RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\tDuration: 18179.84 ms\\tBilled Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 506 MB\\t\\n'"
 ```

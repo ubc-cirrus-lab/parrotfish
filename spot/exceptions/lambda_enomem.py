@@ -1,0 +1,2 @@
+class LambdaENOMEM(Exception):
+    pass

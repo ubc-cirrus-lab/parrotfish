@@ -5,7 +5,7 @@ import pandas as pd
 
 from spot.context import Context
 
-
+# Arshia said this not used anymore!
 class AWSLogRetriever:
     def __init__(self, ctx: Context, aws_session, function_name, max_log_count=None):
         self.function_name = function_name
@@ -57,7 +57,7 @@ class AWSLogRetriever:
                 break
 
         logs = self._parse_logs(response)
-        ctx.save_logs(logs)
+        # self.ctx.save_logs(logs)
         return int(time.time() * 1000)
 
     def _parse_logs(self, response):
