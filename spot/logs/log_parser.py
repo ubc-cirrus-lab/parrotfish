@@ -7,6 +7,7 @@ class LogParser(ABC):
     This class provides a basic interface to parse logs returned once we invoke a serverless function.
     This class is to be implemented for every cloud provider.
     """
+
     def __int__(self):
         pass
 

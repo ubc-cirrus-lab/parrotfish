@@ -12,6 +12,7 @@ class FunctionInvoker(ABC):
     This class provides an interface to invoke a given serverless function.
     This class is to be implemented for every cloud provider.
     """
+
     def __init__(self, function_name: str, log_keys: list, client, context: Context):
         self.function_name = function_name
         self.log_keys = log_keys
@@ -19,12 +20,12 @@ class FunctionInvoker(ABC):
         self.context = context
 
     def invoke(
-            self,
-            invocation_count: int,
-            nbr_threads: int,
-            memory_mb: float,
-            payload_file_path: str,
-            save_to_ctx: bool = True,
+        self,
+        invocation_count: int,
+        nbr_threads: int,
+        memory_mb: float,
+        payload_file_path: str,
+        save_to_ctx: bool = True,
     ) -> pd.DataFrame:
         """Invokes the specified serverless function multiple times with a given memory config and payload and returning
         a pandas DataFrame representing the execution logs.
@@ -54,13 +55,17 @@ class FunctionInvoker(ABC):
             # and it is a list of the number of invocation for each thread, last item in the list is the remainder
             invocation_chunks = [invocation_count // nbr_threads] * nbr_threads
             invocation_chunks[-1] += (
-                    invocation_count - invocation_count // nbr_threads * nbr_threads
+                invocation_count - invocation_count // nbr_threads * nbr_threads
             )
 
             with ThreadPoolExecutor(max_workers=nbr_threads) as executor:
                 try:
-                    futures = [executor.submit(self.invoke_sequential, count=chunk, payload=payload)
-                               for chunk in invocation_chunks]
+                    futures = [
+                        executor.submit(
+                            self.invoke_sequential, count=chunk, payload=payload
+                        )
+                        for chunk in invocation_chunks
+                    ]
                 except SingleInvocationError as e:
                     errors.append(e.msg)
                     continue
@@ -79,7 +84,7 @@ class FunctionInvoker(ABC):
                     for key in self.log_keys:
                         results[key].extend(res[key])
 
-            print(f'The results: {results}')
+            print(f"The results: {results}")
             if enomem:
                 raise LambdaENOMEM
             if all([m == memory_mb for m in results["Memory Size"]]):

@@ -8,6 +8,7 @@ class AWSLogParser(LogParser):
 
     This class provides parsing operations on the log retrieved after invoking the lambda function.
     """
+
     def __int__(self):
         pass
 

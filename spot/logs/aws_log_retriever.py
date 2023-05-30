@@ -5,6 +5,7 @@ import pandas as pd
 
 from spot.context import Context
 
+
 # Arshia said this not used anymore!
 class AWSLogRetriever:
     def __init__(self, ctx: Context, aws_session, function_name, max_log_count=None):

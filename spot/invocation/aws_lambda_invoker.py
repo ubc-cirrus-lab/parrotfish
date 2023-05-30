@@ -13,10 +13,12 @@ class AWSLambdaInvoker(FunctionInvoker):
     """
 
     def __init__(self, ctx: Context, aws_session, lambda_name: str):
-        super().__init__(lambda_name,
-                         log_keys=["Duration", "Billed Duration", "Max Memory Used", "Memory Size"],
-                         client=aws_session.client("lambda"),
-                         context=ctx)
+        super().__init__(
+            lambda_name,
+            log_keys=["Duration", "Billed Duration", "Max Memory Used", "Memory Size"],
+            client=aws_session.client("lambda"),
+            context=ctx,
+        )
 
     def invoke_sequential(self, count: int, payload: str):
         """For a fixed configuration invoking the lambda function multiple times and returning a dictionary with keys
@@ -49,9 +51,7 @@ class AWSLambdaInvoker(FunctionInvoker):
                     # AWS has limitation on the number of requests to invoke the function. We sleep for an amount
                     # of time to mitigate this problem. We loop an infinite of time and
                     # when no exception is raised we break.
-                    print(
-                        "possible Too Many Request Error. Retrying", file=sys.stderr
-                    )
+                    print("possible Too Many Request Error. Retrying", file=sys.stderr)
                     time.sleep(interval)
                     interval *= 2
                 else:
