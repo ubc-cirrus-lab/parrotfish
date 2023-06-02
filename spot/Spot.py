@@ -37,7 +37,7 @@ class Spot:
             self.ctx, aws_session, self.config.function_name
         )
         self.recommendation_engine = RecommendationEngine(
-            function_invoker, self.payload_file_path, self.config.mem_bounds
+            function_invoker, self.payload_file_path, self.config.mem_bounds, self.config.execution_time_threshold
         )
         self.benchmark_name = os.path.basename(config_dir)
 

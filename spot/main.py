@@ -21,7 +21,7 @@ def main():
         help="Return best memory configuration for lowest cost",
     )
     parser.add_argument(
-        "--force", "-f", action="store_true", help="Ignore the invokation cache"
+        "--force", "-f", action="store_true", help="Ignore the invocation cache"
     )
     parser.add_argument(
         "--invoke", "-i", type=int, help="The number of times you invoke the function"
@@ -44,9 +44,7 @@ def main():
 
     path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
     if not os.path.isdir(path):
-        print(
-            f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
-        )
+        print(f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive")
         exit(1)
 
     start = time.time()

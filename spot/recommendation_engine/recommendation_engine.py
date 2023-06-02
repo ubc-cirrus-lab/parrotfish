@@ -1,6 +1,9 @@
+import sys
+
 import numpy as np
 import pandas as pd
 
+from spot.exceptions import NoMemoryLeft
 from spot.recommendation_engine.objectives import *
 from spot.recommendation_engine.utility import Utility
 from spot.constants import *
@@ -14,13 +17,14 @@ class DataPoint:
 
 
 class RecommendationEngine:
-    def __init__(self, invocator, payload_path, memory_range):
+    def __init__(self, invocator, payload_path, memory_range, execution_time_threshold: float = None):
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
         self.fitted_function = None
         self.function_parameters = {}
         self.memory_range = memory_range
+        self.execution_time_threshold = execution_time_threshold
         if OPTIMIZATION_OBJECTIVE == "normal":
             self.objective = NormalObjective(self, self.memory_range)
         elif OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
@@ -50,15 +54,20 @@ class RecommendationEngine:
         return self.report()
 
     def report(self):
-        minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
-            self.fitted_function, self.function_parameters, self.memory_range
-        )
-        result = {
-            "Minimum Cost Memory": [minimum_memory],
-            "Expected Cost": [minimum_cost],
-            "Exploration Cost": [self.exploration_cost],
-        }
-        return pd.DataFrame.from_dict(result)
+        try:
+            minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
+                self.fitted_function, self.function_parameters, self.memory_range, self.execution_time_threshold
+            )
+            result = {
+                "Minimum Cost Memory": [minimum_memory],
+                "Expected Cost": [minimum_cost],
+                "Exploration Cost": [self.exploration_cost],
+            }
+            return pd.DataFrame.from_dict(result)
+
+        except NoMemoryLeft:
+            print("No memory configuration is possible. The execution time threshold is too low!", file=sys.stderr)
+            exit(1)
 
     def initial_sample(self):
         # TODO: ensure initial memories are in the accepted memory range.

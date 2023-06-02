@@ -2,12 +2,25 @@ from spot.constants import LAMBDA_DURATION_COST, LAMBDA_REQUEST_COST
 import numpy as np
 from scipy.optimize import curve_fit
 
+from spot.exceptions.NoMemoryLeft import NoMemoryLeft
+
 
 class Utility:
     @staticmethod
-    def find_minimum_memory_cost(f, params, memory_range):
+    def find_minimum_memory_cost(f, params, memory_range, execution_time_threshold: float = None):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
         costs = f(mems, *params)
+
+        # Handling execution threshold
+        if execution_time_threshold is not None:
+            execution_times = costs / mems
+            for i in range(len(execution_times)):
+                if execution_times[i] > execution_time_threshold:
+                    mems = np.delete(mems, i)
+                    costs = np.delete(costs, i)
+            if len(mems) == 0:
+                raise NoMemoryLeft()
+
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
 
