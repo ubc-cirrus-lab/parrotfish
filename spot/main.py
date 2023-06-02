@@ -44,7 +44,9 @@ def main():
 
     path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
     if not os.path.isdir(path):
-        print(f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive")
+        print(
+            f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
+        )
         exit(1)
 
     start = time.time()
