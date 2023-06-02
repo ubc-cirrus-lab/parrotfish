@@ -17,7 +17,13 @@ class DataPoint:
 
 
 class RecommendationEngine:
-    def __init__(self, invocator, payload_path, memory_range, execution_time_threshold: float = None):
+    def __init__(
+        self,
+        invocator,
+        payload_path,
+        memory_range,
+        execution_time_threshold: float = None,
+    ):
         self.payload_path = payload_path
         self.function_invocator = invocator
         self.sampled_datapoints = []
@@ -56,7 +62,10 @@ class RecommendationEngine:
     def report(self):
         try:
             minimum_memory, minimum_cost = Utility.find_minimum_memory_cost(
-                self.fitted_function, self.function_parameters, self.memory_range, self.execution_time_threshold
+                self.fitted_function,
+                self.function_parameters,
+                self.memory_range,
+                self.execution_time_threshold,
             )
             result = {
                 "Minimum Cost Memory": [minimum_memory],
@@ -66,7 +75,10 @@ class RecommendationEngine:
             return pd.DataFrame.from_dict(result)
 
         except NoMemoryLeft:
-            print("No memory configuration is possible. The execution time threshold is too low!", file=sys.stderr)
+            print(
+                "No memory configuration is possible. The execution time threshold is too low!",
+                file=sys.stderr,
+            )
             exit(1)
 
     def initial_sample(self):

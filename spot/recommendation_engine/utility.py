@@ -7,7 +7,9 @@ from spot.exceptions.NoMemoryLeft import NoMemoryLeft
 
 class Utility:
     @staticmethod
-    def find_minimum_memory_cost(f, params, memory_range, execution_time_threshold: float = None):
+    def find_minimum_memory_cost(
+        f, params, memory_range, execution_time_threshold: float = None
+    ):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
         costs = f(mems, *params)
 
