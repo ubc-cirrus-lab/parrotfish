@@ -21,7 +21,7 @@ def main():
         help="Return best memory configuration for lowest cost",
     )
     parser.add_argument(
-        "--force", "-f", action="store_true", help="Ignore the invokation cache"
+        "--force", "-f", action="store_true", help="Ignore the invocation cache"
     )
     parser.add_argument(
         "--invoke", "-i", type=int, help="The number of times you invoke the function"

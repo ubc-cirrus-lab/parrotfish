@@ -2,7 +2,7 @@ import base64
 import sys
 import time
 
-import botocore
+import botocore.exceptions
 import re
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor

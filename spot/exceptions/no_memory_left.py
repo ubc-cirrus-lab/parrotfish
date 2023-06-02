@@ -1,0 +1,2 @@
+class NoMemoryLeft(Exception):
+    pass
