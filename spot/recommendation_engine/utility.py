@@ -54,7 +54,7 @@ class Utility:
         mems = np.array([x.memory for x in datapoints], dtype=np.double)
         billed_time = np.array([x.billed_time for x in datapoints], dtype=np.double)
         real_cost = mems * billed_time
-        initial_values = [10, 10, 10]
+        initial_values = [1000, 10000, 100]
         bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
         popt = curve_fit(
             Utility.fn,
