@@ -12,6 +12,7 @@ class BenchmarkConfig:
         self.mem_size: int
         self.mem_bounds: list
         self.nickname: str
+        self.execution_time_threshold: float
 
         if f is not None:
             self.deserialize(f)
@@ -29,6 +30,7 @@ class BenchmarkConfig:
         region: str,
         random_seed: int,
         nickname: str,
+        execution_time_threshold: float = None,
         mem_bounds: Optional[list] = None,
     ):
         self.function_name = function_name
@@ -37,6 +39,7 @@ class BenchmarkConfig:
         self.mem_bounds = DEFAULT_MEM_BOUNDS if mem_bounds is None else mem_bounds
         self.random_seed = random_seed
         self.nickname = nickname
+        self.execution_time_threshold = execution_time_threshold
 
     def deserialize(self, f):
         try:

@@ -2,12 +2,31 @@ from spot.constants import LAMBDA_DURATION_COST, LAMBDA_REQUEST_COST
 import numpy as np
 from scipy.optimize import curve_fit
 
+from spot.exceptions.no_memory_left import NoMemoryLeft
+
 
 class Utility:
     @staticmethod
-    def find_minimum_memory_cost(f, params, memory_range):
+    def find_minimum_memory_cost(
+        f, params, memory_range, execution_time_threshold: float = None
+    ):
         mems = np.arange(memory_range[0], memory_range[1] + 1, dtype=np.double)
         costs = f(mems, *params)
+
+        # Handling execution threshold
+        if execution_time_threshold is not None:
+            filtered_mems = np.array([])
+            filtered_costs = np.array([])
+            execution_times = costs / mems
+            for i in range(len(execution_times)):
+                if execution_times[i] <= execution_time_threshold:
+                    filtered_mems = np.append(filtered_mems, mems[i])
+                    filtered_costs = np.append(filtered_costs, costs[i])
+            mems = filtered_mems
+            costs = filtered_costs
+            if len(mems) == 0:
+                raise NoMemoryLeft()
+
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
 
@@ -35,7 +54,8 @@ class Utility:
         mems = np.array([x.memory for x in datapoints], dtype=np.double)
         billed_time = np.array([x.billed_time for x in datapoints], dtype=np.double)
         real_cost = mems * billed_time
-        initial_values, bounds = Utility._guess_initial_values(mems, real_cost)
+        initial_values = [1000, 10000, 100]
+        bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
         popt = curve_fit(
             Utility.fn,
             mems,
@@ -47,8 +67,8 @@ class Utility:
         return Utility.fn, popt
 
     @staticmethod
-    def fn(x, a0, a1, a2, a3, b0, b1):
-        return a0 * x + a1 + a2 / (x - b0) + a3 / (x - b1) ** 2
+    def fn(x, a0, a1, a2):
+        return a0 * x + a1 * np.exp(-x / a2) * x
 
     @staticmethod
     def fnp(x, **kwargs):
@@ -56,20 +76,3 @@ class Utility:
         for i in range(1, kwargs["n"]):
             res -= i * kwargs[f"a{i}"] / (x ** (i + 1))
         return res
-
-    @staticmethod
-    def _guess_initial_values(x, y):
-        mins = [0, -np.inf, 0, 0, -np.inf, -np.inf]
-        maxs = [np.inf, np.inf, np.inf, np.inf, 0, 0]
-
-        x, unique_indice = np.unique(x, return_index=True)
-        y_indice = np.unique(unique_indice)
-        y = np.array([y[yi] for yi in y_indice])
-
-        a0 = np.clip((y[-1] - y[-2]) / (x[-1] - x[-2]), mins[0], maxs[0])
-        a1 = -a0 * x[-1] + x[-1]
-        y2 = y - a0 * x - a1
-        a2 = np.clip(y2[1] * x[1], mins[2], maxs[2])
-        y3 = y2 - a2 / x
-        a3 = np.clip(y3[0] * x[0], mins[3], maxs[3])
-        return [a0, a1, a2, a3, 0, 0], (mins, maxs)
