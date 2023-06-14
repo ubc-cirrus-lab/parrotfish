@@ -1,4 +1,4 @@
-from spot.logs import *
+from spot.invocation.logs_parsing import *
 from spot.exceptions import *
 import unittest
 

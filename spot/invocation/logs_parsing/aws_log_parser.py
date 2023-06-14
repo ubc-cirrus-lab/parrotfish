@@ -9,16 +9,15 @@ class AWSLogParser(LogParser):
     This class provides parsing operations on the log retrieved after invoking the lambda function.
     """
 
-    def __int__(self):
-        pass
+    def __init__(self):
+        super().__init__(["Duration", "Billed Duration", "Max Memory Used", "Memory Size"])
 
-    def parse_log(self, log: str, keys: list) -> dict:
-        """Parsing the logs retrieved once we invoke the lambda function.
+    def parse_log(self, log: str) -> dict:
+        """Parsing the logs_parsing retrieved once we invoke the lambda function.
 
         This method checks for timeout, ENOMEM and other errors from the log and if found raises appropriate exceptions.
         Args:
             log: the log string to parse.
-            keys: a list of all the keywords we want to parse from the log.
         """
 
         # check for timeout
@@ -34,9 +33,9 @@ class AWSLogParser(LogParser):
         if m is not None:
             raise SingleInvocationError(m["error"])
 
-        # check for keys
+        # parse the log keys and prepare result.
         res = {}
-        for key in keys:
+        for key in self.log_parsing_keys:
             m = re.match(rf".*\\t{key}: (?P<value>[0-9.]+) (ms|MB).*", log)
             res[key] = float(m["value"])
         return res

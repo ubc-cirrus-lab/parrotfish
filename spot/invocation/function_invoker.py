@@ -1,97 +1,74 @@
 from abc import ABC, abstractmethod
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import botocore.exceptions
 from ..exceptions import *
+from spot.invocation.logs_parsing import *
 from ..context import Context
 
 
 class FunctionInvoker(ABC):
     """This is an abstract class to invoke serverless functions.
 
-    This class provides an interface to invoke a given serverless function.
+    This class provides the operation of serverless function's invocation.
     This class is to be implemented for every cloud provider.
     """
 
-    def __init__(self, function_name: str, log_keys: list, client, context: Context):
+    def __init__(self, function_name: str, log_parser: LogParser, context: Context):
         self.function_name = function_name
-        self.log_keys = log_keys
-        self.client = client
+        self.log_parser = log_parser
         self.context = context
 
     def invoke(
         self,
-        invocation_count: int,
+        nbr_invocations: int,
         nbr_threads: int,
-        memory_mb: float,
-        payload_file_path: str,
+        memory_mb: int,
+        payload: str,
         save_to_ctx: bool = True,
     ) -> pd.DataFrame:
         """Invokes the specified serverless function multiple times with a given memory config and payload and returning
-        a pandas DataFrame representing the execution logs.
+        a pandas DataFrame representing the execution logs_parsing.
 
         Args:
-            invocation_count: The number of invocations for a given memory value.
+            nbr_invocations: The number of invocations with a given memory configuration.
             nbr_threads: The number of threads to invoke the serverless function.
-            memory_mb: The size of the memory in MB.
-            payload_file_path: The path to the payload file.
+            memory_mb: The memory size in MB.
+            payload: The payload to invoke the function with.
             save_to_ctx: save the result to context or not.
-        Some exceptions could be raised while invoking the serverless function.
+
+        Raises:
+            LambdaENOMEM: If not enough memory is configured.
+            LambdaMemoryConfigError: If configuring the lambda function fails.
+            LambdaInvocationError: If an error is occurred while invoking the lambda function.
+
+        Returns:
+            pd.DataFrame: A pandas DataFrame representing the parsed execution logs_parsing.
         """
 
-        with open(payload_file_path) as f:
-            payload = f.read()
-
-        # check if the actual memory value is equal to memory_mb, otherwise sets it
+        # Check if the actual memory value is equal to memory_mb, otherwise sets it.
         self.check_and_set_memory_value(memory_mb)
         is_memory_config_ok = False
 
         while True:
-            results = {key: [] for key in self.log_keys}
+            # Initializing invocation returned values.
+            results = {key: [] for key in self.log_parser.log_parsing_keys}
             errors = []
-            enomem = False
-
-            # invocation chunks is the number of invocation that must be considered for a given mem value,
-            # and it is a list of the number of invocation for each thread, last item in the list is the remainder
-            invocation_chunks = [invocation_count // nbr_threads] * nbr_threads
-            invocation_chunks[-1] += (
-                invocation_count - invocation_count // nbr_threads * nbr_threads
-            )
 
             with ThreadPoolExecutor(max_workers=nbr_threads) as executor:
-                try:
-                    futures = [
-                        executor.submit(
-                            self.invoke_sequential, count=chunk, payload=payload
-                        )
-                        for chunk in invocation_chunks
-                    ]
-                except SingleInvocationError as e:
-                    errors.append(e.msg)
-                    continue
-                except LambdaTimeoutError:
-                    errors.append("Lambda timed out")
-                    enomem = True
-                    continue
-                except LambdaENOMEM:
-                    enomem = True
-                    break
-                except botocore.exceptions.ReadTimeoutError:
-                    errors.append("Lambda timed out")
-                    continue
+                # Submit invocation jobs to each thread.
+                futures = [executor.submit(self.execute_and_parse_logs, payload=payload)
+                           for _ in range(nbr_invocations)]
+
+                # Aggregate results from all threads.
                 for future in as_completed(futures):
-                    res = future.result()
-                    for key in self.log_keys:
+                    res, errors = future.result()
+                    for key in self.log_parser.log_parsing_keys:
                         results[key].extend(res[key])
 
-            print(f"The results: {results}")
-            if enomem:
-                raise LambdaENOMEM
             if all([m == memory_mb for m in results["Memory Size"]]):
                 is_memory_config_ok = True
                 break
 
-        # Ashia said this not to be used anymore
         if not is_memory_config_ok:
             raise LambdaMemoryConfigError
 
@@ -114,9 +91,23 @@ class FunctionInvoker(ABC):
         return result_df
 
     @abstractmethod
-    def check_and_set_memory_value(self, memory_mb):
+    def check_and_set_memory_value(self, memory_mb: int):
+        """Abstract method for checking and setting the memory value.
+
+        Args:
+            memory_mb (int): The memory size in MB.
+        """
         pass
 
     @abstractmethod
-    def invoke_sequential(self, count: int, payload: str):
+    def execute_and_parse_logs(self, payload: str) -> str:
+        """Abstract method for sequentially invoking the serverless function.
+
+        Args:
+            payload (str): The payload to invoke the function with.
+
+        Returns:
+            tuple: A tuple containing the invocation results, an indication of whether a LambdaENOMEM occurred,
+                and a list of errors.
+        """
         pass

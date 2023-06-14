@@ -3,11 +3,10 @@ import sys
 import numpy as np
 import pandas as pd
 
-from spot.exceptions.no_memory_left import NoMemoryLeft
-from spot.recommendation_engine.objectives import *
+from spot.exceptions import *
+from spot.sampler.objectives import *
 from spot.recommendation_engine.utility import Utility
 from spot.constants import *
-from spot.invocation.aws_lambda_invoker import LambdaENOMEM
 
 
 class DataPoint:
@@ -74,7 +73,7 @@ class RecommendationEngine:
             }
             return pd.DataFrame.from_dict(result)
 
-        except NoMemoryLeft:
+        except NoMemoryLeftError:
             print(
                 "No memory configuration is possible. The execution time threshold is too low!",
                 file=sys.stderr,
@@ -127,7 +126,7 @@ class RecommendationEngine:
         # Cold start
         if HANDLE_COLD_START:
             result = self.function_invocator.invoke(
-                invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+                nbr_invocations=DYNAMIC_SAMPLING_INITIAL_STEP,
                 parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
                 memory_mb=x,
                 payload_filename=self.payload_path,
@@ -136,7 +135,7 @@ class RecommendationEngine:
             durations = result["Billed Duration"].to_numpy()
             self.exploration_cost += np.sum(Utility.calculate_cost(durations, x))
         result = self.function_invocator.invoke(
-            invocation_count=DYNAMIC_SAMPLING_INITIAL_STEP,
+            nbr_invocations=DYNAMIC_SAMPLING_INITIAL_STEP,
             parallelism=DYNAMIC_SAMPLING_INITIAL_STEP,
             memory_mb=x,
             payload_filename=self.payload_path,
@@ -148,7 +147,7 @@ class RecommendationEngine:
                 and _closest_termination_cv_and_values(values)[0] > TERMINATION_CV
             ):
                 result = self.function_invocator.invoke(
-                    invocation_count=1,
+                    nbr_invocations=1,
                     parallelism=1,
                     memory_mb=x,
                     payload_filename=self.payload_path,
@@ -173,14 +172,14 @@ class RecommendationEngine:
         if not is_warm:
             # Cold start
             self.function_invocator.invoke(
-                invocation_count=1,
+                nbr_invocations=1,
                 parallelism=1,
                 memory_mb=memory_mb,
                 payload_filename=self.payload_path,
                 save_to_ctx=False,
             )
         result = self.function_invocator.invoke(
-            invocation_count=1,
+            nbr_invocations=1,
             parallelism=1,
             memory_mb=memory_mb,
             payload_filename=self.payload_path,

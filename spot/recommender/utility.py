@@ -2,7 +2,7 @@ from spot.constants import LAMBDA_DURATION_COST, LAMBDA_REQUEST_COST
 import numpy as np
 from scipy.optimize import curve_fit
 
-from spot.exceptions.no_memory_left import NoMemoryLeft
+from spot.exceptions.no_memory_left_error import NoMemoryLeftError
 
 
 class Utility:
@@ -25,7 +25,7 @@ class Utility:
             mems = filtered_mems
             costs = filtered_costs
             if len(mems) == 0:
-                raise NoMemoryLeft()
+                raise NoMemoryLeftError()
 
         min_index = np.argmin(costs)
         return mems[min_index], costs[min_index]
