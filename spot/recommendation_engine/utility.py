@@ -54,7 +54,7 @@ class Utility:
         mems = np.array([x.memory for x in datapoints], dtype=np.double)
         billed_time = np.array([x.billed_time for x in datapoints], dtype=np.double)
         real_cost = mems * billed_time
-        initial_values = [1000, 10000, 100]
+        initial_values = Utility._guess_initial_values(datapoints)
         bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
         popt = curve_fit(
             Utility.fn,
@@ -65,6 +65,11 @@ class Utility:
             bounds=bounds,
         )[0]
         return Utility.fn, popt
+
+    @staticmethod
+    def _guess_initial_values(datapoints):
+        params = datapoints[0].billed_time // 10
+        return [params] * 3
 
     @staticmethod
     def fn(x, a0, a1, a2):
