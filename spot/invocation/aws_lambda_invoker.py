@@ -46,8 +46,10 @@ class AWSLambdaInvoker(FunctionInvoker):
         try:
             response = self._execute_lambda(payload)
         except MaxNumberInvocationAttemptsReachedError:
-            print("Error has been raised while invoking the lambda function. "
-                  "Please make sure that the provided function name and configuration are correct!")
+            print(
+                "Error has been raised while invoking the lambda function. "
+                "Please make sure that the provided function name and configuration are correct!"
+            )
             exit(1)
 
         try:
@@ -58,8 +60,10 @@ class AWSLambdaInvoker(FunctionInvoker):
             errors.append(e)
             raise LambdaENOMEM
         except ReadTimeoutError:
-            errors.append("Lambda invocation timed out. The API request to the AWS Lambda service, took longer than "
-                          "the specified timeout period.")
+            errors.append(
+                "Lambda invocation timed out. The API request to the AWS Lambda service, took longer than "
+                "the specified timeout period."
+            )
         else:
             for key in self.log_parser.log_parsing_keys:
                 result[key].append(parsed_log[key])
@@ -89,8 +93,10 @@ class AWSLambdaInvoker(FunctionInvoker):
                 )
 
             except ClientError:
-                print("Error has been raised while invoking the lambda function. "
-                      "Please make sure that the provided function name and configuration are correct!")
+                print(
+                    "Error has been raised while invoking the lambda function. "
+                    "Please make sure that the provided function name and configuration are correct!"
+                )
                 exit(1)
 
             except Exception:
@@ -106,13 +112,17 @@ class AWSLambdaInvoker(FunctionInvoker):
 
     def check_and_set_memory_value(self, memory_mb: int):
         try:
-            config = self.client.get_function_configuration(FunctionName=self.function_name)
+            config = self.client.get_function_configuration(
+                FunctionName=self.function_name
+            )
 
             if config["MemorySize"] != memory_mb:
                 self._set_memory_value(memory_mb)
         except ClientError:
-            print("Lambda function not found. Please make sure that the provided function name "
-                  "and configuration are correct!")
+            print(
+                "Lambda function not found. Please make sure that the provided function name "
+                "and configuration are correct!"
+            )
             exit(1)
 
     def _set_memory_value(self, memory_mb: int):
