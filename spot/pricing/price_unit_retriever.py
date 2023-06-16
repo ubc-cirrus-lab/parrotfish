@@ -7,6 +7,7 @@ class PriceUnitRetriever(ABC):
 
     This class is to be implemented for every cloud provider.
     """
+
     def __init__(self, function_name):
         self.function_name = function_name
 

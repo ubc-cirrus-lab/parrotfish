@@ -52,8 +52,10 @@ class FunctionInvoker(ABC):
 
             with ThreadPoolExecutor(max_workers=nbr_threads) as executor:
                 # Submit invocation jobs to each thread.
-                futures = [executor.submit(self.execute_and_parse_logs, payload=payload)
-                           for _ in range(nbr_invocations)]
+                futures = [
+                    executor.submit(self.execute_and_parse_logs, payload=payload)
+                    for _ in range(nbr_invocations)
+                ]
 
                 # Aggregate results from all threads.
                 for future in as_completed(futures):

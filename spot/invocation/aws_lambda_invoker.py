@@ -53,8 +53,10 @@ class AWSLambdaInvoker(FunctionInvoker):
             errors.append(e)
             raise LambdaENOMEM
         except ReadTimeoutError:
-            errors.append("Lambda invocation timed out. The API request to the AWS Lambda service, took longer than "
-                          "the specified timeout period.")
+            errors.append(
+                "Lambda invocation timed out. The API request to the AWS Lambda service, took longer than "
+                "the specified timeout period."
+            )
         else:
             for key in self.log_parser.log_parsing_keys:
                 result[key].append(parsed_log[key])
@@ -84,8 +86,10 @@ class AWSLambdaInvoker(FunctionInvoker):
                 )
 
             except ClientError:
-                print("Error has been raised while invoking the lambda function. "
-                      "Please make sure that the provided function name and configuration are correct!")
+                print(
+                    "Error has been raised while invoking the lambda function. "
+                    "Please make sure that the provided function name and configuration are correct!"
+                )
                 exit(1)
 
             except Exception:
@@ -109,7 +113,9 @@ class AWSLambdaInvoker(FunctionInvoker):
             dict: the retrieved configuration of the lambda function.
         """
         try:
-            config = self.client.get_function_configuration(FunctionName=self.function_name)
+            config = self.client.get_function_configuration(
+                FunctionName=self.function_name
+            )
 
             while config["MemorySize"] != memory_mb:
                 # Update the lambda function configuration.
@@ -119,8 +125,10 @@ class AWSLambdaInvoker(FunctionInvoker):
                 config = self.client.get_function_configuration(FunctionName=self.function_name)
 
         except ClientError:
-            print("Lambda function not found. Please make sure that the provided function name "
-                  "and configuration are correct!")
+            print(
+                "Lambda function not found. Please make sure that the provided function name "
+                "and configuration are correct!"
+            )
             exit(1)
 
         else:

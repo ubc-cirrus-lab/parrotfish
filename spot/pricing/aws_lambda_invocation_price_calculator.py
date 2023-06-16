@@ -11,7 +11,9 @@ class AWSLambdaInvocationPriceCalculator(InvocationPriceCalculator):
         super().__init__(AWSPriceUnitRetriever(aws_session, function_name))
 
     def calculate_price(self, memory_mb: int, duration):
-        price_units = self.price_unit_retriever.get_pricing_units()  # fetch the pricing units
+        price_units = (
+            self.price_unit_retriever.get_pricing_units()
+        )  # fetch the pricing units
         allocated_memory = 1.0 / 1024 * memory_mb  # convert MB to GB
         request_compute_time = np.ceil(duration) * 0.001  # convert ms to seconds
         total_compute = allocated_memory * request_compute_time
