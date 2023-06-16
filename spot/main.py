@@ -3,7 +3,7 @@ import boto3
 import argparse
 import os
 from spot.constants import ROOT_DIR
-from spot.Spot import Spot
+from spot.spot import Spot
 
 FUNCTION_DIR = "configs"
 
@@ -19,9 +19,6 @@ def main():
         "-o",
         action="store_true",
         help="Return best memory configuration for lowest cost",
-    )
-    parser.add_argument(
-        "--force", "-f", action="store_true", help="Ignore the invocation cache"
     )
     parser.add_argument(
         "--invoke", "-i", type=int, help="The number of times you invoke the function"
@@ -62,9 +59,7 @@ def main():
         if not args.memory_mb:
             print("Please specify a memory value when invoking a function")
             exit(1)
-        spot.invoke(args.memory_mb, args.invoke, args.force)
-
-    spot.teardown(optimization_time)
+        spot.invoke(args.memory_mb, args.invoke)
 
 
 if __name__ == "__main__":

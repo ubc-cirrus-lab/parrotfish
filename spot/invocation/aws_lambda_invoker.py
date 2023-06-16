@@ -1,11 +1,9 @@
 import base64
 import sys
 import time
-import boto3
 from botocore.exceptions import *
 import spot.constants as const
 from spot.invocation.logs_parsing import *
-from ..context import Context
 from ..exceptions import *
 from . import FunctionInvoker
 
@@ -16,13 +14,12 @@ class AWSLambdaInvoker(FunctionInvoker):
     This class provides the operation to invoke the AWS lambda function with a specific configuration multiple times.
     """
 
-    def __init__(self, lambda_name: str, aws_session: boto3.Session, ctx: Context):
+    def __init__(self, lambda_name: str, client: any):
         super().__init__(
             function_name=lambda_name,
             log_parser=AWSLogParser(),
-            context=ctx,
         )
-        self.client = aws_session.client("lambda")
+        self.client = client
 
     def execute_and_parse_logs(self, payload: str) -> tuple:
         """For a fixed configuration invokes the Lambda function sequentially multiple times with the same payload
@@ -32,8 +29,7 @@ class AWSLambdaInvoker(FunctionInvoker):
             payload (str): The payload to pass to the Lambda function for each invocation.
 
         Returns:
-            tuple: A tuple containing the invocation results, an indication of whether a LambdaENOMEM occurred,
-                and a list of errors.
+            tuple: A tuple containing the invocation results (str), and a list of errors (list).
 
         Raises:
             LambdaENOMEM: If the memory configuration is not sufficient for lambda execution.
@@ -45,9 +41,8 @@ class AWSLambdaInvoker(FunctionInvoker):
 
         try:
             response = self._execute_lambda(payload)
-        except MaxNumberInvocationAttemptsReachedError:
-            print("Error has been raised while invoking the lambda function. "
-                  "Please make sure that the provided function name and configuration are correct!")
+        except MaxNumberInvocationAttemptsReachedError as e:
+            print(e)
             exit(1)
 
         try:
@@ -104,26 +99,29 @@ class AWSLambdaInvoker(FunctionInvoker):
 
         raise MaxNumberInvocationAttemptsReachedError
 
-    def check_and_set_memory_value(self, memory_mb: int):
+    def check_and_set_memory_value(self, memory_mb: int) -> dict:
+        """Checking and setting the configuration memory value of the lambda function.
+
+        Args:
+            memory_mb (int): The memory size in MB.
+
+        Returns:
+            dict: the retrieved configuration of the lambda function.
+        """
         try:
             config = self.client.get_function_configuration(FunctionName=self.function_name)
 
-            if config["MemorySize"] != memory_mb:
-                self._set_memory_value(memory_mb)
+            while config["MemorySize"] != memory_mb:
+                # Update the lambda function configuration.
+                self.client.update_function_configuration(FunctionName=self.function_name, MemorySize=memory_mb)
+                waiter = self.client.get_waiter("function_updated")
+                waiter.wait(FunctionName=self.function_name)
+                config = self.client.get_function_configuration(FunctionName=self.function_name)
+
         except ClientError:
             print("Lambda function not found. Please make sure that the provided function name "
                   "and configuration are correct!")
             exit(1)
 
-    def _set_memory_value(self, memory_mb: int):
-        while True:
-            self.client.update_function_configuration(
-                FunctionName=self.function_name, MemorySize=memory_mb
-            )
-            waiter = self.client.get_waiter("function_updated")
-            waiter.wait(FunctionName=self.function_name)
-            config = self.client.get_function_configuration(
-                FunctionName=self.function_name
-            )
-            if config["MemorySize"] == memory_mb:
-                return
+        else:
+            return config

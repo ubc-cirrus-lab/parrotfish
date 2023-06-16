@@ -3,7 +3,6 @@ import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from ..exceptions import *
 from spot.invocation.logs_parsing import *
-from ..context import Context
 
 
 class FunctionInvoker(ABC):
@@ -13,10 +12,9 @@ class FunctionInvoker(ABC):
     This class is to be implemented for every cloud provider.
     """
 
-    def __init__(self, function_name: str, log_parser: LogParser, context: Context):
+    def __init__(self, function_name: str, log_parser: LogParser):
         self.function_name = function_name
         self.log_parser = log_parser
-        self.context = context
 
     def invoke(
         self,
@@ -24,7 +22,6 @@ class FunctionInvoker(ABC):
         nbr_threads: int,
         memory_mb: int,
         payload: str,
-        save_to_ctx: bool = True,
     ) -> pd.DataFrame:
         """Invokes the specified serverless function multiple times with a given memory config and payload and returning
         a pandas DataFrame representing the execution logs_parsing.
@@ -34,7 +31,6 @@ class FunctionInvoker(ABC):
             nbr_threads: The number of threads to invoke the serverless function.
             memory_mb: The memory size in MB.
             payload: The payload to invoke the function with.
-            save_to_ctx: save the result to context or not.
 
         Raises:
             LambdaENOMEM: If not enough memory is configured.
@@ -75,39 +71,31 @@ class FunctionInvoker(ABC):
         if len(errors) != 0:
             raise LambdaInvocationError(errors)
 
-        result_df = pd.DataFrame.from_dict(results)
-        if save_to_ctx:
-            self.context.save_invocation_result(result_df)
-
-        durations = results["Billed Duration"]
-        cached_df = pd.DataFrame(
-            {
-                "duration": durations,
-                "function_name": [self.function_name] * len(durations),
-                "memory": [memory_mb] * len(durations),
-            }
-        )
-        self.context.record_cached_data(cached_df)
-        return result_df
+        return pd.DataFrame.from_dict(results)
 
     @abstractmethod
-    def check_and_set_memory_value(self, memory_mb: int):
+    def check_and_set_memory_value(self, memory_mb: int) -> dict:
         """Abstract method for checking and setting the memory value.
 
         Args:
             memory_mb (int): The memory size in MB.
+
+        Returns:
+            dict: the retrieved configuration of the lambda function.
         """
         pass
 
     @abstractmethod
-    def execute_and_parse_logs(self, payload: str) -> str:
+    def execute_and_parse_logs(self, payload: str) -> tuple:
         """Abstract method for sequentially invoking the serverless function.
 
         Args:
             payload (str): The payload to invoke the function with.
 
         Returns:
-            tuple: A tuple containing the invocation results, an indication of whether a LambdaENOMEM occurred,
-                and a list of errors.
+            tuple: A tuple containing the invocation results (str), and a list of errors (list).
+
+        Raises:
+            LambdaENOMEM: If the memory configuration is not sufficient for lambda execution.
         """
         pass

@@ -1,7 +1,4 @@
-# local config file
-spot/invocation/GenConfigs.py
-
-# logs and data archives
+# logs_parsing and data archives
 *.log
 *.pkl
 *.out
@@ -12,9 +9,6 @@ spot/invocation/GenConfigs.py
 #vim
 *.swp
 tags
-
-#serverless
-.serverless/
 
 __pycache__/
 *.py[cod]

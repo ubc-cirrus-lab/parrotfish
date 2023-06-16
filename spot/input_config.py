@@ -4,7 +4,7 @@ from typing import Optional
 from spot.constants import DEFAULT_MEM_BOUNDS
 
 
-class BenchmarkConfig:
+class InputConfig:
     def __init__(self, f=None):
         self.function_name: str
         self.vendor: str

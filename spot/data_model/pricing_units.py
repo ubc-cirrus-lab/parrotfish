@@ -1,11 +1,8 @@
-import decimal
+from dataclasses import dataclass
 
 
+@dataclass
 class PricingUnits:
-    def __init__(self, compute_price: float, request_price: float):
-        self.compute_price = compute_price
-        self.request_price = request_price
-
-    def __str__(self):
-        return f"Compute price: {self.compute_price}\n" \
-               f"Request price: {self.request_price}"
+    """Class for keeping track of the pricing units to calculate the serverless function invocation price."""
+    compute_price: float
+    request_price: float
