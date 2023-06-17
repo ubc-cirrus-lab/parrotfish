@@ -5,25 +5,41 @@ from scipy.optimize import curve_fit
 
 @dataclass
 class FittingFunction:
-    """Class for keeping track of the parametric function."""
+    """Class for keeping track of the parametric function.
+
+    Attributes:
+        function (callable): the function we want to fit to the sample.
+        params (np.array): parameters of the function.
+        bounds (tuple): Lower and upper bounds on parameters.
+    """
     function: callable
-    params: any
+    params: np.array
+    bounds: tuple
 
     def __call__(self, memories: np.array):
         return self.function(memories, *self.params)
 
-    def fit_function(self, datapoints: list):
+    def fit(self, datapoints: list) -> None:
+        """Use non-linear least squares to fit a function to the datapoints.
+        Optimize values for the parameters so that the sum of the squared residuals is minimized.
+
+        Args:
+            datapoints (list): list of the sampled datapoints.
+
+        Raises:
+            ValueError: if datapoints contains invalid data.
+            RuntimeError: if least-squares minimization fails.
+        """
         datapoints.sort(key=lambda d: d.memory)
-        memories = np.array([x.memory for x in datapoints], dtype=np.double)
-        billed_time = np.array([x.billed_time for x in datapoints], dtype=np.double)
+        memories = np.array([datapoint.memory for datapoint in datapoints], dtype=int)
+        billed_time = np.array([datapoint.billed_time for datapoint in datapoints], dtype=float)
         real_cost = memories * billed_time
-        initial_values = [1000, 10000, 100]
-        bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
+
         self.params = curve_fit(
-            self.function,
-            memories,
-            real_cost,
-            p0=initial_values,
+            f=self.function,
+            xdata=memories,
+            ydata=real_cost,
             maxfev=int(1e8),
-            bounds=bounds,
+            p0=self.params,
+            bounds=self.bounds,
         )[0]

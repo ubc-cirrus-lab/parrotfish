@@ -28,7 +28,11 @@ class Spot:
 
         function_invoker = AWSLambdaInvoker(self.config.function_name, aws_session.client("lambda"))
 
-        fitting_function = FittingFunction(Spot.fn, {})
+        fitting_function = FittingFunction(
+            function=Spot.fn,
+            params=[1000, 10000, 100],
+            bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
+        )
 
         objective = NormalObjective(fitting_function, self.config.mem_bounds)
         if OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
