@@ -31,7 +31,7 @@ class RecommendationEngine:
         ):
             x = self.sampler.choose_sample_point()
             self.sampler.sample(x)
-            self.fitting_function.fit_function(self.sampler.sampled_datapoints)
+            self.fitting_function.fit(self.sampler.sampled_datapoints)
         return self.report()
 
     def report(self):

@@ -71,7 +71,7 @@ class Sampler:
         self.memory_range[0] = sample_memories[0]
         self.memory_range[-1] = sample_memories[-1]
 
-        self.fitting_function.fit_function(self.sampled_datapoints)
+        self.fitting_function.fit(self.sampled_datapoints)
 
     def sample(self, memory_mb: int):
         print(f"Sampling {memory_mb}")
