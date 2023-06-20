@@ -31,8 +31,10 @@ class FittingFunction:
             RuntimeError: if least-squares minimization fails.
         """
         datapoints.sort(key=lambda d: d.memory)
+
         memories = np.array([datapoint.memory for datapoint in datapoints], dtype=int)
         billed_time = np.array([datapoint.billed_time for datapoint in datapoints], dtype=float)
+
         real_cost = memories * billed_time
 
         self.params = curve_fit(
