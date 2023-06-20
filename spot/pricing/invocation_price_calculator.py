@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
-from .price_unit_retriever import PriceUnitRetriever
 
 
 class InvocationPriceCalculator(ABC):
-    def __init__(self, price_unit_retriever: PriceUnitRetriever):
-        self.price_unit_retriever = price_unit_retriever
+    def __init__(self, function_name):
+        self.function_name = function_name
 
     @abstractmethod
-    def calculate_price(self, memory_mb: int, duration):
+    def calculate_price(self, memory_mb: int, duration_ms) -> float:
         pass
