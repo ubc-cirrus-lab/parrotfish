@@ -4,25 +4,34 @@ import json
 import re
 
 from ..invocation_price_calculator import InvocationPriceCalculator
-from spot.data_model import *
+from src.data_model import *
 
 
 class AWSLambdaInvocationPriceCalculator(InvocationPriceCalculator):
+    """A class for calculating the invocation price of an AWS Lambda function.
+
+    This class inherits from `InvocationPriceCalculator` and provides methods to calculate the invocation price
+    based on the underlying architecture, memory, and execution time of the Lambda function.
+    """
     def __init__(self, function_name: str, aws_session: boto3.Session):
         super().__init__(function_name)
         self.aws_session = aws_session
         self.pricing_units = None
 
-    def calculate_price(self, memory_mb: int, duration_ms) -> float:
+    def calculate_price(self, memory_mb: int, duration_ms: float or list or np.ndarray) -> float or np.ndarray:
         """Retrieving the AWS lambda pricing units, and calculate the invocation price based on the memory and
         execution time.
 
         Args:
             memory_mb (int): configured memory value in MB.
-            duration_ms: the execution time of the lambda function.
+            duration_ms (float or list or np.ndarray): this argument represents one or multiple invocations' execution
+            time in Ms.
 
         Return:
-            float: the invocation's price in USD.
+            float or np.ndarray: the invocation's price or prices in USD.
+
+        Raises:
+            TypeError: if the arguments' types are not compatible.
         """
         # if pricing units cache is empty we should retrieve pricing units.
         if self.pricing_units is None:

@@ -1,6 +1,6 @@
 import numpy as np
 from spot.pricing import *
-from spot.invocation.aws_lambda_invoker import AWSLambdaInvoker
+from spot.invocation.aws.aws_lambda_invoker import AWSLambdaInvoker
 from spot.input_config import InputConfig
 from spot.recommender.recommendation_engine import RecommendationEngine
 from spot.constants import *
@@ -24,7 +24,7 @@ class Spot:
         self.last_log_timestamp = None
 
         # Instantiate SPOT system components
-        self.price_calculator = AWSLambdaInvocationPriceCalculator(aws_session, self.config.function_name)
+        self.price_calculator = AWSLambdaInvocationPriceCalculator(self.config.function_name, aws_session)
 
         function_invoker = AWSLambdaInvoker(self.config.function_name, aws_session.client("lambda"))
 

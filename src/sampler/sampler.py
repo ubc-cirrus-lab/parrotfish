@@ -12,7 +12,7 @@ class Sampler:
             self,
             memory_range: list,
             payload: str,
-            invoker: FunctionInvoker,
+            invoker: ServerlessFunctionInvoker,
             objective: Objective,
             price_calculator: InvocationPriceCalculator,
             fitting_function: FittingFunction

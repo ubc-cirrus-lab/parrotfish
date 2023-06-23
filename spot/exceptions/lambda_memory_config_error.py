@@ -1,2 +1,0 @@
-class LambdaMemoryConfigError(Exception):
-    pass

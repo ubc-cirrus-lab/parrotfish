@@ -1,7 +1,7 @@
 import sys
 import pandas as pd
 from spot.exceptions import *
-from ..invocation import FunctionInvoker
+from ..invocation import ServerlessFunctionInvoker
 from spot.sampler import *
 from spot.constants import *
 from spot.data_model import *
@@ -11,7 +11,7 @@ import numpy as np
 class RecommendationEngine:
     def __init__(
         self,
-        invoker: FunctionInvoker,
+        invoker: ServerlessFunctionInvoker,
         memory_range: list,
         sampler: Sampler,
         fitting_function: FittingFunction,
