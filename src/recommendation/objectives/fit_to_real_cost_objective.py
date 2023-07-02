@@ -2,7 +2,7 @@ import numpy as np
 import scipy.stats as stats
 
 from src.data_model import *
-from .objective import Objective
+from src.recommendation.objective import Objective
 
 
 class FitToRealCostObjective(Objective):

@@ -4,7 +4,7 @@ from .function_enomem import FunctionENOMEM
 from .exploration_error import ExplorationError
 from .memory_config_error import MemoryConfigError
 from .no_memory_left_error import NoMemoryLeftError
-from .recommendation_error import OptimizationError
+from .optimization_error import OptimizationError
 from .sampling_error import SamplingError
 
 __all__ = [

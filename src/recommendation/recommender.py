@@ -83,12 +83,22 @@ class Recommender:
         self.objective.update_knowledge(memory_mb)
         self.objective.param_function.fit(self.sampler.sample)
 
-    def _choose_memory_to_explore(self):
-        """Chooses the memory size configuration to explore with from the remainder memories in the memory space."""
+    def _choose_memory_to_explore(self) -> int:
+        """Chooses the memory size configuration to explore with from the remainder memories in the memory space.
+
+        Returns:
+            int: Next memory size to explore with.
+
+        Raises:
+            NoMemoryLeftError: If no memory is left to explore with.
+        """
         # compute the memories we can explore from.
         sample_memories = set(self.sampler.sample.memories)
         memory_space = self.sampler.memory_space
         remainder_memories = np.array([memory for memory in memory_space if memory not in sample_memories])
+
+        if len(remainder_memories) == 0:
+            raise NoMemoryLeftError
 
         # return the memory that minimizes the objective.
         values = self.objective.get_values(remainder_memories)

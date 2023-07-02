@@ -11,13 +11,13 @@ from src.exploration import *
 
 class Sampler:
     def __init__(self, explorer: Explorer, memory_space: np.ndarray, explorations_count: int,
-                 max_dynamic_sample_count: int, termination_threshold: int):
+                 max_dynamic_sample_count: int, dynamic_sampling_cv_threshold: int):
         self.sample = None
         self.explorer = explorer
         self.memory_space = memory_space
         self._explorations_count = explorations_count
         self._max_dynamic_sample_count = max_dynamic_sample_count
-        self._termination_threshold = termination_threshold
+        self._dynamic_sampling_cv_threshold = dynamic_sampling_cv_threshold
         self._logger = logging.getLogger(__name__)
 
     def initialize_sample(self) -> None:
@@ -100,7 +100,7 @@ class Sampler:
         dynamic_sample_count = 0
         min_cv = np.std(durations, ddof=1) / np.mean(durations)
 
-        while dynamic_sample_count < self._max_dynamic_sample_count and min_cv > self._termination_threshold:
+        while dynamic_sample_count < self._max_dynamic_sample_count and min_cv > self._dynamic_sampling_cv_threshold:
             try:
                 result = self.explorer.explore()
 

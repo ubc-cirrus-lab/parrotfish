@@ -1,4 +1,4 @@
-from .recommendation_error import OptimizationError
+from .optimization_error import OptimizationError
 
 
 class SamplingError(OptimizationError):

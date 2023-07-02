@@ -12,8 +12,11 @@ class Sample:
 
     @property
     def costs(self):
-        durations = np.array([datapoint.duration_ms for datapoint in self._datapoints], dtype=np.float)
-        return np.array(self.memories * durations)
+        return np.array(self.memories * self.durations)
+
+    @property
+    def durations(self):
+        return np.array([datapoint.duration_ms for datapoint in self._datapoints], dtype=np.float)
 
     @property
     def memories(self):
