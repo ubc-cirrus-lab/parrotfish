@@ -19,7 +19,7 @@ eggs/
 *.egg-info/
 *.egg
 TODO.md
-spot/benchmarks/*/workload.json
+src/benchmarks/*/workload.json
 
 spot-env/
 

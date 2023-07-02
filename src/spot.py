@@ -1,75 +1,84 @@
+import logging
+import os
+
 import numpy as np
-from spot.pricing import *
-from spot.invocation.aws.aws_lambda_invoker import AWSLambdaInvoker
-from spot.input_config import InputConfig
-from spot.recommender.recommendation_engine import RecommendationEngine
-from spot.constants import *
-from spot.sampler import Sampler
-from spot.sampler.objectives import *
-from spot.data_model import *
+import pandas as pd
+
+from src.data_model import *
+from src.exceptions import *
+from src.exploration import AWSExplorer
+from src.input_config import InputConfig
+from src.recommendation import Recommender
+from src.recommendation.objectives import *
+from src.recommendation.sampler import Sampler
+import src.constants as const
 
 
 class Spot:
     def __init__(self, config_dir: str, aws_session):
+        self._logger = logging.getLogger(__name__)
+
         # Load configuration values from config.json
-        self.config_file_path = os.path.join(config_dir, "config.json")
-
+        config_file_path = os.path.join(config_dir, "config.json")
         payload_file_path = os.path.join(config_dir, "payload.json")
-        with open(payload_file_path) as f:
-            self.payload = f.read()
 
-        with open(self.config_file_path) as f:
+        with open(payload_file_path) as f:
+            payload = f.read()
+
+        with open(config_file_path) as f:
             self.config: InputConfig = InputConfig(f)
 
-        self.last_log_timestamp = None
+        memory_space = np.array(range(self.config.mem_bounds[0], self.config.mem_bounds[1] + 1))
 
-        # Instantiate SPOT system components
-        self.price_calculator = AWSLambdaInvocationPriceCalculator(self.config.function_name, aws_session)
+        self.explorer = AWSExplorer(self.config.function_name, payload, const.DYNAMIC_SAMPLING_INITIAL_STEP, aws_session)
 
-        function_invoker = AWSLambdaInvoker(self.config.function_name, aws_session.client("lambda"))
-
-        fitting_function = FittingFunction(
-            function=Spot.fn,
+        self.param_function = ParametricFunction(
+            function=lambda x, a0, a1, a2: a0 * x + a1 * np.exp(-x / a2) * x,
             params=[1000, 10000, 100],
             bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
+            execution_time_threshold=self.config.execution_time_threshold
         )
 
-        objective = NormalObjective(fitting_function, self.config.mem_bounds)
-        if OPTIMIZATION_OBJECTIVE == "fit_to_real_cost":
-            assert len(INITIAL_SAMPLE_MEMORIES) == 3
-            objective = FitToRealCostObjective(fitting_function, self.config.mem_bounds)
-
-        sampler = Sampler(
-            invoker=function_invoker,
-            memory_range=self.config.mem_bounds,
-            payload=self.payload,
-            objective=objective,
-            price_calculator=self.price_calculator,
-            fitting_function=fitting_function
+        self.sampler = Sampler(
+            explorer=self.explorer,
+            memory_space=memory_space,
+            explorations_count=const.DYNAMIC_SAMPLING_INITIAL_STEP,
+            max_dynamic_sample_count=const.DYNAMIC_SAMPLING_MAX,
+            termination_threshold=const.TERMINATION_CV
         )
 
-        self.recommendation_engine = RecommendationEngine(
-            invoker=function_invoker,
-            memory_range=self.config.mem_bounds,
-            sampler=sampler,
-            fitting_function=fitting_function,
-            execution_time_threshold=self.config.execution_time_threshold,
+        self.recommendation_engine = Recommender(
+            objective=FitToRealCostObjective(self.param_function, memory_space),
+            sampler=self.sampler,
+            max_sample_count=const.TOTAL_SAMPLE_COUNT,
+            termination_threshold=const.TERMINATION_THRESHOLD,
         )
 
         self.benchmark_name = os.path.basename(config_dir)
 
     def optimize(self):
-        return self.recommendation_engine.run()
+        try:
+            self.recommendation_engine.run()
+        except OptimizationError as e:
+            self._logger.error(e)
+            exit(1)
+        return self.report()
 
-    def invoke(self, memory_mb: int, nbr_invocations: int):
-        billed_duration = np.arange(nbr_invocations, dtype=np.double)
-        for i in range(nbr_invocations):
-            df = self.recommendation_engine.invoke_once(memory_mb, self.payload, is_warm=(i > 0))
-            billed_duration[i] = df["Billed Duration"][0]
-        print(
-            "Real cost:", self.price_calculator.calculate_price(memory_mb, billed_duration).mean()
-        )
+    def invoke(self, memory_mb: int, parallel: int) -> list:
+        durations = self.explorer.explore_parallel(parallel, parallel, memory_mb)
+        print("Real cost:", self.explorer.cost)
+        return durations
 
-    @staticmethod
-    def fn(x, a0, a1, a2):
-        return a0 * x + a1 * np.exp(-x / a2) * x
+    def report(self):
+        try:
+            minimum_memory, minimum_cost = self.param_function.minimize(self.sampler.memory_space)
+            result = {
+                "Minimum Cost Memory": [minimum_memory],
+                "Expected Cost": [minimum_cost],
+                "Exploration Cost": [self.explorer.cost],
+            }
+            return pd.DataFrame.from_dict(result)
+
+        except NoMemoryLeftError:
+            print("No memory configuration is possible. The execution time threshold is too low!")
+            exit(1)

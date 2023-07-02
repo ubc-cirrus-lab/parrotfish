@@ -1,31 +1,25 @@
-import time
-import boto3
 import argparse
+import logging
+import logging.config
 import os
-from spot.constants import ROOT_DIR
-from spot.spot import Spot
+import boto3
+
+from src.constants import ROOT_DIR
+from src.spot import Spot
 
 FUNCTION_DIR = "configs"
 
 
 def main():
+    logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True})
+    logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
     parser = argparse.ArgumentParser(description="Serverless Price Optimization Tool")
 
-    parser.add_argument(
-        "function", type=str, help="Name of the serverless function to use"
-    )
-    parser.add_argument(
-        "--optimize",
-        "-o",
-        action="store_true",
-        help="Return best memory configuration for lowest cost",
-    )
-    parser.add_argument(
-        "--invoke", "-i", type=int, help="The number of times you invoke the function"
-    )
-    parser.add_argument(
-        "--memory_mb", "-m", type=int, help="Memory (MB) of the function"
-    )
+    parser.add_argument("function", type=str, help="Name of the serverless function to use")
+    parser.add_argument("--optimize", "-o", action="store_true", help="Return best memory configuration for lowest cost")
+    parser.add_argument("--invoke", "-i", type=int, help="The number of times you invoke the function")
+    parser.add_argument("--memory_mb", "-m", type=int, help="Memory (MB) of the function")
     parser.add_argument("--aws_profile", "-p", type=str, help="AWS profile")
 
     args = parser.parse_args()
@@ -41,20 +35,17 @@ def main():
 
     path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
     if not os.path.isdir(path):
-        print(
-            f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
-        )
+        print(f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive")
         exit(1)
 
-    start = time.time()
     spot = Spot(path, session)
-    optimization_time = None
+
     if args.optimize:
         opt = spot.optimize()
         mem = opt["Minimum Cost Memory"][0]
         print(f"Optimization result: {mem} MB")
         args.memory_mb = int(mem)
-        optimization_time = time.time() - start
+
     if args.invoke:
         if not args.memory_mb:
             print("Please specify a memory value when invoking a function")

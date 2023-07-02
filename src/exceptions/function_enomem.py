@@ -1,6 +1,8 @@
-class FunctionENOMEM(Exception):
-    def __init__(self):
-        super().__init__("The memory configured is not enough for the function's execution.")
+from .invocation_error import InvocationError
 
-    def __str__(self):
-        return self.args[0]
+
+class FunctionENOMEM(InvocationError):
+    def __init__(self, msg: str = None):
+        if msg is None:
+            msg = "The memory configured is not enough for the function's execution."
+        super().__init__(msg)

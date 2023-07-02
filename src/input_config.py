@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 
-from spot.constants import DEFAULT_MEM_BOUNDS
+from src.constants import DEFAULT_MEM_BOUNDS
 
 
 class InputConfig:

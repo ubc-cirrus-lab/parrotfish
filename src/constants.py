@@ -2,8 +2,8 @@ import os
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-IS_DYNAMIC_SAMPLING_ENABLED = False
-HANDLE_COLD_START = False
+IS_DYNAMIC_SAMPLING_ENABLED = True
+HANDLE_COLD_START = True
 
 LAMBDA_DURATION_COST = 0.0000166667
 LAMBDA_REQUEST_COST = 0.20 / 1000000
@@ -18,9 +18,9 @@ if os.environ.get("SPOT_MODE") == "dev":
     ALPHA = float(os.environ.get("SPOT_ALPHA", 0))
     NORMAL_SCALE = int(os.environ.get("SPOT_NORMAL_SCALE", 100))
     TERMINATION_CV = float(os.environ.get("SPOT_TERMINATION_CV", 0.3))
-    DYNAMIC_SAMPLING_MAX = int(os.environ.get("SPOT_DYNAMIC_SAMPLING_MAX", 5))
+    DYNAMIC_SAMPLING_MAX = int(os.environ.get("SPOT_ADAPTIVE_SAMPLING_MAX", 5))
     DYNAMIC_SAMPLING_INITIAL_STEP = int(
-        os.environ.get("SPOT_DYNAMIC_SAMPLING_INITIAL_STEP", 2)
+        os.environ.get("SPOT_ADAPTIVE_SAMPLING_INITIAL_STEP", 2)
     )
     OPTIMIZATION_OBJECTIVE = os.environ.get(
         "SPOT_OPTIMIZATION_OBJECTIVE", "fit_to_real_cost"

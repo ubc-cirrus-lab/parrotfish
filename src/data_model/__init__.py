@@ -1,5 +1,6 @@
 from .data_point import DataPoint
+from .parametric_function import ParametricFunction
 from .pricing_units import PricingUnits
-from .fitting_function import FittingFunction
+from .sample import Sample
 
-__all__ = ["DataPoint", "PricingUnits", "FittingFunction"]
+__all__ = ["DataPoint", "PricingUnits", "ParametricFunction", "Sample"]
