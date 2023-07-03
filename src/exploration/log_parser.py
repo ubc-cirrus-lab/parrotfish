@@ -2,17 +2,14 @@ from abc import ABC, abstractmethod
 
 
 class LogParser(ABC):
-    """This is an abstract class to parse serverless function's response log.
-
-    This class is to be implemented for every cloud provider.
-    """
+    """A class for parsing the serverless function invocation's response log."""
 
     def __init__(self, log_parsing_keys: list):
         self.log_parsing_keys = log_parsing_keys
 
     @abstractmethod
     def parse_log(self, log: str) -> int:
-        """Parsing @log and returning a dictionary with values of each keyword in the attribute @log_parsing_keys.
+        """Parses invocation's response log and returns the billed duration in ms.
 
         Args:
             log (str): Serverless function exploration's response log to parse.
@@ -21,7 +18,8 @@ class LogParser(ABC):
             int: Billed duration of the serverless function's exploration.
 
         Raises:
+            FunctionTimeoutError: If the serverless function's execution reached the timeout.
             FunctionENOMEM: If the serverless function's configured memory is not enough for lambda function's execution.
-            InvocationError: If the serverless function raises an exception.
+            InvocationError: If the serverless function's invocation raises an exception.
         """
         pass
