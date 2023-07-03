@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as stats
 
-from src.data_model import *
+from ..parametric_function import ParametricFunction
 from src.recommendation.objective import Objective
 
 

@@ -43,11 +43,11 @@ class TestInvoke:
             return self._result
 
     def test_function_invocation_error(self, invoker):
-        invoker.explore = mock.Mock(side_effect=ExplorationError("error"))
+        invoker.explore = mock.Mock(side_effect=InvocationError("error"))
 
-        with pytest.raises(ExplorationError) as e:
+        with pytest.raises(InvocationError) as e:
             invoker.explore_parallel(3, 3, 128, "payload")
-        assert e.type == ExplorationError
+        assert e.type == InvocationError
 
     def test_lambda_enomem(self, invoker):
         invoker.explore = mock.Mock(side_effect=FunctionENOMEM)
@@ -98,18 +98,18 @@ class TestExecuteFunction:
             error_response=mock_error_response
         )
 
-        with pytest.raises(ExplorationError) as error:
+        with pytest.raises(InvocationError) as error:
             invoker.invoke("wrong payload")
-        assert error.type == ExplorationError
+        assert error.type == InvocationError
 
     @mock.patch("src.invocation.aws.aws_lambda_invoker.time.sleep")
     def test_max_number_of_invocations_attempts_reached_error(self, sleep, invoker):
         invoker.client.explore = mock.Mock(
             side_effect=(Exception() for _ in range(const.MAX_NUMBER_INVOCATION_ATTEMPTS)))
 
-        with pytest.raises(ExplorationError) as error:
+        with pytest.raises(InvocationError) as error:
             invoker.invoke("payload")
-        assert error.type == ExplorationError
+        assert error.type == InvocationError
         assert invoker.client.explore.call_count == const.MAX_NUMBER_INVOCATION_ATTEMPTS
 
     @mock.patch("src.invocation.aws.aws_lambda_invoker.time.sleep")
@@ -124,18 +124,18 @@ class TestExecuteFunction:
 
 class TestExecuteAndParseLogs:
     def test_max_number_invocation_error(self, invoker):
-        invoker.invoke = mock.Mock(side_effect=ExplorationError("error"))
+        invoker.invoke = mock.Mock(side_effect=InvocationError("error"))
 
-        with pytest.raises(ExplorationError) as e:
+        with pytest.raises(InvocationError) as e:
             invoker.explore("payload")
-        assert e.type == ExplorationError
+        assert e.type == InvocationError
 
     def test_lambda_invocation_error(self, invoker):
-        invoker.log_parser.parse_log = mock.Mock(side_effect=ExplorationError("error"))
+        invoker.log_parser.parse_log = mock.Mock(side_effect=InvocationError("error"))
 
-        with pytest.raises(ExplorationError) as e:
+        with pytest.raises(InvocationError) as e:
             invoker.explore("payload")
-        assert e.type == ExplorationError
+        assert e.type == InvocationError
 
     @pytest.mark.parametrize("error", [FunctionENOMEM(), FunctionENOMEM("lambda time out error")],
                              ids=["FunctionENOMEM", "FunctionTimeoutError"])

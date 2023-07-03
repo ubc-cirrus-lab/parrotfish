@@ -1,23 +1,16 @@
-import logging
 import os
 
 import numpy as np
-import pandas as pd
 
-from src.data_model import *
-from src.exceptions import *
+import src.constants as const
 from src.exploration import AWSExplorer
 from src.input_config import InputConfig
-from src.recommendation import Recommender
+from src.recommendation import *
 from src.recommendation.objectives import *
-from src.recommendation.sampler import Sampler
-import src.constants as const
 
 
 class Spot:
     def __init__(self, config_dir: str, aws_session):
-        self._logger = logging.getLogger(__name__)
-
         # Load configuration values from config.json
         config_file_path = os.path.join(config_dir, "config.json")
         payload_file_path = os.path.join(config_dir, "payload.json")
@@ -64,18 +57,13 @@ class Spot:
         return durations
 
     def optimize(self):
-        try:
-            self.recommender.run()
-            return self._report()
-        except OptimizationError as e:
-            self._logger.error(e)
-            raise
+        self.recommender.run()
+        return self._report()
 
     def _report(self):
         minimum_memory, minimum_cost = self.param_function.minimize(self.sampler.memory_space)
-        result = {
-            "Minimum Cost Memory": [minimum_memory],
-            "Expected Cost": [minimum_cost],
-            "Exploration Cost": [self.explorer.cost],
+        return {
+            "Minimum Cost Memory": minimum_memory,
+            "Expected Cost": minimum_cost,
+            "Exploration Cost": self.explorer.cost,
         }
-        return pd.DataFrame.from_dict(result)

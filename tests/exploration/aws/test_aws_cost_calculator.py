@@ -1,20 +1,21 @@
 from unittest import mock
 import pytest
 
-from src.pricing.aws import AWSLambdaInvocationPriceCalculator
+from src.exceptions import *
+from src.exploration.aws.aws_cost_calculator import AWSCostCalculator
 from src.data_model.pricing_units import PricingUnits
 
 
 @pytest.fixture
-def calculator_with_mock_aws_session() -> AWSLambdaInvocationPriceCalculator:
-    # Mock the necessary AWS session and client objects
+def calculator_with_mock_aws_session() -> AWSCostCalculator:
+    # Mock the AWS session and client objects.
     mock_aws_session = mock.Mock()
 
-    # Configure the mock objects to return the expected values
+    # Configure the mock objects to return the expected values.
     mock_aws_session.client.return_value = mock.Mock()
 
-    # Create an instance of the AWSLambdaInvocationPriceCalculator
-    return AWSLambdaInvocationPriceCalculator("pyaes", mock_aws_session)
+    # Create an instance of the AWSCostCalculator.
+    return AWSCostCalculator("example_function", mock_aws_session)
 
 
 class TestGetPricingUnits:
@@ -49,16 +50,16 @@ class TestGetPricingUnits:
         # Mock the response for get_function_configuration() from lambda client
         calculator_with_mock_aws_session.aws_session.client("lambda").get_function_configuration.return_value = {"Architectures": ["x86"]}
 
-        with pytest.raises(IndexError) as e:
+        with pytest.raises(CostCalculationError) as e:
             # Response parsing fails.
             calculator_with_mock_aws_session._get_pricing_units()
 
-        assert e.type == IndexError
+        assert e.type == CostCalculationError
 
 
 class TestCalculator:
     @pytest.fixture
-    def calculator_with_mock_get_pricing_units(self, calculator_with_mock_aws_session) -> AWSLambdaInvocationPriceCalculator:
+    def calculator_with_mock_get_pricing_units(self, calculator_with_mock_aws_session) -> AWSCostCalculator:
         calculator_with_mock_aws_session.pricing_units = PricingUnits(0.0000166667, 0.0000002)
         return calculator_with_mock_aws_session
 

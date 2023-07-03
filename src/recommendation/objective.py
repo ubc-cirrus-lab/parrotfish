@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from src.data_model import *
+from .parametric_function import ParametricFunction
 
 
 class Objective(ABC):

@@ -18,7 +18,7 @@ def fitting_function(initial_params):
     bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
 
     # Create an instance of FittingFunction with the test function and initial parameters
-    return FittingFunction(function=fn, params=initial_params, bounds=bounds)
+    return ParametricFunction(function=fn, params=initial_params, bounds=bounds)
 
 
 class TestFittingFunction:
@@ -26,7 +26,7 @@ class TestFittingFunction:
         # Generate some test data.
         memories = np.array([128, 256, 512, 1024])
         billed_time = np.array([30, 20, 10, 6])
-        datapoints = [DataPoint(memory=mem, billed_time=time) for mem, time in zip(memories, billed_time)]
+        datapoints = [DataPoint(memory_mb=mem, duration_ms=time) for mem, time in zip(memories, billed_time)]
 
         # Fitting the function.
         fitting_function.fit(datapoints)
@@ -42,7 +42,7 @@ class TestFittingFunction:
         # If datapoints contains invalid values.
         memories = np.array([np.NaN, 256, 512, 1024])
         billed_time = np.array([30, 20, 10, 6])
-        datapoints = [DataPoint(memory=mem, billed_time=time) for mem, time in zip(memories, billed_time)]
+        datapoints = [DataPoint(memory_mb=mem, duration_ms=time) for mem, time in zip(memories, billed_time)]
 
         # Test that the fit_function raises a ValueError
         with pytest.raises(ValueError) as e:

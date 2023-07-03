@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import curve_fit
 
-from .sample import Sample
-from ..exceptions import NoMemoryLeftError
+from src.data_model import Sample
+from src.exceptions import NoMemoryLeftError
 
 
 @dataclass
@@ -34,13 +34,15 @@ class ParametricFunction:
         Raises:
             RuntimeError: if least-squares minimization fails.
         """
-        params = [sample.durations[0] // 10] * 3
+        if self.params is None:
+            # self.params = [sample.durations[0] // 10] * 3
+            self.params = [1000, 10000, 100]
         self.params = curve_fit(
             f=self.function,
             xdata=sample.memories,
             ydata=sample.costs,
             maxfev=int(1e8),
-            p0=params,
+            p0=self.params,
             bounds=self.bounds,
         )[0]
 

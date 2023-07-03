@@ -9,18 +9,17 @@ class CostCalculator(ABC):
 
     @abstractmethod
     def calculate_price(self, memory_mb: int, duration_ms: float or np.ndarray) -> float or np.ndarray:
-        """Retrieving the serverless function pricing units, and calculate the exploration price based on the memory and
-        execution time.
+        """Calculates the exploration price based on the memory and execution time.
 
         Args:
             memory_mb (int): configured memory value in MB.
             duration_ms (float or np.ndarray): one or multiple invocations' execution time in Ms.
 
         Return:
-            float or np.ndarray: the exploration's price or prices in USD.
+            float or np.ndarray: Exploration's price or prices in USD.
 
         Raises:
-            TypeError: if the arguments' types are not compatible.
+            TypeError: If the arguments' types are not compatible.
             CostCalculationError: If exploration's price calculation fails.
         """
         pass

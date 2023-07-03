@@ -1,19 +1,21 @@
 import argparse
-import logging
 import logging.config
 import os
+
 import boto3
 
 from src.constants import ROOT_DIR
+from src.exceptions import OptimizationError
 from src.spot import Spot
 
 FUNCTION_DIR = "configs"
 
+logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True})
+logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def main():
-    logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True})
-    logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-
     parser = argparse.ArgumentParser(description="Serverless Price Optimization Tool")
 
     parser.add_argument("function", type=str, help="Name of the serverless function to use")
@@ -41,10 +43,15 @@ def main():
     spot = Spot(path, session)
 
     if args.optimize:
-        opt = spot.optimize()
-        mem = opt["Minimum Cost Memory"][0]
-        print(f"Optimization result: {mem} MB")
-        args.memory_mb = int(mem)
+        try:
+            result = spot.optimize()
+        except OptimizationError as e:
+            logger.critical(e)
+            exit(1)
+        else:
+            opt_memory_mb = result["Minimum Cost Memory"]
+            print(f"Optimization result: {opt_memory_mb} MB")
+            args.memory_mb = int(opt_memory_mb)
 
     if args.invoke:
         if not args.memory_mb:

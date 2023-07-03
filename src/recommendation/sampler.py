@@ -42,7 +42,6 @@ class Sampler:
                 self.initialize_sample()
 
             except SamplingError as e:
-                self._logger.error("Sampling error")
                 self._logger.debug(e)
                 raise
 

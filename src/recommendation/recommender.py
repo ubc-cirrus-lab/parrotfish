@@ -81,7 +81,11 @@ class Recommender:
         """
         self.sampler.update_sample(memory_mb)
         self.objective.update_knowledge(memory_mb)
-        self.objective.param_function.fit(self.sampler.sample)
+        try:
+            self.objective.param_function.fit(self.sampler.sample)
+        except RuntimeError as e:
+            self._logger.error(e.args[0])
+            raise OptimizationError(e.args[0])
 
     def _choose_memory_to_explore(self) -> int:
         """Chooses the memory size configuration to explore with from the remainder memories in the memory space.

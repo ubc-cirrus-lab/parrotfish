@@ -13,8 +13,8 @@ from src.exploration.cost_calculator import CostCalculator
 class AWSCostCalculator(CostCalculator):
     """A class for calculating the exploration price of an AWS Lambda function.
 
-    This class inherits from `InvocationPriceCalculator` and provides methods to calculate the exploration price
-    based on the underlying architecture, memory, and execution time of the Lambda function.
+    This class provides methods to calculate the exploration price based on the underlying architecture, memory,
+    and execution time of the Lambda function.
     """
     def __init__(self, function_name: str, aws_session: boto3.Session):
         super().__init__(function_name)
@@ -22,20 +22,6 @@ class AWSCostCalculator(CostCalculator):
         self.pricing_units = None
 
     def calculate_price(self, memory_mb: int, duration_ms: float or np.ndarray) -> float or np.ndarray:
-        """Retrieving the AWS lambda pricing units, and calculate the exploration price based on the memory and
-        execution time.
-
-        Args:
-            memory_mb (int): configured memory value in MB.
-            duration_ms (float or np.ndarray): one or multiple invocations' execution time in Ms.
-
-        Return:
-            float or np.ndarray: Invocation's price or prices in USD.
-
-        Raises:
-            TypeError: If the arguments' types are not compatible.
-            CostCalculationError: If exploration's price calculation fails.
-        """
         # if pricing units cache is empty we should retrieve pricing units.
         if self.pricing_units is None:
             self.pricing_units = self._get_pricing_units()  # fetch the pricing units
@@ -49,14 +35,16 @@ class AWSCostCalculator(CostCalculator):
         return self.pricing_units.request_price + compute_charge
 
     def _get_pricing_units(self) -> PricingUnits:
-        """For a given function we fetch the configuration, determine the underlying architecture and fetch pricing
-        information and parse it accordingly to determine the pricing units.
+        """Fetches the pricing information from the AWS Pricing service.
 
         Returns:
             PricingUnits: The pricing units retrieved based on the lambda configuration.
 
         Raises:
-            CostCalculationError: If an error occurred while trying to retrieve pricing units from aws.
+            CostCalculationError: If an error occurred while trying to retrieve pricing units from AWS.
+
+        For a given AWS Lambda function we fetch the configuration, determine the underlying architecture and fetch
+        pricing information and parse it accordingly to determine the pricing units.
         """
         try:
             response = self.aws_session.client("pricing").get_products(
@@ -100,5 +88,5 @@ class AWSCostCalculator(CostCalculator):
 
             try:
                 return PricingUnits(pricing[0], pricing[1])
-            except IndexError as e:
+            except IndexError:
                 raise CostCalculationError("Parsing the prices retrieved from AWS failed.")
