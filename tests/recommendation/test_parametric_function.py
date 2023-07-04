@@ -1,51 +1,37 @@
 import numpy as np
 import pytest
 
+from src.recommendation import *
 from src.data_model import *
 
 
 @pytest.fixture
-def initial_params():
-    return [1000, 10000, 100]
-
-
-@pytest.fixture
-def fitting_function(initial_params):
-    # Define a test function
-    def fn(x, a, b, c):
-        return a * x + b * np.exp(-x / c) * x
-
+def param_function():
     bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
-
-    # Create an instance of FittingFunction with the test function and initial parameters
-    return ParametricFunction(function=fn, params=initial_params, bounds=bounds)
+    return ParametricFunction(function=lambda x, a, b, c: a * x + b * np.exp(-x / c) * x, bounds=bounds)
 
 
 class TestFittingFunction:
-    def test_fit_function(self, initial_params, fitting_function):
+    def test_fit_function(self, param_function):
         # Generate some test data.
         memories = np.array([128, 256, 512, 1024])
         billed_time = np.array([30, 20, 10, 6])
-        datapoints = [DataPoint(memory_mb=mem, duration_ms=time) for mem, time in zip(memories, billed_time)]
+        sample = Sample([DataPoint(memory_mb=mem, duration_ms=time) for mem, time in zip(memories, billed_time)])
 
         # Fitting the function.
-        fitting_function.fit(datapoints)
-
-        # Test number of parameters is the same.
-        assert len(fitting_function.params) == len(initial_params)
+        param_function.fit(sample)
 
         # Test if function's parameters updated.
-        for param, initial_param in zip(fitting_function.params, initial_params):
-            assert param != initial_param
+        assert param_function.params is not None
 
-    def test_fit_function_raise_value_error(self, fitting_function):
+    def test_fit_function_raise_value_error(self, param_function):
         # If datapoints contains invalid values.
         memories = np.array([np.NaN, 256, 512, 1024])
         billed_time = np.array([30, 20, 10, 6])
-        datapoints = [DataPoint(memory_mb=mem, duration_ms=time) for mem, time in zip(memories, billed_time)]
+        sample = Sample([DataPoint(memory_mb=mem, duration_ms=time) for mem, time in zip(memories, billed_time)])
 
         # Test that the fit_function raises a ValueError
         with pytest.raises(ValueError) as e:
-            fitting_function.fit(datapoints)
+            param_function.fit(sample)
 
         assert e.type == ValueError

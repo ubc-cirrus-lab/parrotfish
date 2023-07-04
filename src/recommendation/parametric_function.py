@@ -21,15 +21,15 @@ class ParametricFunction:
     params: np.array = None
     execution_time_threshold: float = None
 
-    def __call__(self, x: np.array):
+    def __call__(self, x: int or np.array):
         return self.function(x, *self.params)
 
     def fit(self, sample: Sample) -> None:
-        """Use non-linear least squares to fit a function to the datapoints.
-        Optimize values for the parameters so that the sum of the squared residuals is minimized.
+        """Use non-linear least squares to fit a function to the sample.
+        Optimize the parameters values so that the sum of the squared residuals is minimized.
 
         Args:
-            sample (Sample): The sample memories.
+            sample (Sample): The sample to fit the function to.
 
         Raises:
             RuntimeError: if least-squares minimization fails.
@@ -57,7 +57,7 @@ class ParametricFunction:
         """
         costs = self.__call__(memory_space)
 
-        # Handling execution threshold
+        # Handling execution threshold constraint
         if self.execution_time_threshold is not None:
             filtered_memories = np.array([])
             filtered_costs = np.array([])
