@@ -9,8 +9,14 @@ from src.exploration import *
 
 
 class Sampler:
-    def __init__(self, explorer: Explorer, memory_space: np.ndarray, explorations_count: int,
-                 max_dynamic_sample_count: int, dynamic_sampling_cv_threshold: float):
+    def __init__(
+        self,
+        explorer: Explorer,
+        memory_space: np.ndarray,
+        explorations_count: int,
+        max_dynamic_sample_count: int,
+        dynamic_sampling_cv_threshold: float,
+    ):
         self.sample = None
         self.explorer = explorer
         self.memory_space = memory_space
@@ -32,7 +38,13 @@ class Sampler:
 
             except FunctionENOMEM:
                 self._logger.info(f"ENOMEM: trying with new memories")
-                self.memory_space = np.array([mem for mem in self.memory_space if mem >= self.memory_space[0] + 128])
+                self.memory_space = np.array(
+                    [
+                        mem
+                        for mem in self.memory_space
+                        if mem >= self.memory_space[0] + 128
+                    ]
+                )
 
             except SamplingError as e:
                 self._logger.debug(e)
@@ -68,8 +80,11 @@ class Sampler:
         self._logger.info(f"Stratified sampling: {memory_mb} MB")
         try:
             # Handling Cold start
-            self.explorer.explore_parallel(nbr_invocations=self._explorations_count,
-                                           nbr_threads=self._explorations_count, memory_mb=int(memory_mb))
+            self.explorer.explore_parallel(
+                nbr_invocations=self._explorations_count,
+                nbr_threads=self._explorations_count,
+                memory_mb=int(memory_mb),
+            )
 
             # Do actual sampling
             stratified_subsample_durations = self.explorer.explore_parallel(
@@ -80,14 +95,18 @@ class Sampler:
             self._logger.debug(e)
             raise
 
-        stratified_subsample_durations = self._explore_dynamically(durations=stratified_subsample_durations)
+        stratified_subsample_durations = self._explore_dynamically(
+            durations=stratified_subsample_durations
+        )
 
         stratified_subsample = [
             DataPoint(memory_mb, result) for result in stratified_subsample_durations
         ]
         self.sample.update(stratified_subsample)
 
-        self._logger.info(f"Finished sampling {memory_mb} with {len(stratified_subsample)} datapoints")
+        self._logger.info(
+            f"Finished sampling {memory_mb} with {len(stratified_subsample)} datapoints"
+        )
 
     def _explore_dynamically(self, durations: list) -> list:
         """Samples dynamically until the invocations results are consistent enough. Consistency is measured by the
@@ -112,7 +131,10 @@ class Sampler:
         dynamic_sample_count = 0
         min_cv = np.std(durations, ddof=1) / np.mean(durations)
 
-        while dynamic_sample_count < self._max_dynamic_sample_count and min_cv > self._dynamic_sampling_cv_threshold:
+        while (
+            dynamic_sample_count < self._max_dynamic_sample_count
+            and min_cv > self._dynamic_sampling_cv_threshold
+        ):
             try:
                 result = self.explorer.explore()
 

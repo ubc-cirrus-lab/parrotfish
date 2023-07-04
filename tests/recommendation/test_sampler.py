@@ -31,7 +31,9 @@ class TestInitializeSample:
 
     def test_function_enomem(self, sampler):
         # Arrange
-        sampler.update_sample = mock.Mock(side_effect=(FunctionENOMEM, None, None, None))
+        sampler.update_sample = mock.Mock(
+            side_effect=(FunctionENOMEM, None, None, None)
+        )
 
         # Action
         sampler.initialize_sample()
@@ -69,7 +71,9 @@ class TestUpdateSample:
         assert all(a == b for a, b in zip(sampler.sample.durations, [300, 200, 400]))
 
     def test_sampling_error(self, sampler):
-        sampler.explorer.explore_parallel = mock.Mock(side_effect=ExplorationError("error"))
+        sampler.explorer.explore_parallel = mock.Mock(
+            side_effect=ExplorationError("error")
+        )
 
         with pytest.raises(SamplingError) as e:
             sampler.update_sample(128)

@@ -33,8 +33,7 @@ class Spot:
             lambda_name=self.config.function_name,
             payload=payload,
             max_invocation_attempts=const.MAX_NUMBER_INVOCATION_ATTEMPTS,
-            aws_session=aws_session
-
+            aws_session=aws_session,
         )
 
         self.param_function = ParametricFunction(
@@ -68,7 +67,9 @@ class Spot:
         return self._report()
 
     def _report(self):
-        minimum_memory, minimum_cost = self.param_function.minimize(self.sampler.memory_space)
+        minimum_memory, minimum_cost = self.param_function.minimize(
+            self.sampler.memory_space
+        )
         return {
             "Minimum Cost Memory": minimum_memory,
             "Expected Cost": minimum_cost,

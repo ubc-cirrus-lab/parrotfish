@@ -19,7 +19,9 @@ class TestInitialize:
     def test_nominal_case(self, recommender):
         # Arrange
         def mock_initialize_sample():
-            recommender.sampler.sample = Sample([DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)])
+            recommender.sampler.sample = Sample(
+                [DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)]
+            )
 
         recommender.sampler.initialize_sample = mock_initialize_sample
         recommender.objective.update_knowledge = mock.Mock()
@@ -35,11 +37,15 @@ class TestInitialize:
     def test_fitting_error(self, recommender):
         # Arrange
         def mock_initialize_sample():
-            recommender.sampler.sample = Sample([DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)])
+            recommender.sampler.sample = Sample(
+                [DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)]
+            )
 
         recommender.sampler.initialize_sample = mock_initialize_sample
         recommender.objective.update_knowledge = mock.Mock()
-        recommender.objective.param_function.fit = mock.Mock(side_effect=RuntimeError({}))
+        recommender.objective.param_function.fit = mock.Mock(
+            side_effect=RuntimeError({})
+        )
 
         with pytest.raises(OptimizationError) as e:
             recommender._initialize()
@@ -65,7 +71,9 @@ class TestUpdate:
     def test_fitting_error(self, recommender):
         recommender.sampler.update_sample = mock.Mock()
         recommender.objective.update_knowledge = mock.Mock()
-        recommender.objective.param_function.fit = mock.Mock(side_effect=RuntimeError({}))
+        recommender.objective.param_function.fit = mock.Mock(
+            side_effect=RuntimeError({})
+        )
 
         with pytest.raises(OptimizationError) as e:
             recommender._update(128)
@@ -77,7 +85,9 @@ class TestUpdate:
 class TestChooseMemoryToExplore:
     def test_nominal_case(self, recommender):
         # Arrange
-        recommender.sampler.sample = Sample([DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)])
+        recommender.sampler.sample = Sample(
+            [DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)]
+        )
         recommender.sampler.memory_space = [128, 256]
         recommender.objective.get_values = mock.Mock(return_value=np.array([1.6]))
 
@@ -88,7 +98,9 @@ class TestChooseMemoryToExplore:
         assert mem == 256
 
     def test_no_memory_left_error(self, recommender):
-        recommender.sampler.sample = Sample([DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)])
+        recommender.sampler.sample = Sample(
+            [DataPoint(128, 200), DataPoint(128, 300), DataPoint(128, 400)]
+        )
         recommender.sampler.memory_space = [128]
 
         with pytest.raises(NoMemoryLeftError) as e:
