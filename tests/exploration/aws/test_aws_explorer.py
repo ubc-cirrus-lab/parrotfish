@@ -19,10 +19,13 @@ def explorer():
 
     mock_aws_session.client().invoke.return_value = {
         "LogResult": "XHREdXJhdGlvbjogMTcwLjI0IG1zXHRCaWxsZWQgRHVyYXRpb246IDE3MSBtc1x0TWVtb3J5IFNpemU6IDEyOCBNQlx0TWF4I"
-                     "E1lbW9yeSBVc2VkOiA0MCBNQlx0SW5pdCBEdXJhdGlvbjogMTM0LjcwIG1zXHRcbiI="
+        "E1lbW9yeSBVc2VkOiA0MCBNQlx0SW5pdCBEdXJhdGlvbjogMTM0LjcwIG1zXHRcbiI="
     }
 
-    mock_aws_session.client().get_function_configuration.return_value = {"MemorySize": 256, "LastUpdateStatus": "Successful"}
+    mock_aws_session.client().get_function_configuration.return_value = {
+        "MemorySize": 256,
+        "LastUpdateStatus": "Successful",
+    }
 
     def mock_update_function_configuration(FunctionName: str, MemorySize: int):
         mock_aws_session.client().get_function_configuration.side_effect = (
@@ -30,10 +33,16 @@ def explorer():
             {"MemorySize": MemorySize, "LastUpdateStatus": "Successful"},
         )
 
-    mock_aws_session.client().update_function_configuration = mock_update_function_configuration
+    mock_aws_session.client().update_function_configuration = (
+        mock_update_function_configuration
+    )
 
-    return AWSExplorer(lambda_name="example_function", payload="payload", max_invocation_attempts=5,
-                       aws_session=mock_aws_session)
+    return AWSExplorer(
+        lambda_name="example_function",
+        payload="payload",
+        max_invocation_attempts=5,
+        aws_session=mock_aws_session,
+    )
 
 
 class TestCheckAndSetMemoryValue:
@@ -43,23 +52,25 @@ class TestCheckAndSetMemoryValue:
         assert config["MemorySize"] == 128
 
     def test_param_value_error(self, explorer):
-        explorer.client.update_function_configuration = mock.Mock(side_effect=ParamValidationError(report="error"))
+        explorer.client.update_function_configuration = mock.Mock(
+            side_effect=ParamValidationError(report="error")
+        )
 
         with pytest.raises(MemoryConfigError) as error:
-            explorer.check_and_set_memory_config('wrong parm')
+            explorer.check_and_set_memory_config("wrong parm")
         assert error.type == MemoryConfigError
 
     def test_function_not_found(self, explorer):
         mock_error_response = {
-            'Error': {
-                'Message': 'Function not found: arn:aws:lambda:us-east-1:880306299867:function:function_not_found',
-                'Code': 'ResourceNotFoundException'
+            "Error": {
+                "Message": "Function not found: arn:aws:lambda:us-east-1:880306299867:function:function_not_found",
+                "Code": "ResourceNotFoundException",
             },
         }
         explorer.client.get_function_configuration = mock.Mock()
         explorer.client.get_function_configuration.side_effect = ClientError(
             operation_name="GetFunctionConfiguration",
-            error_response=mock_error_response
+            error_response=mock_error_response,
         )
 
         with pytest.raises(MemoryConfigError) as error:
@@ -76,15 +87,15 @@ class Testinvoke:
 
     def test_client_error(self, explorer):
         mock_error_response = {
-            'Error': {
-                'Message': 'Function not found: arn:aws:lambda:us-east-1:880306299867:function:function_not_found',
-                'Code': 'ResourceNotFoundException'
+            "Error": {
+                "Message": "Function not found: arn:aws:lambda:us-east-1:880306299867:function:function_not_found",
+                "Code": "ResourceNotFoundException",
             },
         }
         explorer.client.invoke = mock.Mock()
         explorer.client.invoke.side_effect = ClientError(
             operation_name="GetFunctionConfiguration",
-            error_response=mock_error_response
+            error_response=mock_error_response,
         )
 
         with pytest.raises(InvocationError) as error:
@@ -94,7 +105,10 @@ class Testinvoke:
     @mock.patch("src.exploration.aws.aws_explorer.time.sleep")
     def test_max_number_of_invocations_attempts_reached_error(self, sleep, explorer):
         explorer.client.invoke = mock.Mock(
-            side_effect=(Exception() for _ in range(const.MAX_NUMBER_INVOCATION_ATTEMPTS)))
+            side_effect=(
+                Exception() for _ in range(const.MAX_NUMBER_INVOCATION_ATTEMPTS)
+            )
+        )
 
         with pytest.raises(InvocationError) as error:
             explorer.invoke()
@@ -104,7 +118,9 @@ class Testinvoke:
     @mock.patch("src.exploration.aws.aws_explorer.time.sleep")
     def test_handling_aws_throttling(self, sleep, explorer):
         response = {"LogResult": "VGVzdCByZXNwb25zZQ=="}
-        explorer.client.invoke = mock.Mock(side_effect=(Exception(), Exception(), response))
+        explorer.client.invoke = mock.Mock(
+            side_effect=(Exception(), Exception(), response)
+        )
 
         explorer.invoke()
 
@@ -113,7 +129,10 @@ class Testinvoke:
     def test_read_time_out(self, explorer):
         # Arrange
         explorer.client.invoke = mock.Mock(
-            side_effect=(ReadTimeoutError(endpoint_url="endpoint"), {"LogResult": base64.b64encode(b"result")})
+            side_effect=(
+                ReadTimeoutError(endpoint_url="endpoint"),
+                {"LogResult": base64.b64encode(b"result")},
+            )
         )
 
         # Action

@@ -30,7 +30,10 @@ class Recommender:
         """
         sample_count = len(self.sampler.sample)
         termination_value = self.objective.termination_value
-        return sample_count < self._max_sample_count and termination_value > self._termination_threshold
+        return (
+            sample_count < self._max_sample_count
+            and termination_value > self._termination_threshold
+        )
 
     def run(self):
         """Runs the recommender algorithm.
@@ -99,7 +102,9 @@ class Recommender:
         # compute the memories we can explore from.
         sample_memories = set(self.sampler.sample.memories)
         memory_space = self.sampler.memory_space
-        remainder_memories = np.array([memory for memory in memory_space if memory not in sample_memories])
+        remainder_memories = np.array(
+            [memory for memory in memory_space if memory not in sample_memories]
+        )
 
         if len(remainder_memories) == 0:
             raise NoMemoryLeftError

@@ -16,7 +16,9 @@ class FitToRealCostObjective(Objective):
 
     def update_knowledge(self, memory_mb):
         for memory in self.knowledge_values:
-            self.knowledge_values[memory] += stats.norm.pdf(memory, memory_mb, 200) / stats.norm.pdf(memory_mb, memory_mb, 200)
+            self.knowledge_values[memory] += stats.norm.pdf(
+                memory, memory_mb, 200
+            ) / stats.norm.pdf(memory_mb, memory_mb, 200)
 
     def get_knowledge(self, x):
         if isinstance(x, np.ndarray) or isinstance(x, list):

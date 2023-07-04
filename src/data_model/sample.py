@@ -5,6 +5,7 @@ from .data_point import DataPoint
 
 class Sample:
     """Class for keeping track of the sample."""
+
     def __init__(self, datapoints=None):
         if datapoints is None:
             datapoints = []
@@ -16,11 +17,15 @@ class Sample:
 
     @property
     def durations(self):
-        return np.array([datapoint.duration_ms for datapoint in self._datapoints], dtype=np.float)
+        return np.array(
+            [datapoint.duration_ms for datapoint in self._datapoints], dtype=np.float
+        )
 
     @property
     def memories(self):
-        return np.array([datapoint.memory_mb for datapoint in self._datapoints], dtype=np.int)
+        return np.array(
+            [datapoint.memory_mb for datapoint in self._datapoints], dtype=np.int
+        )
 
     def update(self, data: DataPoint or list):
         if isinstance(data, list):

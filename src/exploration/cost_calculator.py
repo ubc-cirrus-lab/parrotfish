@@ -8,7 +8,9 @@ class CostCalculator(ABC):
         self.function_name = function_name
 
     @abstractmethod
-    def calculate_price(self, memory_mb: int, duration_ms: float or np.ndarray) -> float or np.ndarray:
+    def calculate_price(
+        self, memory_mb: int, duration_ms: float or np.ndarray
+    ) -> float or np.ndarray:
         """Calculates the exploration price based on the memory and execution time.
 
         Args:

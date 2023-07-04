@@ -21,19 +21,21 @@ class Spot:
         with open(config_file_path) as f:
             self.config: InputConfig = InputConfig(f)
 
-        memory_space = np.array(range(self.config.mem_bounds[0], self.config.mem_bounds[1] + 1))
+        memory_space = np.array(
+            range(self.config.mem_bounds[0], self.config.mem_bounds[1] + 1)
+        )
 
         self.explorer = AWSExplorer(
             lambda_name=self.config.function_name,
             payload=payload,
             max_invocation_attempts=const.DYNAMIC_SAMPLING_INITIAL_STEP,
-            aws_session=aws_session
+            aws_session=aws_session,
         )
 
         self.param_function = ParametricFunction(
             function=lambda x, a0, a1, a2: a0 * x + a1 * np.exp(-x / a2) * x,
             bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
-            execution_time_threshold=self.config.execution_time_threshold
+            execution_time_threshold=self.config.execution_time_threshold,
         )
 
         self.sampler = Sampler(
@@ -41,7 +43,7 @@ class Spot:
             memory_space=memory_space,
             explorations_count=const.DYNAMIC_SAMPLING_INITIAL_STEP,
             max_dynamic_sample_count=const.DYNAMIC_SAMPLING_MAX,
-            dynamic_sampling_cv_threshold=const.TERMINATION_CV
+            dynamic_sampling_cv_threshold=const.TERMINATION_CV,
         )
 
         self.recommender = Recommender(
@@ -61,7 +63,9 @@ class Spot:
         return self._report()
 
     def _report(self):
-        minimum_memory, minimum_cost = self.param_function.minimize(self.sampler.memory_space)
+        minimum_memory, minimum_cost = self.param_function.minimize(
+            self.sampler.memory_space
+        )
         return {
             "Minimum Cost Memory": minimum_memory,
             "Expected Cost": minimum_cost,

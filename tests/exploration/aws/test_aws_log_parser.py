@@ -28,8 +28,10 @@ class TestAWSLogParser:
         assert result == expected
 
     def test_lambda_timeout_error(self, log_parser):
-        result_log = "Task timed out after REPORT RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\tDuration: " \
-                     "18179.84 ms\\tBilled Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 506 MB\\t\\n'"
+        result_log = (
+            "Task timed out after REPORT RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\tDuration: "
+            "18179.84 ms\\tBilled Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 506 MB\\t\\n'"
+        )
 
         try:
             log_parser.parse_log(result_log)
@@ -41,8 +43,10 @@ class TestAWSLogParser:
         assert e.type == FunctionTimeoutError
 
     def test_lambda_enomem(self, log_parser):
-        result_log = "REPORT RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\tDuration: 18179.84 ms\\tBilled " \
-                     "Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 512 MB\\t\\n'"
+        result_log = (
+            "REPORT RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\tDuration: 18179.84 ms\\tBilled "
+            "Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 512 MB\\t\\n'"
+        )
 
         try:
             log_parser.parse_log(result_log)
@@ -54,9 +58,11 @@ class TestAWSLogParser:
         assert e.type == FunctionENOMEM
 
     def test_lambda_invocation_error(self, log_parser):
-        result_log = "[ERROR] lambda function raises an error END RequestId. REPORT RequestId: " \
-                     "03d92713-a4b2-4b07-a07a-653087817262\\tDuration: 18179.84 ms\\tBilled Duration: 18180 ms\\t" \
-                     "Memory Size: 512 MB\\tMax Memory Used: 506 MB\\t\\n'"
+        result_log = (
+            "[ERROR] lambda function raises an error END RequestId. REPORT RequestId: "
+            "03d92713-a4b2-4b07-a07a-653087817262\\tDuration: 18179.84 ms\\tBilled Duration: 18180 ms\\t"
+            "Memory Size: 512 MB\\tMax Memory Used: 506 MB\\t\\n'"
+        )
 
         try:
             log_parser.parse_log(result_log)
