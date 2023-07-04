@@ -6,7 +6,7 @@ import boto3
 
 from src.constants import ROOT_DIR
 from src.exceptions import OptimizationError
-from src.spot import Spot
+from src.parrotfish import Parrotfish
 
 FUNCTION_DIR = "configs"
 
@@ -53,7 +53,7 @@ def main():
         )
         exit(1)
 
-    spot = Spot(path, session)
+    spot = Parrotfish(path, session)
 
     if args.optimize:
         try:

@@ -4,14 +4,13 @@ import os
 import numpy as np
 
 import src.constants as const
-from src.exceptions import OptimizationError
 from src.exploration import AWSExplorer
 from src.input_config import InputConfig
 from src.recommendation import *
 from src.recommendation.objectives import *
 
 
-class Spot:
+class Parrotfish:
     def __init__(self, config_dir: str, aws_session):
         self._logger = logging.getLogger(__name__)
 

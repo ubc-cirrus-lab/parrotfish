@@ -58,7 +58,7 @@ class Explorer(ABC):
         with ThreadPoolExecutor(max_workers=nbr_threads) as executor:
             # Submit exploration jobs to each thread.
             futures = [
-                executor.submit(self.explore, memory_mb=None, is_compute_cost=False)
+                executor.submit(self.explore, memory_mb=None, enable_cost_calculation=False)
                 for _ in range(nbr_invocations)
             ]
 
@@ -89,12 +89,12 @@ class Explorer(ABC):
 
         return results
 
-    def explore(self, memory_mb: int = None, is_compute_cost=True) -> int:
+    def explore(self, memory_mb: int = None, enable_cost_calculation=True) -> int:
         """Invokes the function and parses the execution response.
 
         Args:
             memory_mb (int, optional): Memory size in MB to configure the function for the exploration. Default to None.
-            is_compute_cost (bool, optional): Specifies whether to compute the cost of the exploration. Default to True.
+            enable_cost_calculation (bool, optional): Specifies whether to compute the cost of the exploration. Default to True.
 
         Returns:
             int: The execution time of the serverless function in ms.
@@ -115,14 +115,14 @@ class Explorer(ABC):
 
         except InvocationError as e:
             self._logger.debug(e)
-            if is_compute_cost:
+            if enable_cost_calculation:
                 self.cost += self.price_calculator.calculate_price(
                     self._memory_config_mb, e.duration_ms
                 )
             raise
 
         else:
-            if is_compute_cost:
+            if enable_cost_calculation:
                 self.cost += self.price_calculator.calculate_price(
                     self._memory_config_mb, exec_time
                 )

@@ -15,7 +15,7 @@ class CostCalculator(ABC):
 
         Args:
             memory_mb (int): configured memory value in MB.
-            duration_ms (float or np.ndarray): one or multiple invocations' execution time in Ms.
+            duration_ms (float or np.ndarray): one or multiple invocations' execution time in ms.
 
         Return:
             float or np.ndarray: Exploration's price or prices in USD.
