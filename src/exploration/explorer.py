@@ -58,7 +58,9 @@ class Explorer(ABC):
         with ThreadPoolExecutor(max_workers=nbr_threads) as executor:
             # Submit exploration jobs to each thread.
             futures = [
-                executor.submit(self.explore, memory_mb=None, enable_cost_calculation=False)
+                executor.submit(
+                    self.explore, memory_mb=None, enable_cost_calculation=False
+                )
                 for _ in range(nbr_invocations)
             ]
 
