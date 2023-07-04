@@ -7,7 +7,9 @@ from src.exploration.log_parser import LogParser
 
 class AWSLogParser(LogParser):
     def __init__(self):
-        super().__init__(["Duration", "Billed Duration", "Max Memory Used", "Memory Size"])
+        super().__init__(
+            ["Duration", "Billed Duration", "Max Memory Used", "Memory Size"]
+        )
         self._logger = logging.getLogger(__name__)
 
     def parse_log(self, log: str) -> int:

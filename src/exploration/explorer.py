@@ -12,7 +12,13 @@ from src.exceptions import *
 class Explorer(ABC):
     """This class provides the operation of serverless function's exploration."""
 
-    def __init__(self, function_name: str, payload: str, log_parser: LogParser, price_calculator: CostCalculator):
+    def __init__(
+        self,
+        function_name: str,
+        payload: str,
+        log_parser: LogParser,
+        price_calculator: CostCalculator,
+    ):
         self.function_name = function_name
         self.payload = payload
         self.log_parser = log_parser
@@ -23,7 +29,9 @@ class Explorer(ABC):
 
         self._logger = logging.getLogger(__name__)
 
-    def explore_parallel(self, nbr_invocations: int, nbr_threads: int, memory_mb: int = None) -> list:
+    def explore_parallel(
+        self, nbr_invocations: int, nbr_threads: int, memory_mb: int = None
+    ) -> list:
         """Invokes the specified serverless function multiple times with a given memory config and payload.
 
         Args:
@@ -49,8 +57,10 @@ class Explorer(ABC):
         results = []
         with ThreadPoolExecutor(max_workers=nbr_threads) as executor:
             # Submit exploration jobs to each thread.
-            futures = [executor.submit(self.explore, memory_mb=None, is_compute_cost=False)
-                       for _ in range(nbr_invocations)]
+            futures = [
+                executor.submit(self.explore, memory_mb=None, is_compute_cost=False)
+                for _ in range(nbr_invocations)
+            ]
 
             # Aggregate results from all threads.
             for future in as_completed(futures):
@@ -61,7 +71,9 @@ class Explorer(ABC):
                     self._logger.debug(e)
                     if error is None:
                         error = e
-                    self.cost += self.price_calculator.calculate_price(self._memory_config_mb, e.duration_ms)
+                    self.cost += self.price_calculator.calculate_price(
+                        self._memory_config_mb, e.duration_ms
+                    )
                     continue
 
         # If one thread raises an invocation error we raise it.
@@ -69,7 +81,11 @@ class Explorer(ABC):
             raise error
 
         # Calculate the cost
-        self.cost += np.sum(self.price_calculator.calculate_price(self._memory_config_mb, np.array(results)))
+        self.cost += np.sum(
+            self.price_calculator.calculate_price(
+                self._memory_config_mb, np.array(results)
+            )
+        )
 
         return results
 
@@ -100,12 +116,16 @@ class Explorer(ABC):
         except InvocationError as e:
             self._logger.debug(e)
             if is_compute_cost:
-                self.cost += self.price_calculator.calculate_price(self._memory_config_mb, e.duration_ms)
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, e.duration_ms
+                )
             raise
 
         else:
             if is_compute_cost:
-                self.cost += self.price_calculator.calculate_price(self._memory_config_mb, exec_time)
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, exec_time
+                )
             return exec_time
 
     @abstractmethod

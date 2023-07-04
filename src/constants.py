@@ -33,7 +33,7 @@ if os.environ.get("SPOT_MODE") == "dev":
 else:
     ALPHA = 0
     NORMAL_SCALE = 100
-    TOTAL_SAMPLE_COUNT = 20
+    TOTAL_SAMPLE_COUNT = 10
     TERMINATION_CV = 0.05
     KNOWLEDGE_RATIO = 0.2
     DYNAMIC_SAMPLING_MAX = 3

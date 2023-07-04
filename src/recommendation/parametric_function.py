@@ -16,6 +16,7 @@ class ParametricFunction:
         params (np.array): parameters of the function.
         bounds (tuple): Lower and upper bounds on parameters.
     """
+
     function: callable
     bounds: tuple
     params: np.array = None

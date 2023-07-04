@@ -16,11 +16,15 @@ class Sample:
 
     @property
     def durations(self):
-        return np.array([datapoint.duration_ms for datapoint in self._datapoints], dtype=np.float)
+        return np.array(
+            [datapoint.duration_ms for datapoint in self._datapoints], dtype=np.float
+        )
 
     @property
     def memories(self):
-        return np.array([datapoint.memory_mb for datapoint in self._datapoints], dtype=np.int)
+        return np.array(
+            [datapoint.memory_mb for datapoint in self._datapoints], dtype=np.int
+        )
 
     def update(self, data: DataPoint or list):
         if isinstance(data, list):

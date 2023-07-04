@@ -50,7 +50,7 @@ class Recommender:
         """Initializes the sample, objective knowledge, and parametric function.
 
         Raises:
-            OptimizationError: If an error occurred while running the recommender algorithm.
+            OptimizationError: If an error occurred while fitting the parametric function.
 
         This method initializes the sample by drawing samples from the memory space.
         It updates the knowledge values for each sampled memory and fits the parametric function.
@@ -99,7 +99,9 @@ class Recommender:
         # compute the memories we can explore from.
         sample_memories = set(self.sampler.sample.memories)
         memory_space = self.sampler.memory_space
-        remainder_memories = np.array([memory for memory in memory_space if memory not in sample_memories])
+        remainder_memories = np.array(
+            [memory for memory in memory_space if memory not in sample_memories]
+        )
 
         if len(remainder_memories) == 0:
             raise NoMemoryLeftError

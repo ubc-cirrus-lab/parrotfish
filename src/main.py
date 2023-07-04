@@ -10,18 +10,29 @@ from src.spot import Spot
 
 FUNCTION_DIR = "configs"
 
-logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True})
-logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.config.dictConfig({"version": 1, "disable_existing_loggers": True})
+logging.basicConfig(format="%(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Serverless Price Optimization Tool")
 
-    parser.add_argument("function", type=str, help="Name of the serverless function to use")
-    parser.add_argument("--optimize", "-o", action="store_true", help="Return best memory configuration for lowest cost")
-    parser.add_argument("--invoke", "-i", type=int, help="The number of times you invoke the function")
-    parser.add_argument("--memory_mb", "-m", type=int, help="Memory (MB) of the function")
+    parser.add_argument(
+        "function", type=str, help="Name of the serverless function to use"
+    )
+    parser.add_argument(
+        "--optimize",
+        "-o",
+        action="store_true",
+        help="Return best memory configuration for lowest cost",
+    )
+    parser.add_argument(
+        "--invoke", "-i", type=int, help="The number of times you invoke the function"
+    )
+    parser.add_argument(
+        "--memory_mb", "-m", type=int, help="Memory (MB) of the function"
+    )
     parser.add_argument("--aws_profile", "-p", type=str, help="AWS profile")
 
     args = parser.parse_args()
@@ -37,7 +48,9 @@ def main():
 
     path = os.path.join(ROOT_DIR, "../", FUNCTION_DIR, args.function)
     if not os.path.isdir(path):
-        print(f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive")
+        print(
+            f"Could not find the serverless function {args.function} in '{path}'. Functions are case sensitive"
+        )
         exit(1)
 
     spot = Spot(path, session)
@@ -49,6 +62,7 @@ def main():
             logger.critical(e)
             exit(1)
         else:
+            logger.info(result)
             opt_memory_mb = result["Minimum Cost Memory"]
             print(f"Optimization result: {opt_memory_mb} MB")
             args.memory_mb = int(opt_memory_mb)

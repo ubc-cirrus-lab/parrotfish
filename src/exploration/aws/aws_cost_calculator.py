@@ -16,12 +16,15 @@ class AWSCostCalculator(CostCalculator):
     This class provides methods to calculate the exploration price based on the underlying architecture, memory,
     and execution time of the Lambda function.
     """
+
     def __init__(self, function_name: str, aws_session: boto3.Session):
         super().__init__(function_name)
         self.aws_session = aws_session
         self.pricing_units = None
 
-    def calculate_price(self, memory_mb: int, duration_ms: float or np.ndarray) -> float or np.ndarray:
+    def calculate_price(
+        self, memory_mb: int, duration_ms: float or np.ndarray
+    ) -> float or np.ndarray:
         # if pricing units cache is empty we should retrieve pricing units.
         if self.pricing_units is None:
             self.pricing_units = self._get_pricing_units()  # fetch the pricing units
@@ -76,17 +79,22 @@ class AWSCostCalculator(CostCalculator):
             pricing = []
             for group in price_groups:
                 # Loop over the price list and get the pricing units.
-                for price in response['PriceList']:
+                for price in response["PriceList"]:
                     # Filter by the group attribute.
                     if re.search(f'"group"\s*:\s*"{group}"', price):
                         # Get all match PricePerUnit.
                         all_match = re.findall('\{"USD"\s*:\s*"[.\d]*"}', price)
                         if all_match:
-                            prices_per_tier = map(lambda element: float(json.loads(element)["USD"]), all_match)
+                            prices_per_tier = map(
+                                lambda element: float(json.loads(element)["USD"]),
+                                all_match,
+                            )
                             pricing.append(max(prices_per_tier))
                             break
 
             try:
                 return PricingUnits(pricing[0], pricing[1])
             except IndexError:
-                raise CostCalculationError("Parsing the prices retrieved from AWS failed.")
+                raise CostCalculationError(
+                    "Parsing the prices retrieved from AWS failed."
+                )

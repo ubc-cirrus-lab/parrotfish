@@ -11,37 +11,56 @@ from .aws_log_parser import AWSLogParser
 
 
 class AWSExplorer(Explorer):
-    def __init__(self, lambda_name: str, payload: str, max_invocation_attempts: int, aws_session: boto3.Session):
+    def __init__(
+        self,
+        lambda_name: str,
+        payload: str,
+        max_invocation_attempts: int,
+        aws_session: boto3.Session,
+    ):
         super().__init__(
             function_name=lambda_name,
             payload=payload,
             log_parser=AWSLogParser(),
-            price_calculator=AWSCostCalculator(function_name=lambda_name, aws_session=aws_session)
+            price_calculator=AWSCostCalculator(
+                function_name=lambda_name, aws_session=aws_session
+            ),
         )
         self._max_invocation_attempts = max_invocation_attempts
         self.client = aws_session.client("lambda")
 
     def check_and_set_memory_config(self, memory_mb: int) -> dict:
         try:
-            config = self.client.get_function_configuration(FunctionName=self.function_name)
+            config = self.client.get_function_configuration(
+                FunctionName=self.function_name
+            )
 
             # Update the lambda function's configuration.
-            self.client.update_function_configuration(FunctionName=self.function_name, MemorySize=memory_mb)
+            self.client.update_function_configuration(
+                FunctionName=self.function_name, MemorySize=memory_mb
+            )
 
             # Wait until configuration is propagated to all worker instances.
-            while config["MemorySize"] != memory_mb or config["LastUpdateStatus"] == "InProgress":
+            while (
+                config["MemorySize"] != memory_mb
+                or config["LastUpdateStatus"] == "InProgress"
+            ):
                 # Wait for the lambda function's status has changed to "UPDATED".
                 waiter = self.client.get_waiter("function_updated")
                 waiter.wait(FunctionName=self.function_name)
 
-                config = self.client.get_function_configuration(FunctionName=self.function_name)
+                config = self.client.get_function_configuration(
+                    FunctionName=self.function_name
+                )
 
         except ParamValidationError as e:
             raise MemoryConfigError(e.args[0])
 
         except ClientError:
-            raise MemoryConfigError("Lambda function not found. Please make sure that the provided function "
-                                    "name and configuration are correct!")
+            raise MemoryConfigError(
+                "Lambda function not found. Please make sure that the provided function "
+                "name and configuration are correct!"
+            )
 
         else:
             return config
@@ -59,12 +78,16 @@ class AWSExplorer(Explorer):
 
             except ClientError as e:
                 self._logger.debug(e)
-                raise InvocationError("Error has been raised while invoking the lambda function. Please make sure "
-                                      "that the provided function name and configuration are correct!")
+                raise InvocationError(
+                    "Error has been raised while invoking the lambda function. Please make sure "
+                    "that the provided function name and configuration are correct!"
+                )
 
             except ReadTimeoutError:
-                self._logger.warn("Lambda exploration timed out. The API request to the AWS Lambda service, "
-                                  "took longer than the specified timeout period. Retry ...")
+                self._logger.warn(
+                    "Lambda exploration timed out. The API request to the AWS Lambda service, "
+                    "took longer than the specified timeout period. Retry ..."
+                )
                 return self.invoke()  # Retry again
 
             except Exception:
@@ -76,5 +99,7 @@ class AWSExplorer(Explorer):
             else:
                 return str(base64.b64decode(response["LogResult"]))
 
-        raise InvocationError("Error has been raised while invoking the lambda function. Max number of invocations' "
-                              "attempts reached.")
+        raise InvocationError(
+            "Error has been raised while invoking the lambda function. Max number of invocations' "
+            "attempts reached."
+        )

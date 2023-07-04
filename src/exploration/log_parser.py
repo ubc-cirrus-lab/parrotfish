@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class LogParser(ABC):
-    """A class for parsing the serverless function invocation's response log."""
+    """This class provides the operation for parsing the serverless function invocation's response log."""
 
     def __init__(self, log_parsing_keys: list):
         self.log_parsing_keys = log_parsing_keys

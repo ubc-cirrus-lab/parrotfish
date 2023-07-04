@@ -6,7 +6,7 @@ from src.recommendation.objective import Objective
 
 
 class FitToRealCostObjective(Objective):
-    def __init__(self, param_function: ParametricFunction, memory_space: list):
+    def __init__(self, param_function: ParametricFunction, memory_space: np.ndarray):
         super().__init__(param_function, memory_space)
 
     def get_values(self, memories: np.ndarray) -> np.ndarray:
@@ -16,7 +16,9 @@ class FitToRealCostObjective(Objective):
 
     def update_knowledge(self, memory_mb: int) -> None:
         for memory in self.knowledge_values:
-            self.knowledge_values[memory] += stats.norm.pdf(memory, memory_mb, 200) / stats.norm.pdf(memory_mb, memory_mb, 200)
+            self.knowledge_values[memory] += stats.norm.pdf(
+                memory, memory_mb, 200
+            ) / stats.norm.pdf(memory_mb, memory_mb, 200)
 
     def get_knowledge(self, memories: np.ndarray) -> np.ndarray:
         knowledge = np.array([self.knowledge_values[memory] for memory in memories])

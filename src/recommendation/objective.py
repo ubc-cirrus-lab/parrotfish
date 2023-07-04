@@ -6,9 +6,9 @@ from .parametric_function import ParametricFunction
 
 
 class Objective(ABC):
-    def __init__(self, param_function: ParametricFunction, memory_space: list):
+    def __init__(self, param_function: ParametricFunction, memory_space: np.ndarray):
         self.param_function = param_function
-        self.memory_space = np.array(memory_space)
+        self.memory_space = memory_space
         self.knowledge_values = {x: 0 for x in memory_space}
 
     @property

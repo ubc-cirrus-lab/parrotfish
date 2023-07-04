@@ -24,6 +24,7 @@ class TestExploreParallel:
 
             def result(self, timeout=None):
                 return self._result
+
         executor.return_value.submit = lambda _, payload: None
         as_completed.return_value = [MockFuture(300), MockFuture(400), MockFuture(200)]
         explorer.check_and_set_memory_config = mock.Mock()
@@ -38,8 +39,11 @@ class TestExploreParallel:
         assert results == expected
         assert explorer.cost == 10
 
-    @pytest.mark.parametrize("error", [InvocationError("error", 300), FunctionENOMEM(duration_ms=300)],
-                             ids=["InvocationError", "FunctionENOMEM"])
+    @pytest.mark.parametrize(
+        "error",
+        [InvocationError("error", 300), FunctionENOMEM(duration_ms=300)],
+        ids=["InvocationError", "FunctionENOMEM"],
+    )
     @mock.patch("src.exploration.explorer.as_completed")
     @mock.patch("src.exploration.explorer.ThreadPoolExecutor")
     def test_invocation_error(self, executor, as_completed, error, explorer):
@@ -51,6 +55,7 @@ class TestExploreParallel:
 
             def result(self, timeout=None):
                 raise error
+
         executor.return_value.submit = lambda _, payload: None
         as_completed.return_value = [MockFuture(300)]
         explorer.price_calculator.calculate_price = mock.Mock(return_value=10)
@@ -80,7 +85,9 @@ class TestExplore:
         assert explorer.check_and_set_memory_config.called
 
     def test_check_and_set_memory_config_raises_memory_config_error(self, explorer):
-        explorer.check_and_set_memory_config = mock.Mock(side_effect=MemoryConfigError("error"))
+        explorer.check_and_set_memory_config = mock.Mock(
+            side_effect=MemoryConfigError("error")
+        )
 
         with pytest.raises(ExplorationError) as e:
             explorer.explore(memory_mb=128)
@@ -94,14 +101,19 @@ class TestExplore:
         assert e.type == InvocationError
 
     def test_invocation_error_raised_by_parse_log(self, explorer):
-        explorer.log_parser.parse_log = mock.Mock(side_effect=InvocationError("error", 120))
+        explorer.log_parser.parse_log = mock.Mock(
+            side_effect=InvocationError("error", 120)
+        )
 
         with pytest.raises(ExplorationError) as e:
             explorer.explore()
         assert e.type == InvocationError
 
-    @pytest.mark.parametrize("error", [FunctionENOMEM(), FunctionTimeoutError()],
-                             ids=["FunctionENOMEM", "FunctionTimeoutError"])
+    @pytest.mark.parametrize(
+        "error",
+        [FunctionENOMEM(), FunctionTimeoutError()],
+        ids=["FunctionENOMEM", "FunctionTimeoutError"],
+    )
     def test_function_enomem(self, error, explorer):
         explorer.log_parser.parse_log = mock.Mock(side_effect=error)
 
@@ -110,7 +122,9 @@ class TestExplore:
         assert e.value == error
 
     def test_compute_cost_raises_cost_calculation_error(self, explorer):
-        explorer.price_calculator.calculate_price = mock.Mock(side_effect=CostCalculationError("error"))
+        explorer.price_calculator.calculate_price = mock.Mock(
+            side_effect=CostCalculationError("error")
+        )
 
         with pytest.raises(ExplorationError) as e:
             explorer.explore(is_compute_cost=True)

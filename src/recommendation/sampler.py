@@ -72,15 +72,19 @@ class Sampler:
                                            nbr_threads=self._explorations_count, memory_mb=int(memory_mb))
 
             # Do actual sampling
-            stratified_subsample_durations = self.explorer.explore_parallel(nbr_invocations=self._explorations_count,
-                                                                            nbr_threads=self._explorations_count)
+            stratified_subsample_durations = self.explorer.explore_parallel(
+                nbr_invocations=self._explorations_count,
+                nbr_threads=self._explorations_count,
+            )
         except ExplorationError as e:
             self._logger.debug(e)
             raise
 
         stratified_subsample_durations = self._explore_dynamically(durations=stratified_subsample_durations)
 
-        stratified_subsample = [DataPoint(memory_mb, result) for result in stratified_subsample_durations]
+        stratified_subsample = [
+            DataPoint(memory_mb, result) for result in stratified_subsample_durations
+        ]
         self.sample.update(stratified_subsample)
 
         self._logger.info(f"Finished sampling {memory_mb} with {len(stratified_subsample)} datapoints")
@@ -101,7 +105,9 @@ class Sampler:
         """
 
         if len(durations) < self._explorations_count:
-            raise ValueError(f"Length of the input {durations} is less than {self._explorations_count}")
+            raise ValueError(
+                f"Length of the input {durations} is less than {self._explorations_count}"
+            )
 
         dynamic_sample_count = 0
         min_cv = np.std(durations, ddof=1) / np.mean(durations)
@@ -115,6 +121,7 @@ class Sampler:
                 raise
 
             dynamic_sample_count += 1
+
             # Choose the sample from durations that minimizes coefficient of variation.
             values = durations.copy()
             for i in range(len(durations)):
