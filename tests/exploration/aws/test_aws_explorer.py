@@ -1,12 +1,12 @@
 import base64
+from unittest import mock
 
 import pytest
-from unittest import mock
 from botocore.exceptions import *
 
-from src.exploration.aws import AWSExplorer
-from src.exceptions import *
 import src.constants as const
+from src.exceptions import *
+from src.exploration.aws import AWSExplorer
 
 
 @pytest.fixture

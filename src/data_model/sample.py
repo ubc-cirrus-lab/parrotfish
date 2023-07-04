@@ -5,7 +5,7 @@ from .data_point import DataPoint
 
 class Sample:
     """Class for keeping track of the sample."""
-    def __init__(self, datapoints=None):
+    def __init__(self, datapoints: list = None):
         if datapoints is None:
             datapoints = []
         self._datapoints = datapoints

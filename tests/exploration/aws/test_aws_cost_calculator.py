@@ -1,9 +1,10 @@
 from unittest import mock
+
 import pytest
 
+from src.data_model.pricing_units import PricingUnits
 from src.exceptions import *
 from src.exploration.aws.aws_cost_calculator import AWSCostCalculator
-from src.data_model.pricing_units import PricingUnits
 
 
 @pytest.fixture

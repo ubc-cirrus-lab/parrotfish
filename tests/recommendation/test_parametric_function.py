@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.recommendation import *
 from src.data_model import *
+from src.recommendation import *
 
 
 @pytest.fixture

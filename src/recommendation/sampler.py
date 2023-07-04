@@ -3,7 +3,6 @@ import math
 
 import numpy as np
 
-import src.constants as const
 from src.data_model import Sample, DataPoint
 from src.exceptions import *
 from src.exploration import *
@@ -11,7 +10,7 @@ from src.exploration import *
 
 class Sampler:
     def __init__(self, explorer: Explorer, memory_space: np.ndarray, explorations_count: int,
-                 max_dynamic_sample_count: int, dynamic_sampling_cv_threshold: int):
+                 max_dynamic_sample_count: int, dynamic_sampling_cv_threshold: float):
         self.sample = None
         self.explorer = explorer
         self.memory_space = memory_space
@@ -21,32 +20,44 @@ class Sampler:
         self._logger = logging.getLogger(__name__)
 
     def initialize_sample(self) -> None:
-        """Initializes the sample.
+        """Initializes the sample by exploring with 3 memory values from the memory space.
+
         Raises:
             SamplingError: If an error occurred while sampling.
         """
         self.sample = Sample()
+        while len(self.memory_space) >= 3:
+            try:
+                self.update_sample(self.memory_space[0])
+
+            except FunctionENOMEM:
+                self._logger.info(f"ENOMEM: trying with new memories")
+                self.memory_space = np.array([mem for mem in self.memory_space if mem >= self.memory_space[0] + 128])
+
+            except SamplingError as e:
+                self._logger.debug(e)
+                raise
+
+            else:
+                break
+
+        if len(self.memory_space) <= 3:
+            raise NoMemoryLeftError
 
         # we are interested to sample more in the third part of the memory space.
         index = math.ceil(len(self.memory_space) / 3)
 
-        sample_memories = [self.memory_space[0], self.memory_space[index], self.memory_space[-1]]
-
-        for memory in sample_memories:
+        for memory in [self.memory_space[index], self.memory_space[-1]]:
             try:
                 self.update_sample(memory)
-
-            except FunctionENOMEM:
-                self._logger.info(f"ENOMEM: trying with new memories")
-                self.memory_space = np.array([mem for mem in self.memory_space if mem >= sample_memories[0] + 128])
-                self.initialize_sample()
 
             except SamplingError as e:
                 self._logger.debug(e)
                 raise
 
     def update_sample(self, memory_mb: int) -> None:
-        """Creates a sample by invoking the serverless function with memory size configuration @memory_mb.
+        """Updates the sample by invoking the serverless function with memory size configuration @memory_mb and
+        appending the results to the sample.
 
         Args:
             memory_mb (int): Memory size configuration in MB.
@@ -54,36 +65,32 @@ class Sampler:
         Raises:
             SamplingError: If an error occurred while sampling.
         """
-        self._logger.info(f"Sampling {memory_mb}")
+        self._logger.info(f"Stratified sampling: {memory_mb} MB")
         try:
             # Handling Cold start
-            if const.HANDLE_COLD_START:
-                self.explorer.explore_parallel(nbr_invocations=self._explorations_count,
-                                               nbr_threads=self._explorations_count,
-                                               memory_mb=int(memory_mb))
+            self.explorer.explore_parallel(nbr_invocations=self._explorations_count,
+                                           nbr_threads=self._explorations_count, memory_mb=int(memory_mb))
 
             # Do actual sampling
             stratified_subsample_durations = self.explorer.explore_parallel(nbr_invocations=self._explorations_count,
                                                                             nbr_threads=self._explorations_count)
         except ExplorationError as e:
-            self._logger.error("ExplorationError in update sample")
-            self._logger.debug(e.__str__())
+            self._logger.debug(e)
             raise
 
-        if const.IS_DYNAMIC_SAMPLING_ENABLED:
-            stratified_subsample_durations = self._explore_dynamically(durations=stratified_subsample_durations)
+        stratified_subsample_durations = self._explore_dynamically(durations=stratified_subsample_durations)
 
         stratified_subsample = [DataPoint(memory_mb, result) for result in stratified_subsample_durations]
         self.sample.update(stratified_subsample)
 
-        self._logger.info(f"finished sampling {memory_mb} with {len(stratified_subsample)} datapoints")
+        self._logger.info(f"Finished sampling {memory_mb} with {len(stratified_subsample)} datapoints")
 
     def _explore_dynamically(self, durations: list) -> list:
-        """Samples adaptively until the invocations results are consistent enough. Consistency is measured by the
+        """Samples dynamically until the invocations results are consistent enough. Consistency is measured by the
         coefficient of variation.
 
         Args:
-            durations (list): List of the initial samples' durations.
+            durations (list): List of the initial sample's durations.
 
         Returns:
             list: List of sample datapoints' durations.
@@ -108,7 +115,6 @@ class Sampler:
                 raise
 
             dynamic_sample_count += 1
-
             # Choose the sample from durations that minimizes coefficient of variation.
             values = durations.copy()
             for i in range(len(durations)):
@@ -117,7 +123,7 @@ class Sampler:
                 coefficient_variation = np.std(values, ddof=1) / np.mean(values)
                 if min_cv > coefficient_variation:
                     min_cv = coefficient_variation
-                    durations = values
+                    durations = values.copy()
                 values[i] = value
 
         return durations

@@ -26,7 +26,7 @@ class Spot:
         self.explorer = AWSExplorer(
             lambda_name=self.config.function_name,
             payload=payload,
-            max_invocation_attempts=const.DYNAMIC_SAMPLING_INITIAL_STEP,
+            max_invocation_attempts=const.MAX_NUMBER_INVOCATION_ATTEMPTS,
             aws_session=aws_session
         )
 

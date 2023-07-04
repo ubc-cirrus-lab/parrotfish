@@ -1,7 +1,7 @@
 import pytest
 
-from src.exploration.aws.aws_log_parser import *
 from src.exceptions import *
+from src.exploration.aws.aws_log_parser import *
 
 
 @pytest.fixture
