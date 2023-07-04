@@ -12,8 +12,8 @@ class Recommender:
         self,
         objective: Objective,
         sampler: Sampler,
-        max_sample_count,
-        termination_threshold,
+        max_sample_count: int,
+        termination_threshold: float,
     ):
         self.objective = objective
         self.sampler = sampler
@@ -91,7 +91,7 @@ class Recommender:
         """Chooses the memory size configuration to explore with from the remainder memories in the memory space.
 
         Returns:
-            int: Next memory size to explore with.
+            int: Memory value in the remainder memories that minimizes the objective.
 
         Raises:
             NoMemoryLeftError: If no memory is left to explore with.
@@ -99,9 +99,7 @@ class Recommender:
         # compute the memories we can explore from.
         sample_memories = set(self.sampler.sample.memories)
         memory_space = self.sampler.memory_space
-        remainder_memories = np.array(
-            [memory for memory in memory_space if memory not in sample_memories]
-        )
+        remainder_memories = np.array([memory for memory in memory_space if memory not in sample_memories])
 
         if len(remainder_memories) == 0:
             raise NoMemoryLeftError

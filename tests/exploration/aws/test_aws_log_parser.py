@@ -1,6 +1,5 @@
 import pytest
 
-from src.exceptions import *
 from src.exploration.aws.aws_log_parser import *
 
 
