@@ -131,7 +131,7 @@ class Explorer(ABC):
             return exec_time
 
     @abstractmethod
-    def check_and_set_memory_config(self, memory_mb: int) -> dict:
+    def check_and_set_memory_config(self, memory_mb: int) -> any:
         """Checks if the configured memory value is equal to @memory_mb and if no match it updates the serverless
         function's configuration by setting the memory value to @memory_mb.
 
@@ -139,7 +139,7 @@ class Explorer(ABC):
             memory_mb (int): The memory size in MB.
 
         Returns:
-            dict: The retrieved configuration of the serverless function.
+            any: The retrieved configuration of the serverless function.
 
         Raises:
             MemoryConfigError: If checking or updating the function's memory configuration fails.
