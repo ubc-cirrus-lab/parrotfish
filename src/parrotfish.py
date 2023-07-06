@@ -50,10 +50,11 @@ class Parrotfish:
         )
 
         self.recommender = Recommender(
-            objective=FitToRealCostObjective(self.param_function, memory_space),
+            objective=FitToRealCostObjective(
+                self.param_function, memory_space, const.TERMINATION_THRESHOLD
+            ),
             sampler=self.sampler,
             max_sample_count=const.TOTAL_SAMPLE_COUNT,
-            termination_threshold=const.TERMINATION_THRESHOLD,
         )
 
     def invoke(self, memory_mb: int, parallel: int) -> list:

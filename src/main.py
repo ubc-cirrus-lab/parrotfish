@@ -53,11 +53,11 @@ def main():
         )
         exit(1)
 
-    spot = Parrotfish(path, session)
+    parrotfish = Parrotfish(path, session)
 
     if args.optimize:
         try:
-            result = spot.optimize()
+            result = parrotfish.optimize()
         except OptimizationError as e:
             logger.critical(e)
             exit(1)
@@ -71,7 +71,7 @@ def main():
         if not args.memory_mb:
             print("Please specify a memory value when invoking a function")
             exit(1)
-        spot.invoke(args.memory_mb, args.invoke)
+        parrotfish.invoke(args.memory_mb, args.invoke)
 
 
 if __name__ == "__main__":

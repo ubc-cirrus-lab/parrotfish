@@ -6,16 +6,22 @@ from .parametric_function import ParametricFunction
 
 
 class Objective(ABC):
-    def __init__(self, param_function: ParametricFunction, memory_space: np.ndarray):
+    def __init__(
+        self,
+        param_function: ParametricFunction,
+        memory_space: np.ndarray,
+        termination_threshold: float,
+    ):
         self.param_function = param_function
         self.memory_space = memory_space
         self.knowledge_values = {x: 0 for x in memory_space}
+        self.termination_threshold = termination_threshold
 
     @property
-    def termination_value(self):
-        knowledge_values = self.get_knowledge(self.memory_space)
-        y = self.param_function(self.memory_space)
-        return knowledge_values[np.argmin(y)]
+    @abstractmethod
+    def termination_value(self) -> float:
+        """computes a value that indicates that we are confident"""
+        pass
 
     @abstractmethod
     def get_values(self, memories: np.ndarray) -> np.ndarray:

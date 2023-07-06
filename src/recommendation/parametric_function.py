@@ -37,7 +37,7 @@ class ParametricFunction:
         """
         if self.params is None:
             self.params = [sample.durations[0] // 10] * 3
-            # self.params = [1000, 10000, 100]
+
         self.params = curve_fit(
             f=self.function,
             xdata=sample.memories,
