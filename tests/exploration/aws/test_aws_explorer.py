@@ -78,7 +78,7 @@ class TestCheckAndSetMemoryValue:
         assert error.type == MemoryConfigError
 
 
-class Testinvoke:
+class TestInvoke:
     def test_nominal_case(self, explorer):
         response = explorer.invoke()
         expected = "b'\\\\tDuration: 170.24 ms\\\\tBilled Duration: 171 ms\\\\tMemory Size: 128 MB\\\\tMax Memory Used: 40 MB\\\\tInit Duration: 134.70 ms\\\\t\\\\n\"'"

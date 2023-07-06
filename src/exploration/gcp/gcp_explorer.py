@@ -1,11 +1,11 @@
 import time
 
-from google.api_core.exceptions import GoogleAPICallError
+from google.api_core.exceptions import GoogleAPICallError, InvalidArgument
 from google.cloud import functions_v1
 from google.cloud import logging
 
-from src.exceptions import InvocationError
-from src.exploration import Explorer
+from src.exceptions import *
+from ..explorer import Explorer
 from .gcp_cost_calculator import GCPCostCalculator
 from .gcp_log_parser import GCPLogParser
 
@@ -24,15 +24,23 @@ class GCPExplorer(Explorer):
         self.function_client = functions_v1.CloudFunctionsServiceClient()
 
     def check_and_set_memory_config(self, memory_mb: int) -> any:
-        function = self.function_client.get_function(name=self.function_url)
-        if function.available_memory_mb == memory_mb:
-            function.available_memory_mb = memory_mb
+        try:
+            function = self.function_client.get_function(name=self.function_url)
 
-            update_mask = {"paths": ["available_memory_mb"]}
-            request = functions_v1.UpdateFunctionRequest(function=function, update_mask=update_mask)
-            update_operation = self.function_client.update_function(request)
+            if function.available_memory_mb != memory_mb:
 
-            return update_operation.result()
+                function.available_memory_mb = memory_mb
+                update_mask = {"paths": ["available_memory_mb"]}
+                request = functions_v1.UpdateFunctionRequest(function=function, update_mask=update_mask)
+
+                update_operation = self.function_client.update_function(request)
+                function = update_operation.result()
+
+        except GoogleAPICallError as e:
+            raise MemoryConfigError(e.args[0])
+
+        else:
+            return function
 
     def invoke(self) -> str:
         try:
@@ -53,20 +61,21 @@ class GCPExplorer(Explorer):
 
         Retrieves the Cloud function invocation's logs and returns only the log that contains execution time value.
         """
-
         logging_client = logging.Client(project=self.project_id)
         filter_str = (
-            f'resource.type="cloud_function" AND resource.labels.function_name="{self.function_name}"'
-            f' AND resource.labels.region="{self.region}" AND labels.execution_id="{execution_id}"'
+            f'resource.type="cloud_function"'
+            f' AND resource.labels.function_name="{self.function_name}"'
+            f' AND resource.labels.region="{self.region}"'
+            f' AND labels.execution_id="{execution_id}"'
         )
-        res = ''
+        log = ''
 
-        while self.log_parser.log_parsing_keys[0] not in res:
-            # Retrieve the logs
-            logs = logging_client.list_entries(filter_=filter_str, order_by='timestamp desc')
+        while any([key not in log for key in self.log_parser.log_parsing_keys]):
             try:
-                res = next(logs).payload
+                # Retrieve the most recent log
+                result = logging_client.list_entries(filter_=filter_str, order_by='timestamp desc', page_size=1)
+                log = next(result).payload
             except StopIteration:
                 time.sleep(3)
 
-        return res
+        return log

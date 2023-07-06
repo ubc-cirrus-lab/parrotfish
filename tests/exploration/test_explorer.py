@@ -127,5 +127,5 @@ class TestExplore:
         )
 
         with pytest.raises(ExplorationError) as e:
-            explorer.explore(is_compute_cost=True)
+            explorer.explore(enable_cost_calculation=True)
         assert e.type == CostCalculationError
