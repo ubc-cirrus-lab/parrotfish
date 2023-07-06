@@ -12,7 +12,7 @@ from src.recommendation import Recommender
 def recommender():
     objective = mock.Mock()
     sampler = mock.Mock()
-    return Recommender(objective, sampler, 3, 1.5)
+    return Recommender(objective, sampler, 3)
 
 
 class TestInitialize:

@@ -32,6 +32,21 @@ class Sampler:
             SamplingError: If an error occurred while sampling.
         """
         self.sample = Sample()
+
+        self._sample_first_memory_config()
+
+        # we are interested to sample more in the third part of the memory space.
+        index = math.ceil(len(self.memory_space) / 3)
+
+        for memory in [self.memory_space[index], self.memory_space[-1]]:
+            try:
+                self.update_sample(memory)
+
+            except SamplingError as e:
+                self._logger.debug(e)
+                raise
+
+    def _sample_first_memory_config(self):
         while len(self.memory_space) >= 3:
             try:
                 self.update_sample(self.memory_space[0])
@@ -56,17 +71,6 @@ class Sampler:
         if len(self.memory_space) <= 3:
             raise NoMemoryLeftError
 
-        # we are interested to sample more in the third part of the memory space.
-        index = math.ceil(len(self.memory_space) / 3)
-
-        for memory in [self.memory_space[index], self.memory_space[-1]]:
-            try:
-                self.update_sample(memory)
-
-            except SamplingError as e:
-                self._logger.debug(e)
-                raise
-
     def update_sample(self, memory_mb: int) -> None:
         """Updates the sample by invoking the serverless function with memory size configuration @memory_mb and
         appending the results to the sample.
@@ -77,7 +81,7 @@ class Sampler:
         Raises:
             SamplingError: If an error occurred while sampling.
         """
-        self._logger.info(f"Stratified sampling: {memory_mb} MB")
+        self._logger.info(f"Sampling: {memory_mb} MB.")
         try:
             # Handling Cold start
             self.explorer.explore_parallel(
@@ -87,7 +91,7 @@ class Sampler:
             )
 
             # Do actual sampling
-            stratified_subsample_durations = self.explorer.explore_parallel(
+            subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
                 nbr_threads=self._explorations_count,
             )
@@ -95,17 +99,17 @@ class Sampler:
             self._logger.debug(e)
             raise
 
-        stratified_subsample_durations = self._explore_dynamically(
-            durations=stratified_subsample_durations
+        subsample_durations = self._explore_dynamically(
+            durations=subsample_durations
         )
 
-        stratified_subsample = [
-            DataPoint(memory_mb, result) for result in stratified_subsample_durations
+        subsample = [
+            DataPoint(memory_mb, result) for result in subsample_durations
         ]
-        self.sample.update(stratified_subsample)
+        self.sample.update(subsample)
 
         self._logger.info(
-            f"Finished sampling {memory_mb} with {len(stratified_subsample)} datapoints"
+            f"Finished sampling {memory_mb} with {len(subsample)} datapoints."
         )
 
     def _explore_dynamically(self, durations: list) -> list:

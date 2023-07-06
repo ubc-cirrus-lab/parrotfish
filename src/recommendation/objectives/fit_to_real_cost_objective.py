@@ -6,8 +6,14 @@ from src.recommendation.objective import Objective
 
 
 class FitToRealCostObjective(Objective):
-    def __init__(self, param_function: ParametricFunction, memory_space: np.ndarray):
-        super().__init__(param_function, memory_space)
+    def __init__(self, param_function: ParametricFunction, memory_space: np.ndarray, termination_threshold: float):
+        super().__init__(param_function, memory_space, termination_threshold)
+
+    @property
+    def termination_value(self) -> float:
+        knowledge_values = self.get_knowledge(self.memory_space)
+        y = self.param_function(self.memory_space)
+        return knowledge_values[np.argmin(y)]
 
     def get_values(self, memories: np.ndarray) -> np.ndarray:
         real_cost = self.param_function(memories)

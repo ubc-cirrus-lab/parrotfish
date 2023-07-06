@@ -13,12 +13,10 @@ class Recommender:
         objective: Objective,
         sampler: Sampler,
         max_sample_count: int,
-        termination_threshold: float,
     ):
         self.objective = objective
         self.sampler = sampler
         self._max_sample_count = max_sample_count
-        self._termination_threshold = termination_threshold
         self._logger = logging.getLogger(__name__)
 
     @property
@@ -31,8 +29,8 @@ class Recommender:
         sample_count = len(self.sampler.sample)
         termination_value = self.objective.termination_value
         return (
-            sample_count < self._max_sample_count
-            and termination_value > self._termination_threshold
+            sample_count > self._max_sample_count
+            or termination_value < self.objective.termination_threshold
         )
 
     def run(self):
@@ -45,7 +43,7 @@ class Recommender:
         objective knowledge values and the parametric function until the termination condition is reached.
         """
         self._initialize()
-        while self._is_termination_reached:
+        while not self._is_termination_reached:
             memory = self._choose_memory_to_explore()
             self._update(memory)
 
