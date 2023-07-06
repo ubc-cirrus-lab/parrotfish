@@ -99,13 +99,9 @@ class Sampler:
             self._logger.debug(e)
             raise
 
-        subsample_durations = self._explore_dynamically(
-            durations=subsample_durations
-        )
+        subsample_durations = self._explore_dynamically(durations=subsample_durations)
 
-        subsample = [
-            DataPoint(memory_mb, result) for result in subsample_durations
-        ]
+        subsample = [DataPoint(memory_mb, result) for result in subsample_durations]
         self.sample.update(subsample)
 
         self._logger.info(

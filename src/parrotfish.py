@@ -50,7 +50,9 @@ class Parrotfish:
         )
 
         self.recommender = Recommender(
-            objective=FitToRealCostObjective(self.param_function, memory_space, const.TERMINATION_THRESHOLD),
+            objective=FitToRealCostObjective(
+                self.param_function, memory_space, const.TERMINATION_THRESHOLD
+            ),
             sampler=self.sampler,
             max_sample_count=const.TOTAL_SAMPLE_COUNT,
         )
