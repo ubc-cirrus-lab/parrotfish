@@ -19,7 +19,7 @@ class TestCheckAndSetMemoryConfig:
         update_memory_size_mb = 128
         function = type('', (), {})()  # create an empty object that will serve to mock the get_function response
         function.available_memory_mb = 256  # patch the object
-        explorer.function_client.get_function = mock.Mock(return_value=function)
+        explorer._function_client.get_function = mock.Mock(return_value=function)
 
         def mock_update_function(request):
             update_operation = mock.Mock()
@@ -28,7 +28,7 @@ class TestCheckAndSetMemoryConfig:
             return update_operation
 
         functions_v1.UpdateFunctionRequest = mock.Mock(return_value={"function": function})
-        explorer.function_client.update_function = mock_update_function
+        explorer._function_client.update_function = mock_update_function
 
         # Action
         config = explorer.check_and_set_memory_config(update_memory_size_mb)
@@ -38,7 +38,7 @@ class TestCheckAndSetMemoryConfig:
 
     def test_function_not_found_error(self, explorer):
         update_memory_size_mb = 128
-        explorer.function_client.get_function = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._function_client.get_function = mock.Mock(side_effect=GoogleAPICallError("error"))
 
         with pytest.raises(MemoryConfigError) as e:
             explorer.check_and_set_memory_config(update_memory_size_mb)
@@ -48,8 +48,8 @@ class TestCheckAndSetMemoryConfig:
     def test_not_valid_memory_value(self, functions_v1, explorer):
         function = type('', (), {})()  # create an empty object that will serve to mock the get_function response
         function.available_memory_mb = 256  # patch the object
-        explorer.function_client.get_function = mock.Mock(return_value=function)
-        explorer.function_client.update_function = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._function_client.get_function = mock.Mock(return_value=function)
+        explorer._function_client.update_function = mock.Mock(side_effect=GoogleAPICallError("error"))
 
         with pytest.raises(MemoryConfigError) as e:
             explorer.check_and_set_memory_config(128)
@@ -61,7 +61,7 @@ class TestInvoke:
         # Arrange
         result = type('', (), {})()
         result.execution_id = "execution_id"
-        explorer.function_client.call_function = mock.Mock(return_value=result)
+        explorer._function_client.call_function = mock.Mock(return_value=result)
         expected_result = "finished execution"
         explorer._get_invocation_log = mock.Mock(return_value=expected_result)
 
@@ -72,7 +72,7 @@ class TestInvoke:
         assert response == expected_result
 
     def test_calling_error(self, explorer):
-        explorer.function_client.call_function = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._function_client.call_function = mock.Mock(side_effect=GoogleAPICallError("error"))
 
         with pytest.raises(InvocationError) as e:
             explorer.invoke()
@@ -81,7 +81,7 @@ class TestInvoke:
     def test_list_logs_error(self, explorer):
         result = type('', (), {})()
         result.execution_id = "execution_id"
-        explorer.function_client.call_function = mock.Mock(return_value=result)
+        explorer._function_client.call_function = mock.Mock(return_value=result)
         explorer._get_invocation_log = mock.Mock(side_effect=GoogleAPICallError("error"))
 
         with pytest.raises(InvocationError) as e:
@@ -96,35 +96,38 @@ class TestGetInvocationLog:
         res.payload = payload
         return res
 
-    @mock.patch("src.exploration.gcp.gcp_explorer.logging")
-    def test_nominal_case(self, logging, explorer):
+    @mock.patch("src.exploration.gcp.gcp_explorer.google_logging")
+    @mock.patch("src.exploration.gcp.gcp_explorer.time.sleep")
+    def test_nominal_case(self, sleep, logging, explorer):
         # Arrange
-        expected_log = "Function execution took 50ms, finished with status code: 200"
+        entry_payload = "Function execution took 50 ms, finished with status code: 200"
+        expected_log = "execid:" + entry_payload
         logging_client = mock.Mock()
         logging.Client = mock.Mock(return_value=logging_client)
-        logs = [self.create_log_object(expected_log)]
-        logging_client.list_entries = mock.Mock(return_value=(i for i in logs))
+        logs = [self.create_log_object(entry_payload)]
+        logging_client.list_entries = mock.Mock(return_value=(i for i in logs))  # Mock to return a generator.
 
         # Action
-        log = explorer._get_invocation_log("execution_id")
+        log = explorer._get_invocation_log("execid")
 
         # Assert
         assert log == expected_log
         assert logging.Client().list_entries.call_count == 1
 
-    @mock.patch("src.exploration.gcp.gcp_explorer.logging")
+    @mock.patch("src.exploration.gcp.gcp_explorer.google_logging")
     @mock.patch("src.exploration.gcp.gcp_explorer.time.sleep")
     def test_execution_time_not_in_first_log(self, sleep, logging, explorer):
         # Arrange
-        expected_log = "Function execution took 50ms, finished with status code: 200"
-        logs = ["log", expected_log]
+        entry_payload = "Function execution took 50 ms, finished with status code: 200"
+        expected_log = "execid:" + entry_payload
+        logs = ["log", entry_payload]
         logging_client = mock.Mock()
         logging.Client = mock.Mock(return_value=logging_client)
         logs = [self.create_log_object(log) for log in logs]
         logging_client.list_entries = mock.Mock(return_value=(i for i in logs))
 
         # Action
-        log = explorer._get_invocation_log("execution_id")
+        log = explorer._get_invocation_log("execid")
 
         # Assert
         assert log == expected_log

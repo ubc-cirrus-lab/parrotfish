@@ -1,8 +1,9 @@
 import time
 
-from google.api_core.exceptions import GoogleAPICallError, InvalidArgument
+from google.api_core.exceptions import GoogleAPICallError, ResourceExhausted
 from google.cloud import functions_v1
-from google.cloud import logging
+from google.cloud import logging as google_logging
+import logging
 
 from src.exceptions import *
 from ..explorer import Explorer
@@ -21,11 +22,12 @@ class GCPExplorer(Explorer):
         self.project_id = project_id
         self.region = region
         self.function_url = f"projects/{project_id}/locations/{region}/functions/{function_name}"
-        self.function_client = functions_v1.CloudFunctionsServiceClient()
+        self._function_client = functions_v1.CloudFunctionsServiceClient()
+        self._logger = logging.getLogger(__name__)
 
     def check_and_set_memory_config(self, memory_mb: int) -> any:
         try:
-            function = self.function_client.get_function(name=self.function_url)
+            function = self._function_client.get_function(name=self.function_url)
 
             if function.available_memory_mb != memory_mb:
 
@@ -33,7 +35,7 @@ class GCPExplorer(Explorer):
                 update_mask = {"paths": ["available_memory_mb"]}
                 request = functions_v1.UpdateFunctionRequest(function=function, update_mask=update_mask)
 
-                update_operation = self.function_client.update_function(request)
+                update_operation = self._function_client.update_function(request)
                 function = update_operation.result()
 
         except GoogleAPICallError as e:
@@ -44,7 +46,7 @@ class GCPExplorer(Explorer):
 
     def invoke(self) -> str:
         try:
-            response = self.function_client.call_function(name=self.function_url, data=self.payload)
+            response = self._function_client.call_function(name=self.function_url, data=self.payload)
             return self._get_invocation_log(response.execution_id)
 
         except GoogleAPICallError as e:
@@ -61,7 +63,7 @@ class GCPExplorer(Explorer):
 
         Retrieves the Cloud function invocation's logs and returns only the log that contains execution time value.
         """
-        logging_client = logging.Client(project=self.project_id)
+        logging_client = google_logging.Client(project=self.project_id)
         filter_str = (
             f'resource.type="cloud_function"'
             f' AND resource.labels.function_name="{self.function_name}"'
@@ -69,13 +71,23 @@ class GCPExplorer(Explorer):
             f' AND labels.execution_id="{execution_id}"'
         )
         log = ''
+        sleep_interval = 1
 
         while any([key not in log for key in self.log_parser.log_parsing_keys]):
+            log = ''  # reset the log result
+
             try:
-                # Retrieve the most recent log
-                result = logging_client.list_entries(filter_=filter_str, order_by='timestamp desc', page_size=1)
-                log = next(result).payload
+                # Retrieve the most recent logs
+                entries = logging_client.list_entries(filter_=filter_str, order_by=google_logging.DESCENDING)
+                log = f"{execution_id}:{next(entries).payload}"
+
             except StopIteration:
-                time.sleep(3)
+                time.sleep(15)  # wait for logs to be updated
+
+            except ResourceExhausted as e:
+                # Handling the cloud function's throttling.
+                self._logger.debug(e.args[0])
+                time.sleep(sleep_interval)
+                sleep_interval *= 2
 
         return log

@@ -7,3 +7,4 @@ pandas~=1.4.0
 botocore~=1.29.15
 setuptools~=65.5.1
 Pillow~=9.5.0
+google

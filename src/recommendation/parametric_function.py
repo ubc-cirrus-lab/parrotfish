@@ -70,7 +70,7 @@ class ParametricFunction:
             memories = filtered_memories
             costs = filtered_costs
             if len(memories) == 0:
-                raise NoMemoryLeftError()
+                raise NoMemoryLeftError
 
         min_index = np.argmin(costs)
         return memory_space[min_index], costs[min_index]
