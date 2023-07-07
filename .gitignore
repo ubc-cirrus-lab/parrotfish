@@ -1,7 +1,4 @@
-# local config file
-spot/invocation/GenConfigs.py
-
-# logs and data archives
+# logs_parsing and data archives
 *.log
 *.pkl
 *.out
@@ -13,9 +10,6 @@ spot/invocation/GenConfigs.py
 *.swp
 tags
 
-#serverless
-.serverless/
-
 __pycache__/
 *.py[cod]
 *$py.class
@@ -25,7 +19,7 @@ eggs/
 *.egg-info/
 *.egg
 TODO.md
-spot/benchmarks/*/workload.json
+src/benchmarks/*/workload.json
 
 spot-env/
 

@@ -5,14 +5,14 @@ if sys.version_info.major != 3:
     print("This code is only compatable with Python 3")
 
 setup(
-    name="spot",
-    packages=[package for package in find_packages() if package.startswith("spot")],
+    name="parrotfish",
+    packages=[package for package in find_packages() if package.startswith("src")],
     package_data={
-        "spot": ["py.typed"],
+        "src": ["py.typed"],
     },
     install_requires=[],
     extras_require={},
-    entry_points={"console_scripts": ["spot=spot.main:main"]},
-    description="Serverless Price Optimization Tool",
+    entry_points={"console_scripts": ["parrotfish=src.main:main"]},
+    description="Parametric Regression for Optimizing Serverless Functions",
     version="0.0.1",
 )
