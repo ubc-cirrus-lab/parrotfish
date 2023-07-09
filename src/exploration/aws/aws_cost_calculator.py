@@ -20,7 +20,6 @@ class AWSCostCalculator(CostCalculator):
     def __init__(self, function_name: str, aws_session: boto3.Session):
         super().__init__(function_name)
         self.aws_session = aws_session
-        self.pricing_units = None
 
     def calculate_price(
         self, memory_mb: int, duration_ms: float or np.ndarray
@@ -33,15 +32,15 @@ class AWSCostCalculator(CostCalculator):
         request_compute_time = np.ceil(duration_ms) * 0.001  # convert ms to seconds
 
         total_compute = allocated_memory * request_compute_time
-        compute_charge = self.pricing_units.compute_price * total_compute
+        compute_charge = self.pricing_units["compute"] * total_compute
 
-        return self.pricing_units.request_price + compute_charge
+        return self.pricing_units["request"] + compute_charge
 
-    def _get_pricing_units(self) -> PricingUnits:
+    def _get_pricing_units(self) -> dict:
         """Fetches the pricing information from the AWS Pricing service.
 
         Returns:
-            PricingUnits: The pricing units retrieved based on the lambda configuration.
+            dict: The pricing units retrieved based on the lambda configuration.
 
         Raises:
             CostCalculationError: If an error occurred while trying to retrieve pricing units from AWS.
@@ -93,7 +92,7 @@ class AWSCostCalculator(CostCalculator):
                             break
 
             try:
-                return PricingUnits(pricing[0], pricing[1])
+                return {"compute": pricing[0], "request": pricing[1]}
             except IndexError:
                 raise CostCalculationError(
                     "Parsing the prices retrieved from AWS failed."

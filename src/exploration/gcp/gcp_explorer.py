@@ -17,7 +17,7 @@ class GCPExplorer(Explorer):
             function_name=function_name,
             payload=payload,
             log_parser=GCPLogParser(),
-            price_calculator=GCPCostCalculator(function_name=function_name),
+            price_calculator=GCPCostCalculator(function_name=function_name, region=region),
         )
         self.project_id = project_id
         self.region = region

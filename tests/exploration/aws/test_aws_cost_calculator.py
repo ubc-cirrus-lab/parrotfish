@@ -2,7 +2,6 @@ from unittest import mock
 
 import pytest
 
-from src.data_model.pricing_units import PricingUnits
 from src.exceptions import *
 from src.exploration.aws.aws_cost_calculator import AWSCostCalculator
 
@@ -42,7 +41,7 @@ class TestGetPricingUnits:
         pricing_units = calculator_with_mock_aws_session._get_pricing_units()
 
         # Perform the assertion
-        assert pricing_units == PricingUnits(0.0000166667, 0.0000002)
+        assert pricing_units == {"compute": 0.0000166667, "request": 0.0000002}
 
     def test_get_pricing_units_index_error(self, calculator_with_mock_aws_session):
         # Mock the response for get_products() from pricing client
@@ -71,9 +70,7 @@ class TestCalculator:
     def calculator_with_mock_get_pricing_units(
         self, calculator_with_mock_aws_session
     ) -> AWSCostCalculator:
-        calculator_with_mock_aws_session.pricing_units = PricingUnits(
-            0.0000166667, 0.0000002
-        )
+        calculator_with_mock_aws_session.pricing_units = {"compute": 0.0000166667, "request": 0.0000002}
         return calculator_with_mock_aws_session
 
     def test_calculate_price_one_invocation(

@@ -6,6 +6,7 @@ import numpy as np
 class CostCalculator(ABC):
     def __init__(self, function_name):
         self.function_name = function_name
+        self.pricing_units = None
 
     @abstractmethod
     def calculate_price(
