@@ -39,6 +39,7 @@ class GCPExplorer(Explorer):
                 function = update_operation.result()
 
         except GoogleAPICallError as e:
+            self._logger.debug(e.args[0])
             raise MemoryConfigError(e.args[0])
 
         else:
@@ -50,6 +51,7 @@ class GCPExplorer(Explorer):
             return self._get_invocation_log(response.execution_id)
 
         except GoogleAPICallError as e:
+            self._logger.debug(e.args[0])
             raise InvocationError(e.args[0])
 
     def _get_invocation_log(self, execution_id: str) -> str:
@@ -82,6 +84,7 @@ class GCPExplorer(Explorer):
                 log = f"{execution_id}:{next(entries).payload}"
 
             except StopIteration:
+                self._logger.debug("waiting for logs to be retrieved.")
                 time.sleep(15)  # wait for logs to be updated
 
             except ResourceExhausted as e:

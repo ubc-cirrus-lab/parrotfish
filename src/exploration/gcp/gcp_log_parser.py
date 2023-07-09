@@ -9,7 +9,7 @@ class GCPLogParser(LogParser):
         super().__init__(['Function execution took', 'finished with status'])
 
     def parse_log(self, log: str) -> int:
-        pattern = re.compile(rf"(\w+):{self.log_parsing_keys[0]} (\d+) ms, {self.log_parsing_keys[1]}.*: '(\w+)'")
+        pattern = re.compile(rf"(\w+):{self.log_parsing_keys[0]} (\d+) ms, {self.log_parsing_keys[1]}.*: (.*)")
         m = pattern.search(log)
         if m is None:
             raise LogParsingError
@@ -17,10 +17,10 @@ class GCPLogParser(LogParser):
         billed_duration = int(m.group(2))
         status = m.group(3)
 
-        if status == 'error':
+        if status == "'error'":
             raise FunctionENOMEM(duration_ms=billed_duration)
 
-        if status == 'crash':
+        if status == "'crash'":
             raise InvocationError(f"Function raises an exception. Please check the logs associated with the execution "
                                   f"id: {execution_id} to debug your function.", duration_ms=billed_duration)
 

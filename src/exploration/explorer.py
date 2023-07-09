@@ -25,7 +25,7 @@ class Explorer(ABC):
         self.price_calculator = price_calculator
 
         self.cost = 0
-        self._memory_config_mb = None
+        self._memory_config_mb = 0
 
         self._logger = logging.getLogger(__name__)
 

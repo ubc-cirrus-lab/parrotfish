@@ -11,7 +11,7 @@ def log_parser():
 
 class TestParseLog:
     def test_function_enomem(self, log_parser):
-        result_log = "execid:Function execution took 50 ms, finished with status code: 'error'"
+        result_log = "execid:Function execution took 50 ms, finished with status: 'error'"
 
         try:
             log_parser.parse_log(result_log)
@@ -23,7 +23,7 @@ class TestParseLog:
         assert e.type == FunctionENOMEM
 
     def test_function_invocation_error(self, log_parser):
-        result_log = "execid:Function execution took 50 ms, finished with status code: 'crash'"
+        result_log = "execid:Function execution took 50 ms, finished with status: 'crash'"
 
         try:
             log_parser.parse_log(result_log)
