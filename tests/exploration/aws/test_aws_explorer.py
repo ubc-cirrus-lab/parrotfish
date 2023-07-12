@@ -4,9 +4,9 @@ from unittest import mock
 import pytest
 from botocore.exceptions import *
 
-import src.constants as const
 from src.exceptions import *
 from src.exploration.aws import AWSExplorer
+import src.configuration.defaults as defaults
 
 
 @pytest.fixture
@@ -106,14 +106,14 @@ class TestInvoke:
     def test_max_number_of_invocations_attempts_reached_error(self, sleep, explorer):
         explorer.client.invoke = mock.Mock(
             side_effect=(
-                Exception() for _ in range(const.MAX_NUMBER_INVOCATION_ATTEMPTS)
+                Exception() for _ in range(defaults.MAX_NUMBER_INVOCATION_ATTEMPTS)
             )
         )
 
         with pytest.raises(InvocationError) as error:
             explorer.invoke()
         assert error.type == InvocationError
-        assert explorer.client.invoke.call_count == const.MAX_NUMBER_INVOCATION_ATTEMPTS
+        assert explorer.client.invoke.call_count == defaults.MAX_NUMBER_INVOCATION_ATTEMPTS
 
     @mock.patch("src.exploration.aws.aws_explorer.time.sleep")
     def test_handling_aws_throttling(self, sleep, explorer):

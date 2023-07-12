@@ -1,28 +1,31 @@
+import logging
 import time
 
 from google.api_core.exceptions import GoogleAPICallError, ResourceExhausted
 from google.cloud import functions_v1
 from google.cloud import logging as google_logging
-import logging
 
 from src.exceptions import *
-from ..explorer import Explorer
 from .gcp_cost_calculator import GCPCostCalculator
 from .gcp_log_parser import GCPLogParser
+from ..explorer import Explorer
 
 
 class GCPExplorer(Explorer):
-    def __init__(self, function_name: str, payload: str, project_id: str, region: str):
+    def __init__(self, function_name: str, payload: str, credentials: any, memory_bounds: list = None):
         super().__init__(
             function_name=function_name,
             payload=payload,
             log_parser=GCPLogParser(),
-            price_calculator=GCPCostCalculator(function_name=function_name, region=region),
+            price_calculator=GCPCostCalculator(function_name=function_name, region=credentials.region),
+            memory_space=set([2 ** i for i in range(7, 14)]),
+            memory_bounds=memory_bounds
         )
-        self.project_id = project_id
-        self.region = region
-        self.function_url = f"projects/{project_id}/locations/{region}/functions/{function_name}"
-        self._function_client = functions_v1.CloudFunctionsServiceClient()
+        self.credentials = credentials
+        self.project_id = credentials.project_id
+        self.region = credentials.region
+        self.function_url = f"projects/{self.project_id}/locations/{self.region}/functions/{function_name}"
+        self._function_client = functions_v1.CloudFunctionsServiceClient(credentials=credentials)
         self._logger = logging.getLogger(__name__)
 
     def check_and_set_memory_config(self, memory_mb: int) -> any:
@@ -40,7 +43,7 @@ class GCPExplorer(Explorer):
 
         except GoogleAPICallError as e:
             self._logger.debug(e.args[0])
-            raise MemoryConfigError(e.args[0])
+            raise MemoryConfigError
 
         else:
             return function
@@ -65,7 +68,7 @@ class GCPExplorer(Explorer):
 
         Retrieves the Cloud function invocation's logs and returns only the log that contains execution time value.
         """
-        logging_client = google_logging.Client(project=self.project_id)
+        logging_client = google_logging.Client(credentials=self.credentials, project=self.project_id)
         filter_str = (
             f'resource.type="cloud_function"'
             f' AND resource.labels.function_name="{self.function_name}"'

@@ -9,7 +9,10 @@ from src.exploration import GCPExplorer
 
 @pytest.fixture
 def explorer():
-    return GCPExplorer(function_name="example_function", payload="payload", project_id="project_id", region="region")
+    credentials = type('', (), {})()
+    credentials.project_id = "example_project_id"
+    credentials.region = "example_region"
+    return GCPExplorer(function_name="example_function", payload="payload", credentials=credentials)
 
 
 class TestCheckAndSetMemoryConfig:

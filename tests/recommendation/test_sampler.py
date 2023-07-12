@@ -11,7 +11,7 @@ from tests.mocks import MockExplorer
 
 @pytest.fixture
 def sampler() -> Sampler:
-    return Sampler(MockExplorer(), np.array(range(128, 3009)), 3, 3, 0.5)
+    return Sampler(MockExplorer(), 3, 3, 0.5)
 
 
 class TestInitializeSample:

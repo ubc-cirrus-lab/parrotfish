@@ -1,7 +1,9 @@
 import base64
+import logging
 import time
 
 import boto3
+import numpy as np
 from botocore.exceptions import *
 
 from src.exceptions import *
@@ -17,10 +19,13 @@ class AWSExplorer(Explorer):
         payload: str,
         max_invocation_attempts: int,
         aws_session: boto3.Session,
+        memory_bounds: list = None,
     ):
         super().__init__(
             function_name=lambda_name,
             payload=payload,
+            memory_bounds=memory_bounds,
+            memory_space=set(range(128, 3008)),
             log_parser=AWSLogParser(),
             price_calculator=AWSCostCalculator(
                 function_name=lambda_name, aws_session=aws_session
@@ -28,6 +33,7 @@ class AWSExplorer(Explorer):
         )
         self._max_invocation_attempts = max_invocation_attempts
         self.client = aws_session.client("lambda")
+        self._logger = logging.getLogger(__name__)
 
     def check_and_set_memory_config(self, memory_mb: int) -> dict:
         try:
@@ -56,11 +62,9 @@ class AWSExplorer(Explorer):
         except ParamValidationError as e:
             raise MemoryConfigError(e.args[0])
 
-        except ClientError:
-            raise MemoryConfigError(
-                "Lambda function not found. Please make sure that the provided function "
-                "name and configuration are correct!"
-            )
+        except ClientError as e:
+            self._logger.debug(e.args[0])
+            raise MemoryConfigError
 
         else:
             return config
@@ -92,7 +96,7 @@ class AWSExplorer(Explorer):
 
             except Exception:
                 # Handling the throttling imposed by AWS on the number of concurrent executions.
-                self._logger.warn("Possibly Too Many Requests Error. Retrying...")
+                self._logger.warning("Possibly Too Many Requests Error. Retrying...")
                 time.sleep(sleeping_interval)
                 sleeping_interval *= 2
 

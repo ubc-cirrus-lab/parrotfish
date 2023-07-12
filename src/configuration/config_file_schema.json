@@ -1,0 +1,29 @@
+{
+    "type": "object",
+    "properties": {
+        "function_name": {"type": "string"},
+        "vendor": {"type": "string", "enum": ["AWS", "GCP"]},
+        "region": {"type": "string"},
+        "payload": {
+            "anyOf": [
+                {"type": "object"},
+                {"type": "array"}
+            ]
+        },
+        "memory_bounds":  {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 2,
+            "maxItems": 2
+        },
+        "dynamic_sampling_termination_threshold": {"type": "number", "minimum": 0},
+        "termination_threshold": {"type": "number", "minimum": 0},
+        "sample_size": {"type": "integer", "minimum": 0},
+        "number_invocations": {"type": "integer", "minimum": 0},
+        "max_dynamic_sample_size": {"type": "integer", "minimum": 0},
+        "execution_time_threshold": {"type": "integer", "minimum": 0},
+        "max_number_of_invocation_attempts": {"type": "integer", "minimum": 0}
+    },
+    "required": ["function_name", "vendor", "region", "payload"],
+    "additionalProperties": false
+}

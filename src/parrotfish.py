@@ -1,60 +1,59 @@
-import logging
-import os
+import sys
 
+import boto3
 import numpy as np
+from google.auth import default, exceptions
 
-import src.constants as const
-from src.exploration import AWSExplorer
-from src.input_config import InputConfig
+from src.exploration import *
 from src.recommendation import *
 from src.recommendation.objectives import *
 
 
 class Parrotfish:
-    def __init__(self, config_dir: str, aws_session):
-        self._logger = logging.getLogger(__name__)
+    def __init__(self, config: any):
+        if config.vendor == "AWS":
+            self.explorer = AWSExplorer(
+                lambda_name=config.function_name,
+                payload=config.payload,
+                max_invocation_attempts=config.max_number_of_invocation_attempts,
+                memory_bounds=config.memory_bounds,
+                aws_session=boto3.Session(region_name=config.region),
+            )
+        else:
+            try:
+                credentials, project_id = default()
+                credentials.project_id = project_id
+                credentials.region = config.region
+            except exceptions.DefaultCredentialsError:
+                print("Failed to load Google Cloud credentials.", file=sys.stderr)
+                exit(1)
 
-        # Load configuration values from config.json
-        config_file_path = os.path.join(config_dir, "config.json")
-        payload_file_path = os.path.join(config_dir, "payload.json")
-
-        with open(payload_file_path) as f:
-            payload = f.read()
-
-        with open(config_file_path) as f:
-            self.config: InputConfig = InputConfig(f)
-
-        memory_space = np.array(
-            range(self.config.mem_bounds[0], self.config.mem_bounds[1] + 1)
-        )
-
-        self.explorer = AWSExplorer(
-            lambda_name=self.config.function_name,
-            payload=payload,
-            max_invocation_attempts=const.MAX_NUMBER_INVOCATION_ATTEMPTS,
-            aws_session=aws_session,
-        )
+            self.explorer = GCPExplorer(
+                function_name=config.function_name,
+                payload=config.payload,
+                memory_bounds=config.memory_bounds,
+                credentials=credentials
+            )
 
         self.param_function = ParametricFunction(
             function=lambda x, a0, a1, a2: a0 * x + a1 * np.exp(-x / a2) * x,
             bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
-            execution_time_threshold=self.config.execution_time_threshold,
+            execution_time_threshold=config.execution_time_threshold,
         )
 
         self.sampler = Sampler(
             explorer=self.explorer,
-            memory_space=memory_space,
-            explorations_count=const.DYNAMIC_SAMPLING_INITIAL_STEP,
-            max_dynamic_sample_count=const.DYNAMIC_SAMPLING_MAX,
-            dynamic_sampling_cv_threshold=const.TERMINATION_CV,
+            explorations_count=config.number_invocations,
+            max_dynamic_sample_count=config.max_dynamic_sample_size,
+            dynamic_sampling_cv_threshold=config.dynamic_sampling_termination_threshold,
         )
 
         self.recommender = Recommender(
             objective=FitToRealCostObjective(
-                self.param_function, memory_space, const.TERMINATION_THRESHOLD
+                self.param_function, self.explorer.memory_space, config.termination_threshold
             ),
             sampler=self.sampler,
-            max_sample_count=const.TOTAL_SAMPLE_COUNT,
+            max_sample_count=config.sample_size,
         )
 
     def invoke(self, memory_mb: int, parallel: int) -> list:

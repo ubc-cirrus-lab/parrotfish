@@ -18,11 +18,17 @@ class Explorer(ABC):
         payload: str,
         log_parser: LogParser,
         price_calculator: CostCalculator,
+        memory_space: set,
+        memory_bounds: list = None,
     ):
         self.function_name = function_name
         self.payload = payload
         self.log_parser = log_parser
         self.price_calculator = price_calculator
+
+        self.memory_space = np.array(list(memory_space))
+        if memory_bounds:
+            self.memory_space = np.array(list(memory_space.intersection(range(memory_bounds[0], memory_bounds[1] + 1))))
 
         self.cost = 0
         self._memory_config_mb = 0

@@ -1,9 +1,0 @@
-{
-  "SERVICE_NAME": "formplug",
-  "ENCRYPTION_KEY": "formsaregreat",
-  "REGION": "us-east-1",
-  "STAGE": "dev",
-  "SENDER_ARN": "arn:aws:ses:us-east-1:880306299867:identity/arshiamoghimi77@gmail.com",
-  "WHITELISTED_RECIPIENTS": null,
-  "RECAPTCHA_SECRET_KEY": null
-}

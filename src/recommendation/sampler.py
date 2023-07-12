@@ -12,14 +12,13 @@ class Sampler:
     def __init__(
         self,
         explorer: Explorer,
-        memory_space: np.ndarray,
         explorations_count: int,
         max_dynamic_sample_count: int,
         dynamic_sampling_cv_threshold: float,
     ):
         self.sample = None
         self.explorer = explorer
-        self.memory_space = memory_space
+        self.memory_space = explorer.memory_space
         self._explorations_count = explorations_count
         self._max_dynamic_sample_count = max_dynamic_sample_count
         self._dynamic_sampling_cv_threshold = dynamic_sampling_cv_threshold

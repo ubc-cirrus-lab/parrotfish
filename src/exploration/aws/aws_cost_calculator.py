@@ -5,7 +5,6 @@ import boto3
 import numpy as np
 from botocore.exceptions import ClientError
 
-from src.data_model import *
 from src.exceptions import *
 from src.exploration.cost_calculator import CostCalculator
 
