@@ -9,10 +9,12 @@ from src.exploration import GCPExplorer
 
 @pytest.fixture
 def explorer():
-    credentials = type('', (), {})()
+    credentials = type("", (), {})()
     credentials.project_id = "example_project_id"
     credentials.region = "example_region"
-    return GCPExplorer(function_name="example_function", payload="payload", credentials=credentials)
+    return GCPExplorer(
+        function_name="example_function", payload="payload", credentials=credentials
+    )
 
 
 class TestCheckAndSetMemoryConfig:
@@ -20,7 +22,9 @@ class TestCheckAndSetMemoryConfig:
     def test_update_memory(self, functions_v1, explorer):
         # Arrange
         update_memory_size_mb = 128
-        function = type('', (), {})()  # create an empty object that will serve to mock the get_function response
+        function = type(
+            "", (), {}
+        )()  # create an empty object that will serve to mock the get_function response
         function.available_memory_mb = 256  # patch the object
         explorer._function_client.get_function = mock.Mock(return_value=function)
 
@@ -30,7 +34,9 @@ class TestCheckAndSetMemoryConfig:
             update_operation.result = mock.Mock(return_value=request["function"])
             return update_operation
 
-        functions_v1.UpdateFunctionRequest = mock.Mock(return_value={"function": function})
+        functions_v1.UpdateFunctionRequest = mock.Mock(
+            return_value={"function": function}
+        )
         explorer._function_client.update_function = mock_update_function
 
         # Action
@@ -41,7 +47,9 @@ class TestCheckAndSetMemoryConfig:
 
     def test_function_not_found_error(self, explorer):
         update_memory_size_mb = 128
-        explorer._function_client.get_function = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._function_client.get_function = mock.Mock(
+            side_effect=GoogleAPICallError("error")
+        )
 
         with pytest.raises(MemoryConfigError) as e:
             explorer.check_and_set_memory_config(update_memory_size_mb)
@@ -49,10 +57,14 @@ class TestCheckAndSetMemoryConfig:
 
     @mock.patch("src.exploration.gcp.gcp_explorer.functions_v1")
     def test_not_valid_memory_value(self, functions_v1, explorer):
-        function = type('', (), {})()  # create an empty object that will serve to mock the get_function response
+        function = type(
+            "", (), {}
+        )()  # create an empty object that will serve to mock the get_function response
         function.available_memory_mb = 256  # patch the object
         explorer._function_client.get_function = mock.Mock(return_value=function)
-        explorer._function_client.update_function = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._function_client.update_function = mock.Mock(
+            side_effect=GoogleAPICallError("error")
+        )
 
         with pytest.raises(MemoryConfigError) as e:
             explorer.check_and_set_memory_config(128)
@@ -62,7 +74,7 @@ class TestCheckAndSetMemoryConfig:
 class TestInvoke:
     def test_nominal_case(self, explorer):
         # Arrange
-        result = type('', (), {})()
+        result = type("", (), {})()
         result.execution_id = "execution_id"
         explorer._function_client.call_function = mock.Mock(return_value=result)
         expected_result = "finished execution"
@@ -75,17 +87,21 @@ class TestInvoke:
         assert response == expected_result
 
     def test_calling_error(self, explorer):
-        explorer._function_client.call_function = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._function_client.call_function = mock.Mock(
+            side_effect=GoogleAPICallError("error")
+        )
 
         with pytest.raises(InvocationError) as e:
             explorer.invoke()
         assert e.type == InvocationError
 
     def test_list_logs_error(self, explorer):
-        result = type('', (), {})()
+        result = type("", (), {})()
         result.execution_id = "execution_id"
         explorer._function_client.call_function = mock.Mock(return_value=result)
-        explorer._get_invocation_log = mock.Mock(side_effect=GoogleAPICallError("error"))
+        explorer._get_invocation_log = mock.Mock(
+            side_effect=GoogleAPICallError("error")
+        )
 
         with pytest.raises(InvocationError) as e:
             explorer.invoke()
@@ -95,7 +111,7 @@ class TestInvoke:
 class TestGetInvocationLog:
     @staticmethod
     def create_log_object(payload):
-        res = type('', (), {})()
+        res = type("", (), {})()
         res.payload = payload
         return res
 
@@ -108,7 +124,9 @@ class TestGetInvocationLog:
         logging_client = mock.Mock()
         logging.Client = mock.Mock(return_value=logging_client)
         logs = [self.create_log_object(entry_payload)]
-        logging_client.list_entries = mock.Mock(return_value=(i for i in logs))  # Mock to return a generator.
+        logging_client.list_entries = mock.Mock(
+            return_value=(i for i in logs)
+        )  # Mock to return a generator.
 
         # Action
         log = explorer._get_invocation_log("execid")

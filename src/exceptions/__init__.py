@@ -19,5 +19,5 @@ __all__ = [
     "FunctionTimeoutError",
     "CostCalculationError",
     "MemoryConfigError",
-    "LogParsingError"
+    "LogParsingError",
 ]

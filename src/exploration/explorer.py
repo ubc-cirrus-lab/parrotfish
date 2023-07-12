@@ -28,7 +28,13 @@ class Explorer(ABC):
 
         self.memory_space = np.array(list(memory_space))
         if memory_bounds:
-            self.memory_space = np.array(list(memory_space.intersection(range(memory_bounds[0], memory_bounds[1] + 1))))
+            self.memory_space = np.array(
+                list(
+                    memory_space.intersection(
+                        range(memory_bounds[0], memory_bounds[1] + 1)
+                    )
+                )
+            )
 
         self.cost = 0
         self._memory_config_mb = 0

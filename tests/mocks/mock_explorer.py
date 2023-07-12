@@ -16,8 +16,7 @@ class MockExplorer(Explorer):
             payload="payload",
             log_parser=log_parser,
             price_calculator=price_calculator,
-            memory_space=set(range(128, 3009))
-
+            memory_space=set(range(128, 3009)),
         )
         self._memory_config_mb = 128
 

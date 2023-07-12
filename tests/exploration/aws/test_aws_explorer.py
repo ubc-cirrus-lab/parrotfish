@@ -9,7 +9,6 @@ from src.exploration.aws import AWSExplorer
 import src.configuration.defaults as defaults
 
 
-
 @pytest.fixture
 def explorer():
     # Mock the AWS session and client objects.
@@ -114,7 +113,9 @@ class TestInvoke:
         with pytest.raises(InvocationError) as error:
             explorer.invoke()
         assert error.type == InvocationError
-        assert explorer.client.invoke.call_count == defaults.MAX_NUMBER_INVOCATION_ATTEMPTS
+        assert (
+            explorer.client.invoke.call_count == defaults.MAX_NUMBER_INVOCATION_ATTEMPTS
+        )
 
     @mock.patch("src.exploration.aws.aws_explorer.time.sleep")
     def test_handling_aws_throttling(self, sleep, explorer):

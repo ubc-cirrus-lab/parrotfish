@@ -9,7 +9,9 @@ from .defaults import *
 
 
 class Configuration:
-    config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config_file_schema.json")
+    config_file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "config_file_schema.json"
+    )
     with open(config_file_path) as config_file_schema:
         _config_json_schema = json.load(config_file_schema)
     _logger = logging.getLogger(__name__)

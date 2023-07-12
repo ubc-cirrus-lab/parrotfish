@@ -70,7 +70,10 @@ class TestCalculator:
     def calculator_with_mock_get_pricing_units(
         self, calculator_with_mock_aws_session
     ) -> AWSCostCalculator:
-        calculator_with_mock_aws_session.pricing_units = {"compute": 0.0000166667, "request": 0.0000002}
+        calculator_with_mock_aws_session.pricing_units = {
+            "compute": 0.0000166667,
+            "request": 0.0000002,
+        }
         return calculator_with_mock_aws_session
 
     def test_calculate_price_one_invocation(

@@ -15,7 +15,7 @@ def calculator() -> GCPCostCalculator:
 class TestGetProductName:
     def test_nominal_case(self, calculator):
         # Arrange
-        product = type('', (), {})()
+        product = type("", (), {})()
         product.display_name = "Cloud Functions"
         expected_product_name = "service-name"
         product.name = expected_product_name
@@ -28,7 +28,9 @@ class TestGetProductName:
         assert product_name == expected_product_name
 
     def test_google_api_call_error(self, calculator):
-        calculator.client.list_services = mock.Mock(side_effect=GoogleAPICallError("error"))
+        calculator.client.list_services = mock.Mock(
+            side_effect=GoogleAPICallError("error")
+        )
 
         with pytest.raises(CostCalculationError) as e:
             calculator._get_product_name()
@@ -41,16 +43,16 @@ class TestGetPricingUnits:
         # Arrange
         calculator._get_product_name = mock.Mock(return_value="product_name")
         billing.ListSkusRequest = mock.Mock()
-        product1 = type('', (), {})()
+        product1 = type("", (), {})()
         product1.service_regions = ["us-east1"]
         product1.description = "Memory Time"
-        product2 = type('', (), {})()
+        product2 = type("", (), {})()
         product2.service_regions = ["us-east1"]
         product2.description = "CPU Time"
-        price = type('', (), {})()
-        price.pricing_expression = type('', (), {})()
-        tier = type('', (), {})()
-        tier.unit_price = type('', (), {})()
+        price = type("", (), {})()
+        price.pricing_expression = type("", (), {})()
+        tier = type("", (), {})()
+        tier.unit_price = type("", (), {})()
         tier.unit_price.units = 0
         tier.unit_price.nanos = 4 * 10**7
         price.pricing_expression.tiered_rates = [tier]
@@ -62,7 +64,7 @@ class TestGetPricingUnits:
         pricing_units = calculator._get_pricing_units()
 
         # Assert
-        assert pricing_units == {'memory': 0.04, 'cpu': 0.04}
+        assert pricing_units == {"memory": 0.04, "cpu": 0.04}
 
     def test_index_error(self, calculator):
         calculator._get_product_name = mock.Mock(return_value="product_name")

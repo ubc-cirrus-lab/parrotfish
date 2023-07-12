@@ -32,7 +32,7 @@ class Parrotfish:
                 function_name=config.function_name,
                 payload=config.payload,
                 memory_bounds=config.memory_bounds,
-                credentials=credentials
+                credentials=credentials,
             )
 
         self.param_function = ParametricFunction(
@@ -48,7 +48,11 @@ class Parrotfish:
             dynamic_sampling_cv_threshold=config.dynamic_sampling_termination_threshold,
         )
 
-        objective = FitToRealCostObjective(self.param_function, self.explorer.memory_space, config.termination_threshold)
+        objective = FitToRealCostObjective(
+            self.param_function,
+            self.explorer.memory_space,
+            config.termination_threshold,
+        )
 
         self.recommender = Recommender(
             objective=objective,

@@ -6,10 +6,12 @@ from src.exploration.log_parser import LogParser
 
 class GCPLogParser(LogParser):
     def __init__(self):
-        super().__init__(['Function execution took', 'finished with status'])
+        super().__init__(["Function execution took", "finished with status"])
 
     def parse_log(self, log: str) -> int:
-        pattern = re.compile(rf"(\w+):{self.log_parsing_keys[0]} (\d+) ms, {self.log_parsing_keys[1]}.*: (.*)")
+        pattern = re.compile(
+            rf"(\w+):{self.log_parsing_keys[0]} (\d+) ms, {self.log_parsing_keys[1]}.*: (.*)"
+        )
         m = pattern.search(log)
         if m is None:
             raise LogParsingError
@@ -21,7 +23,10 @@ class GCPLogParser(LogParser):
             raise FunctionENOMEM(duration_ms=billed_duration)
 
         if status == "'crash'":
-            raise InvocationError(f"Function raises an exception. Please check the logs associated with the execution "
-                                  f"id: {execution_id} to debug your function.", duration_ms=billed_duration)
+            raise InvocationError(
+                f"Function raises an exception. Please check the logs associated with the execution "
+                f"id: {execution_id} to debug your function.",
+                duration_ms=billed_duration,
+            )
 
         return billed_duration
