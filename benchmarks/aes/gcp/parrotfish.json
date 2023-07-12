@@ -1,0 +1,9 @@
+{
+    "function_name": "pyaes",
+    "region": "us-east1",
+    "vendor": "GCP",
+    "payload": {
+        "length_of_message": 256,
+        "num_of_iterations": 5
+    }
+}

@@ -1,5 +1,6 @@
 import argparse
 import logging.config
+import os
 
 from src.configuration import Configuration
 from src.exceptions import OptimizationError
@@ -11,27 +12,32 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Parametric Regression for Optimizing Serverless Functions")
-    parser.add_argument("config_file_path", type=str, help="Name of the serverless function to use")
+    parser = argparse.ArgumentParser(description="Serverless Price Optimization Tool")
+
+    parser.add_argument("--path", "-p", type=str, help="Path to the configuration file")
     parser.add_argument(
         "--optimize",
         "-o",
         action="store_true",
         help="Return best memory configuration for lowest cost",
     )
-    parser.add_argument("--invoke", "-i", type=int, help="The number of times you invoke the function")
+    parser.add_argument(
+        "--memory_mb", "-m", type=int, help="Memory (MB) of the function"
+    )
+    parser.add_argument(
+        "--invoke", "-i", type=int, help="The number of times you invoke the function"
+    )
+
     args = parser.parse_args()
 
-    # Load configuration values from config.json
-    if not args.config_file_path:
-        args.config_file_path = "config.json"
-    try:
-        with open(args.config_file_path) as config_file:
-            config: Configuration = Configuration(config_file)
-    except FileNotFoundError as e:
-        print(e.args[0])
+    config_file_path = os.path.join(os.getcwd(), "parrotfish.json")
+    if args.path:
+        config_file_path = args.path
 
-    parrotfish = Parrotfish(config)
+    with open(config_file_path) as config_file:
+        configuration = Configuration(config_file)
+
+    parrotfish = Parrotfish(configuration)
 
     if args.optimize:
         try:

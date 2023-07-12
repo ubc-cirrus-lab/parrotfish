@@ -9,6 +9,7 @@ from src.exploration.aws import AWSExplorer
 import src.configuration.defaults as defaults
 
 
+
 @pytest.fixture
 def explorer():
     # Mock the AWS session and client objects.

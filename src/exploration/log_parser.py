@@ -22,5 +22,6 @@ class LogParser(ABC):
             FunctionENOMEM: If the serverless function's configured memory is not enough for lambda function's execution.
             InvocationError: If the serverless function's invocation raises an exception.
             LogParsingError: If parsing the logs fails.
+
         """
         pass

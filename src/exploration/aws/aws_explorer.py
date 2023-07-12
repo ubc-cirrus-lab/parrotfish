@@ -3,7 +3,6 @@ import logging
 import time
 
 import boto3
-import numpy as np
 from botocore.exceptions import *
 
 from src.exceptions import *
@@ -97,6 +96,7 @@ class AWSExplorer(Explorer):
             except Exception:
                 # Handling the throttling imposed by AWS on the number of concurrent executions.
                 self._logger.warning("Possibly Too Many Requests Error. Retrying...")
+
                 time.sleep(sleeping_interval)
                 sleeping_interval *= 2
 
