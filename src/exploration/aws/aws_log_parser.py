@@ -9,7 +9,13 @@ from src.exploration.log_parser import LogParser
 class AWSLogParser(LogParser):
     def __init__(self):
         super().__init__(
-            ["Duration", "Billed Duration", "Max Memory Used", "Memory Size", "Init Duration"]
+            [
+                "Duration",
+                "Billed Duration",
+                "Max Memory Used",
+                "Memory Size",
+                "Init Duration",
+            ]
         )
         self._logger = logging.getLogger(__name__)
 
@@ -23,8 +29,12 @@ class AWSLogParser(LogParser):
 
         if "Billed Duration" not in results:
             raise LogParsingError
-        cold_start_time_ms = 0 if "Init Duration" not in results else results["Init Duration"]
-        execution_time_ms = int(results["Billed Duration"]) - math.ceil(cold_start_time_ms)
+        cold_start_time_ms = (
+            0 if "Init Duration" not in results else results["Init Duration"]
+        )
+        execution_time_ms = int(results["Billed Duration"]) - math.ceil(
+            cold_start_time_ms
+        )
 
         # log the parsed response in DEBUG mode.
         self._logger.debug(results)
