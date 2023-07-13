@@ -34,30 +34,6 @@ class AWSExplorer(Explorer):
         self.client = aws_session.client("lambda")
         self._logger = logging.getLogger(__name__)
 
-    def explore(self, memory_mb: int = None, enable_cost_calculation=True) -> int:
-        if memory_mb is not None:
-            self.check_and_set_memory_config(memory_mb)
-            self._memory_config_mb = memory_mb
-
-        try:
-            response = self.invoke()
-            exec_time = self.log_parser.parse_log(response)
-
-        except InvocationError as e:
-            self._logger.debug(e)
-            if enable_cost_calculation:
-                self.cost += self.price_calculator.calculate_price(
-                    self._memory_config_mb, e.duration_ms
-                )
-            raise
-
-        else:
-            if enable_cost_calculation:
-                self.cost += self.price_calculator.calculate_price(
-                    self._memory_config_mb, exec_time
-                )
-            return exec_time
-
     def check_and_set_memory_config(self, memory_mb: int) -> dict:
         try:
             config = self.client.get_function_configuration(
@@ -131,3 +107,6 @@ class AWSExplorer(Explorer):
             "Error has been raised while invoking the lambda function. Max number of invocations' "
             "attempts reached."
         )
+
+    def handle_cold_start(self, enable_cost_calculation=False) -> None:
+        pass
