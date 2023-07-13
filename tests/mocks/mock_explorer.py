@@ -34,3 +34,7 @@ class MockExplorer(Explorer):
             "tMemory Size: 512 MB\\"
             "tMax Memory Used: 506 MB\\t\\n'"
         )
+
+    def explore(self, memory_mb: int = None, enable_cost_calculation=True) -> int:
+        self.cost = 10
+        return 18180

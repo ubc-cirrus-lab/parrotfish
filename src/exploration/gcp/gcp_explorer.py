@@ -38,6 +38,38 @@ class GCPExplorer(Explorer):
         )
         self._logger = logging.getLogger(__name__)
 
+    def explore(self, memory_mb: int = None, enable_cost_calculation=True) -> int:
+        if memory_mb is not None:
+            self.check_and_set_memory_config(memory_mb)
+            self._memory_config_mb = memory_mb
+
+        try:
+            # Handling cold start
+            cold_start_invocation_duration = self.log_parser.parse_log(self.invoke())
+            if enable_cost_calculation:
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, cold_start_invocation_duration
+                )
+
+            # Do actual exploration
+            execution_log = self.invoke()
+            exec_time = self.log_parser.parse_log(execution_log)
+
+        except InvocationError as e:
+            self._logger.debug(e)
+            if enable_cost_calculation:
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, e.duration_ms
+                )
+            raise
+
+        else:
+            if enable_cost_calculation:
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, exec_time
+                )
+            return exec_time
+
     def check_and_set_memory_config(self, memory_mb: int) -> any:
         try:
             function = self._function_client.get_function(name=self.function_url)
@@ -48,7 +80,6 @@ class GCPExplorer(Explorer):
                 request = functions_v1.UpdateFunctionRequest(
                     function=function, update_mask=update_mask
                 )
-
                 update_operation = self._function_client.update_function(request)
                 function = update_operation.result()
 

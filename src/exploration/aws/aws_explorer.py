@@ -24,7 +24,7 @@ class AWSExplorer(Explorer):
             function_name=lambda_name,
             payload=payload,
             memory_bounds=memory_bounds,
-            memory_space=set(range(128, 3008)),
+            memory_space=set(range(128, 3009)),
             log_parser=AWSLogParser(),
             price_calculator=AWSCostCalculator(
                 function_name=lambda_name, aws_session=aws_session
@@ -33,6 +33,30 @@ class AWSExplorer(Explorer):
         self._max_invocation_attempts = max_invocation_attempts
         self.client = aws_session.client("lambda")
         self._logger = logging.getLogger(__name__)
+
+    def explore(self, memory_mb: int = None, enable_cost_calculation=True) -> int:
+        if memory_mb is not None:
+            self.check_and_set_memory_config(memory_mb)
+            self._memory_config_mb = memory_mb
+
+        try:
+            response = self.invoke()
+            exec_time = self.log_parser.parse_log(response)
+
+        except InvocationError as e:
+            self._logger.debug(e)
+            if enable_cost_calculation:
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, e.duration_ms
+                )
+            raise
+
+        else:
+            if enable_cost_calculation:
+                self.cost += self.price_calculator.calculate_price(
+                    self._memory_config_mb, exec_time
+                )
+            return exec_time
 
     def check_and_set_memory_config(self, memory_mb: int) -> dict:
         try:
@@ -87,7 +111,7 @@ class AWSExplorer(Explorer):
                 )
 
             except ReadTimeoutError:
-                self._logger.warn(
+                self._logger.warning(
                     "Lambda exploration timed out. The API request to the AWS Lambda service, "
                     "took longer than the specified timeout period. Retry ..."
                 )

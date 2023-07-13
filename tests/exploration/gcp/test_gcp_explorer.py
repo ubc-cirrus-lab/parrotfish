@@ -153,3 +153,71 @@ class TestGetInvocationLog:
         # Assert
         assert log == expected_log
         assert logging.Client().list_entries.call_count == 2
+
+
+class TestExplore:
+    @pytest.fixture
+    def gcp_explorer(self, explorer):
+        explorer.check_and_set_memory_config = mock.Mock()
+        explorer.invoke = mock.Mock()
+        explorer.log_parser.parse_log = mock.Mock(return_value=18180)
+        explorer.price_calculator.calculate_price = mock.Mock(return_value=10)
+        return explorer
+
+    def test_nominal_case(self, gcp_explorer):
+        duration_ms = gcp_explorer.explore()
+
+        assert gcp_explorer.price_calculator.calculate_price.called
+        assert gcp_explorer.cost == 20
+        assert duration_ms == 18180
+
+    def test_check_and_set_memory_config_called(self, gcp_explorer):
+        gcp_explorer.explore(memory_mb=128)
+
+        assert gcp_explorer.check_and_set_memory_config.called
+
+    def test_check_and_set_memory_config_raises_memory_config_error(self, gcp_explorer):
+        gcp_explorer.check_and_set_memory_config = mock.Mock(
+            side_effect=MemoryConfigError("error")
+        )
+
+        with pytest.raises(ExplorationError) as e:
+            gcp_explorer.explore(memory_mb=128)
+        assert e.type == MemoryConfigError
+
+    def test_invocation_error_raised_by_invoke(self, gcp_explorer):
+        gcp_explorer.invoke = mock.Mock(side_effect=InvocationError("error", 120))
+
+        with pytest.raises(ExplorationError) as e:
+            gcp_explorer.explore()
+        assert e.type == InvocationError
+
+    def test_invocation_error_raised_by_parse_log(self, gcp_explorer):
+        gcp_explorer.log_parser.parse_log = mock.Mock(
+            side_effect=InvocationError("error", 120)
+        )
+
+        with pytest.raises(ExplorationError) as e:
+            gcp_explorer.explore()
+        assert e.type == InvocationError
+
+    @pytest.mark.parametrize(
+        "error",
+        [FunctionENOMEM(), FunctionTimeoutError()],
+        ids=["FunctionENOMEM", "FunctionTimeoutError"],
+    )
+    def test_function_enomem(self, error, gcp_explorer):
+        gcp_explorer.log_parser.parse_log = mock.Mock(side_effect=error)
+
+        with pytest.raises(FunctionENOMEM) as e:
+            gcp_explorer.explore()
+        assert e.value == error
+
+    def test_compute_cost_raises_cost_calculation_error(self, gcp_explorer):
+        gcp_explorer.price_calculator.calculate_price = mock.Mock(
+            side_effect=CostCalculationError("error")
+        )
+
+        with pytest.raises(ExplorationError) as e:
+            gcp_explorer.explore(enable_cost_calculation=True)
+        assert e.type == CostCalculationError

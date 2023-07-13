@@ -82,13 +82,6 @@ class Sampler:
         """
         self._logger.info(f"Sampling: {memory_mb} MB.")
         try:
-            # Handling Cold start
-            self.explorer.explore_parallel(
-                nbr_invocations=self._explorations_count,
-                nbr_threads=self._explorations_count,
-                memory_mb=int(memory_mb),
-            )
-
             # Do actual sampling
             subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
