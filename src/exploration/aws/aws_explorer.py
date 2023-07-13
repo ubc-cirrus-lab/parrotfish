@@ -24,7 +24,7 @@ class AWSExplorer(Explorer):
             function_name=lambda_name,
             payload=payload,
             memory_bounds=memory_bounds,
-            memory_space=set(range(128, 3008)),
+            memory_space=set(range(128, 3009)),
             log_parser=AWSLogParser(),
             price_calculator=AWSCostCalculator(
                 function_name=lambda_name, aws_session=aws_session
@@ -87,7 +87,7 @@ class AWSExplorer(Explorer):
                 )
 
             except ReadTimeoutError:
-                self._logger.warn(
+                self._logger.warning(
                     "Lambda exploration timed out. The API request to the AWS Lambda service, "
                     "took longer than the specified timeout period. Retry ..."
                 )
@@ -107,3 +107,6 @@ class AWSExplorer(Explorer):
             "Error has been raised while invoking the lambda function. Max number of invocations' "
             "attempts reached."
         )
+
+    def handle_cold_start(self, enable_cost_calculation=False) -> None:
+        pass

@@ -7,7 +7,7 @@ from src.exceptions import OptimizationError
 from src.parrotfish import Parrotfish
 
 logging.config.dictConfig({"version": 1, "disable_existing_loggers": True})
-logging.basicConfig(format="%(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(name)s - %(levelname)s - %(message)s", level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

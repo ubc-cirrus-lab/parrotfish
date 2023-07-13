@@ -48,7 +48,6 @@ class GCPExplorer(Explorer):
                 request = functions_v1.UpdateFunctionRequest(
                     function=function, update_mask=update_mask
                 )
-
                 update_operation = self._function_client.update_function(request)
                 function = update_operation.result()
 
