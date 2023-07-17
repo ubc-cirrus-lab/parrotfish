@@ -59,14 +59,15 @@ class GCPInvoker(Invoker):
         sleep_interval = 1
 
         while any([key not in log for key in self.log_keys]):
-            log = ""  # reset the log result
+            log = f"{execution_id}:"  # reset the log result
 
             try:
                 # Retrieve the most recent logs
                 entries = self._logging_client.list_entries(
                     filter_=filter_str, order_by=google_logging.DESCENDING
                 )
-                log = f"{execution_id}:{next(entries).payload}"
+                for entry in entries:
+                    log += f"{entry.payload}\n"
 
             except StopIteration:
                 self._logger.debug("waiting for logs to be retrieved.")

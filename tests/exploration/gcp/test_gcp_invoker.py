@@ -71,7 +71,7 @@ class TestGetInvocationLog:
         # Arrange
         time.sleep = mock.Mock()
         entry_payload = "Function execution took 50 ms, finished with status code: 200"
-        expected_log = "execid:" + entry_payload
+        expected_log = "execid:" + entry_payload + "\n"
         invoker._logging_client = mock.Mock()
         logs = [self.create_log_object(entry_payload)]
         invoker._logging_client.list_entries = mock.Mock(
@@ -90,7 +90,7 @@ class TestGetInvocationLog:
         # Arrange
         time.sleep = mock.Mock()
         entry_payload = "Function execution took 50 ms, finished with status code: 200"
-        expected_log = "execid:" + entry_payload
+        expected_log = "execid:log\n" + entry_payload + "\n"
         logs = ["log", entry_payload]
         invoker._logging_client = mock.Mock()
         logs = [self.create_log_object(log) for log in logs]
@@ -101,4 +101,4 @@ class TestGetInvocationLog:
 
         # Assert
         assert log == expected_log
-        assert invoker._logging_client.list_entries.call_count == 2
+        assert invoker._logging_client.list_entries.call_count == 1

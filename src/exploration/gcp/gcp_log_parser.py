@@ -23,6 +23,9 @@ class GCPLogParser(LogParser):
             raise FunctionENOMEM(duration_ms=billed_duration)
 
         if status == "'crash'":
+            if "Memory limit" in log:
+                raise FunctionENOMEM(duration_ms=billed_duration)
+
             raise InvocationError(
                 f"Function raises an exception. Please check the logs associated with the execution "
                 f"id: {execution_id} to debug your function.",
