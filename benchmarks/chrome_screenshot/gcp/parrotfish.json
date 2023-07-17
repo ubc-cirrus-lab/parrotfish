@@ -1,10 +1,10 @@
 {
-    "function_name": "screenshot-service2-dev-capture",
-    "region": "us-east-1",
-    "vendor": "AWS",
+    "function_name": "chrome_screenshot",
+    "region": "us-east1",
+    "vendor": "GCP",
     "memory_bounds": [
         512,
-        3008
+        8192
     ],
     "payload": {
         "queryStringParameters": {

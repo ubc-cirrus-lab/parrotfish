@@ -11,9 +11,7 @@ def generate(length):
 
 
 def lambda_handler(request):
-    print(request.get_json())
     request_json = request.get_json(silent=True)
-    print(request_json)
     length_of_message = None
     num_of_iterations = None
 
