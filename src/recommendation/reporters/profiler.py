@@ -12,7 +12,10 @@ class Profiler(Reporter):
 
     def report(self):
         plt.plot(self.sample.memories, self.param_function(self.sample.memories) / 1000)
-        plt.plot(self.sample.memories, self.param_function(self.sample.memories) / self.sample.memories)
-        plt.xlabel('Memory size in MB')
-        plt.ylabel('Cost is USD, Execution time in ms')
-        plt.savefig('figure.png')
+        plt.plot(
+            self.sample.memories,
+            self.param_function(self.sample.memories) / self.sample.memories,
+        )
+        plt.xlabel("Memory size in MB")
+        plt.ylabel("Cost is USD, Execution time in ms")
+        plt.savefig("figure.png")

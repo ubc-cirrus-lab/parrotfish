@@ -20,7 +20,7 @@ def invoker(function_v1, google_logging):
         function_name="example_function",
         payload="payload",
         log_keys=["Function execution took", "finished with status"],
-        credentials=credentials
+        credentials=credentials,
     )
 
 
@@ -52,9 +52,7 @@ class TestInvoke:
         result = type("", (), {})()
         result.execution_id = "execution_id"
         invoker._function_client.call_function = mock.Mock(return_value=result)
-        invoker._get_invocation_log = mock.Mock(
-            side_effect=GoogleAPICallError("error")
-        )
+        invoker._get_invocation_log = mock.Mock(side_effect=GoogleAPICallError("error"))
 
         with pytest.raises(InvocationError) as e:
             invoker.invoke()
