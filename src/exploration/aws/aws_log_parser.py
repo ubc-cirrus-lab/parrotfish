@@ -29,15 +29,11 @@ class AWSLogParser(LogParser):
 
         if "Billed Duration" not in results:
             raise LogParsingError
-        cold_start_time_ms = (
-            0 if "Init Duration" not in results else results["Init Duration"]
-        )
-        execution_time_ms = int(results["Billed Duration"]) - math.ceil(
-            cold_start_time_ms
-        )
+
+        execution_time_ms = int(results["Billed Duration"])
 
         # log the parsed response in DEBUG mode.
-        self._logger.debug(results)
+        self._logger.debug(f"Invocation's results: {results}")
 
         # check for timeout
         if "Task timed out after" in log:
