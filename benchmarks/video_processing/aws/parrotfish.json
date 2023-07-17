@@ -2,7 +2,7 @@
   "function_name": "video_processing",
   "region": "us-east-1",
   "vendor": "AWS",
-  "mem_bounds": [
+  "memory_bounds": [
       512,
       3008
   ],

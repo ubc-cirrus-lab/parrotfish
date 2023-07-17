@@ -101,7 +101,7 @@ class Recommender:
         sample_memories = set(self.sampler.sample.memories)
         memory_space = self.sampler.memory_space
         remainder_memories = np.array(
-            [memory for memory in memory_space if memory not in sample_memories]
+            [memory for memory in memory_space if memory not in sample_memories], dtype=int
         )
 
         if len(remainder_memories) == 0:

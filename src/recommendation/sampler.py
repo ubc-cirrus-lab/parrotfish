@@ -48,7 +48,7 @@ class Sampler:
     def _sample_first_memory_config(self):
         while len(self.memory_space) >= 3:
             try:
-                self.update_sample(self.memory_space[0])
+                self.update_sample(int(self.memory_space[0]))
 
             except FunctionENOMEM:
                 self._logger.info(f"ENOMEM: trying with new memories")
@@ -57,7 +57,7 @@ class Sampler:
                         mem
                         for mem in self.memory_space
                         if mem >= self.memory_space[0] + 128
-                    ]
+                    ], dtype=int
                 )
 
             except SamplingError as e:
@@ -82,10 +82,10 @@ class Sampler:
         """
         self._logger.info(f"Sampling: {memory_mb} MB.")
         try:
-            # Do actual sampling
             subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
                 nbr_threads=self._explorations_count,
+                memory_mb=memory_mb
             )
         except ExplorationError as e:
             self._logger.debug(e)
