@@ -104,4 +104,3 @@ class TestGetInvocationLog:
         # Assert
         assert log == expected_log
         assert invoker._logging_client.list_entries.call_count == 2
-
