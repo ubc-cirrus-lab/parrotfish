@@ -15,13 +15,13 @@ def invoker():
     mock_aws_session = mock.Mock()
     mock_aws_session.client().invoke.return_value = {
         "LogResult": "XHREdXJhdGlvbjogMTcwLjI0IG1zXHRCaWxsZWQgRHVyYXRpb246IDE3MSBtc1x0TWVtb3J5IFNpemU6IDEyOCBNQlx0TWF4I"
-                     "E1lbW9yeSBVc2VkOiA0MCBNQlx0SW5pdCBEdXJhdGlvbjogMTM0LjcwIG1zXHRcbiI="
+        "E1lbW9yeSBVc2VkOiA0MCBNQlx0SW5pdCBEdXJhdGlvbjogMTM0LjcwIG1zXHRcbiI="
     }
     return AWSInvoker(
         function_name="example_function",
         payload="payload",
         max_invocation_attempts=5,
-        aws_session=mock_aws_session
+        aws_session=mock_aws_session,
     )
 
 
