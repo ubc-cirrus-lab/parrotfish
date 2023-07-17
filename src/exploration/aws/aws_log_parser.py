@@ -23,9 +23,9 @@ class AWSLogParser(LogParser):
         # parse the log keys and prepare result.
         results = {}
         for key in self.log_parsing_keys:
-            m = re.match(rf".*\\t{key}: (?P<value>[0-9.]+) (ms|MB).*", log)
-            if m:
-                results[key] = float(m["value"])
+            match = re.match(rf".*\\t{key}: (?P<value>[0-9.]+) (ms|MB).*", log)
+            if match:
+                results[key] = float(match["value"])
 
         if "Billed Duration" not in results:
             raise LogParsingError

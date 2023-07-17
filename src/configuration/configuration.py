@@ -2,21 +2,22 @@ import json
 import logging
 import os
 import sys
+from typing import TextIO
 
 import jsonschema
-from typing import TextIO
+
 from .defaults import *
 
 
 class Configuration:
-    config_file_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "config_file_schema.json"
-    )
-    with open(config_file_path) as config_file_schema:
-        _config_json_schema = json.load(config_file_schema)
-    _logger = logging.getLogger(__name__)
-
     def __init__(self, config_file: TextIO = None):
+        config_file_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "config_file_schema.json"
+        )
+        with open(config_file_path) as config_file_schema:
+            self._config_json_schema = json.load(config_file_schema)
+        self._logger = logging.getLogger(__name__)
+
         # Setup default values
         self.dynamic_sampling_termination_threshold = TERMINATION_CV
         self.termination_threshold = TERMINATION_THRESHOLD
