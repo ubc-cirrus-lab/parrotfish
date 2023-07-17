@@ -1,7 +1,7 @@
 from .exploration_error import ExplorationError
 
 
-class MemoryConfigError(ExplorationError):
+class FunctionConfigError(ExplorationError):
     def __init__(self, msg=None):
         if msg is None:
             msg = (

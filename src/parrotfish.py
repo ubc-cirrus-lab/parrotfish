@@ -67,6 +67,7 @@ class Parrotfish:
 
     def optimize(self):
         self.recommender.run()
+        self.explorer.config_manager.reset_config()
         return self._report()
 
     def _report(self):

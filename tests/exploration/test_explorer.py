@@ -87,20 +87,19 @@ class TestExplore:
     def test_memory_config_changed(self, explorer):
         explorer.explore(memory_mb=128)
 
-        assert explorer.check_and_set_memory_config.called
-        assert explorer.handle_cold_start.called
+        assert explorer.config_manager.set_config.called
 
-    def test_check_and_set_memory_config_raises_memory_config_error(self, explorer):
-        explorer.check_and_set_memory_config = mock.Mock(
-            side_effect=MemoryConfigError("error")
+    def test_function_config_error(self, explorer):
+        explorer.config_manager.set_config = mock.Mock(
+            side_effect=FunctionConfigError("error")
         )
 
         with pytest.raises(ExplorationError) as e:
             explorer.explore(memory_mb=128)
-        assert e.type == MemoryConfigError
+        assert e.type == FunctionConfigError
 
     def test_invocation_error_raised_by_invoke(self, explorer):
-        explorer.invoke = mock.Mock(side_effect=InvocationError("error", 120))
+        explorer.invoker.invoke = mock.Mock(side_effect=InvocationError("error", 120))
 
         with pytest.raises(ExplorationError) as e:
             explorer.explore()
