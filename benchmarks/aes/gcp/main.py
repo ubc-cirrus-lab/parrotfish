@@ -2,8 +2,6 @@
 from time import time
 import random
 import string
-
-import functions_framework
 import pyaes
 
 
@@ -12,7 +10,6 @@ def generate(length):
     return "".join(random.choice(letters) for i in range(length))
 
 
-@functions_framework.http
 def lambda_handler(request):
     print(request.get_json())
     request_json = request.get_json(silent=True)

@@ -1,6 +1,6 @@
 {
     "function_name": "screenshot-service2-dev-capture",
-    "region": "us-east-2",
+    "region": "us-east-1",
     "vendor": "AWS",
     "mem_bounds": [
         512,
