@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 class ConfigManager(ABC):
     """This class provides the operations to manage the serverless function's configuration."""
+
     def __init__(self, function_name: str):
         self.function_name = function_name
         self.initial_config = None

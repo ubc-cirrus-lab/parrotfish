@@ -31,7 +31,9 @@ class GCPConfigManager(ConfigManager):
             function = self._function_client.get_function(name=self.function_url)
 
             if not self.initial_config:
-                self.initial_config = FunctionConfig(function.available_memory_mb, function.timeout.seconds)
+                self.initial_config = FunctionConfig(
+                    function.available_memory_mb, function.timeout.seconds
+                )
 
             while function.available_memory_mb != memory_mb:
                 # Update the memory configuration.
@@ -41,7 +43,9 @@ class GCPConfigManager(ConfigManager):
                 if timeout:
                     function.timeout = datetime.timedelta(seconds=timeout)
                 else:
-                    function.timeout = datetime.timedelta(seconds=self.max_timeout_quota)
+                    function.timeout = datetime.timedelta(
+                        seconds=self.max_timeout_quota
+                    )
 
                 # Apply updates to the Google Cloud Function.
                 update_mask = {"paths": ["available_memory_mb", "timeout"]}
@@ -49,7 +53,9 @@ class GCPConfigManager(ConfigManager):
                     function=function, update_mask=update_mask
                 )
                 update_operation = self._function_client.update_function(request)
-                function = update_operation.result()  # Blocks until updates are applied.
+                function = (
+                    update_operation.result()
+                )  # Blocks until updates are applied.
 
         except GoogleAPICallError as e:
             self._logger.debug(e.args[0])
