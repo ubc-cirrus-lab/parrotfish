@@ -35,8 +35,7 @@ class Explorer(ABC):
                     memory_space.intersection(
                         range(memory_bounds[0], memory_bounds[1] + 1)
                     )
-                ),
-                dtype=int,
+                ), dtype=int
             )
 
         self.cost = 0

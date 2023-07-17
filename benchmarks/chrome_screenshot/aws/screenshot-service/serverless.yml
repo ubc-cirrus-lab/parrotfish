@@ -8,7 +8,7 @@ provider:
 
 functions:
   capture:
-    handler: handler.capture # refers to function capture in handler.js
+    handler: handler.capture # refers to function capture in index.js
     events:
       - http: # trigger function via http request
           path: capture

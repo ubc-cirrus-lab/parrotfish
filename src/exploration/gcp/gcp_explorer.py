@@ -20,10 +20,7 @@ class GCPExplorer(Explorer):
                 function_name=function_name, credentials=credentials
             ),
             invoker=GCPInvoker(
-                function_name=function_name,
-                payload=payload,
-                log_keys=log_parser.log_parsing_keys,
-                credentials=credentials,
+                function_name=function_name, payload=payload, log_keys=log_parser.log_parsing_keys, credentials=credentials
             ),
             price_calculator=GCPCostCalculator(
                 function_name=function_name, region=credentials.region

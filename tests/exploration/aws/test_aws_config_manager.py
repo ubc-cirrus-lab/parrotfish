@@ -20,42 +20,20 @@ def config_manager():
         "LastUpdateStatus": "Successful",
     }
 
-    def mock_update_function_configuration(
-        FunctionName: str, MemorySize: int, Timeout: int = None
-    ):
+    def mock_update_function_configuration(FunctionName: str, MemorySize: int, Timeout: int = None):
         if Timeout:
             mock_aws_session.client().get_function_configuration.side_effect = (
-                {
-                    "MemorySize": MemorySize,
-                    "Timeout": 30,
-                    "LastUpdateStatus": "InProgress",
-                },
-                {
-                    "MemorySize": MemorySize,
-                    "Timeout": Timeout,
-                    "LastUpdateStatus": "Successful",
-                },
+                {"MemorySize": MemorySize, "Timeout": 30, "LastUpdateStatus": "InProgress"},
+                {"MemorySize": MemorySize, "Timeout": Timeout, "LastUpdateStatus": "Successful"},
             )
         else:
             mock_aws_session.client().get_function_configuration.side_effect = (
-                {
-                    "MemorySize": MemorySize,
-                    "Timeout": 30,
-                    "LastUpdateStatus": "InProgress",
-                },
-                {
-                    "MemorySize": MemorySize,
-                    "Timeout": 30,
-                    "LastUpdateStatus": "Successful",
-                },
+                {"MemorySize": MemorySize, "Timeout": 30, "LastUpdateStatus": "InProgress"},
+                {"MemorySize": MemorySize, "Timeout": 30, "LastUpdateStatus": "Successful"},
             )
 
-    mock_aws_session.client().update_function_configuration = (
-        mock_update_function_configuration
-    )
-    mock_aws_session.client().get_service_quota = mock.Mock(
-        return_value={"Quota": {"Value": 900}}
-    )
+    mock_aws_session.client().update_function_configuration = mock_update_function_configuration
+    mock_aws_session.client().get_service_quota = mock.Mock(return_value={'Quota': {'Value': 900}})
 
     return AWSConfigManager("example_function", mock_aws_session)
 
@@ -64,9 +42,7 @@ class TestSetConfig:
     def test_save_initial_config(self, config_manager):
         config_manager.set_config(128)
 
-        assert config_manager.initial_config == FunctionConfig(
-            memory_mb=256, timeout=30
-        )
+        assert config_manager.initial_config == FunctionConfig(memory_mb=256, timeout=30)
 
     def test_update_memory(self, config_manager):
         config = config_manager.set_config(128)
@@ -96,11 +72,9 @@ class TestSetConfig:
                 "Code": "ResourceNotFoundException",
             },
         }
-        config_manager._lambda_client.get_function_configuration.side_effect = (
-            ClientError(
-                operation_name="GetFunctionConfiguration",
-                error_response=mock_error_response,
-            )
+        config_manager._lambda_client.get_function_configuration.side_effect = ClientError(
+            operation_name="GetFunctionConfiguration",
+            error_response=mock_error_response,
         )
 
         with pytest.raises(FunctionConfigError) as error:

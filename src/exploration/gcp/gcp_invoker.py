@@ -10,9 +10,7 @@ from src.exploration.invoker import Invoker
 
 
 class GCPInvoker(Invoker):
-    def __init__(
-        self, function_name: str, payload: str, log_keys: list, credentials: any
-    ):
+    def __init__(self, function_name: str, payload: str, log_keys: list, credentials: any):
         super().__init__(function_name, payload)
         self.credentials = credentials
         self.project_id = credentials.project_id
