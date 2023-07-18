@@ -46,6 +46,7 @@ class Recommender:
         while not self._is_termination_reached:
             memory = self._choose_memory_to_explore()
             self._update(memory)
+        self.sampler.explorer.config_manager.reset_config()
 
     def _initialize(self):
         """Initializes the sample, objective knowledge, and parametric function.

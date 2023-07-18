@@ -11,6 +11,9 @@ from src.recommendation.objectives import *
 
 class Parrotfish:
     def __init__(self, config: any):
+
+        self.payloads = config.payloads if config.hasattr("payloads") else None
+
         if config.vendor == "AWS":
             self.explorer = AWSExplorer(
                 lambda_name=config.function_name,
@@ -41,7 +44,7 @@ class Parrotfish:
             execution_time_threshold=config.execution_time_threshold,
         )
 
-        self.sampler = Sampler(
+        sampler = Sampler(
             explorer=self.explorer,
             explorations_count=config.number_invocations,
             max_dynamic_sample_count=config.max_dynamic_sample_size,
@@ -49,14 +52,14 @@ class Parrotfish:
         )
 
         objective = FitToRealCostObjective(
-            self.param_function,
-            self.explorer.memory_space,
-            config.termination_threshold,
+            param_function=self.param_function,
+            memory_space=self.explorer.memory_space,
+            termination_threshold=config.termination_threshold,
         )
 
         self.recommender = Recommender(
             objective=objective,
-            sampler=self.sampler,
+            sampler=sampler,
             max_sample_count=config.sample_size,
         )
 
@@ -67,12 +70,28 @@ class Parrotfish:
 
     def optimize(self):
         self.recommender.run()
-        self.explorer.config_manager.reset_config()
         return self._report()
+
+    def optimize_weighted(self):
+        collective_costs = np.array([])
+        for entry in self.payloads:
+            self.explorer.payload = entry.payload
+            self.recommender.run()
+            collective_costs += self.param_function(self.explorer.memory_space) * entry.weight
+            self.param_function.params = None
+        weighted_costs = collective_costs / len(self.payloads)
+        min_index = np.argmin(weighted_costs)
+        min_memory = weighted_costs[min_index]
+        min_cost = weighted_costs[min_index]
+        return {
+            "Minimum Cost Memory": min_memory,
+            "Expected Cost": min_cost,
+            "Exploration Cost": self.explorer.cost,
+        }
 
     def _report(self):
         minimum_memory, minimum_cost = self.param_function.minimize(
-            self.sampler.memory_space
+            self.explorer.memory_space
         )
         return {
             "Minimum Cost Memory": minimum_memory,
