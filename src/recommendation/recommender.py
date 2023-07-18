@@ -30,7 +30,7 @@ class Recommender:
         termination_value = self.objective.termination_value
         return (
             sample_count > self._max_sample_count
-            or termination_value < self.objective.termination_threshold
+            or termination_value > self.objective.termination_threshold
         )
 
     def run(self):
