@@ -10,7 +10,14 @@ from src.exploration.invoker import Invoker
 
 
 class AWSInvoker(Invoker):
-    def __init__(self, function_name: str, payload: str, max_invocation_attempts: int, aws_session: boto3.Session):
+
+    def __init__(
+        self,
+        function_name: str,
+        payload: str,
+        max_invocation_attempts: int,
+        aws_session: boto3.Session,
+    ):
         super().__init__(function_name, payload)
         self._max_invocation_attempts = max_invocation_attempts
         self.client = aws_session.client("lambda")

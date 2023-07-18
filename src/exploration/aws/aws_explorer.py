@@ -22,7 +22,10 @@ class AWSExplorer(Explorer):
                 function_name=lambda_name, aws_session=aws_session
             ),
             invoker=AWSInvoker(
-                function_name=lambda_name, payload=payload, max_invocation_attempts=max_invocation_attempts, aws_session=aws_session
+                function_name=lambda_name,
+                payload=payload,
+                max_invocation_attempts=max_invocation_attempts,
+                aws_session=aws_session,
             ),
             price_calculator=AWSCostCalculator(
                 function_name=lambda_name, aws_session=aws_session
