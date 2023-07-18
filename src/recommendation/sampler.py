@@ -12,14 +12,13 @@ class Sampler:
     def __init__(
         self,
         explorer: Explorer,
-        memory_space: np.ndarray,
         explorations_count: int,
         max_dynamic_sample_count: int,
         dynamic_sampling_cv_threshold: float,
     ):
         self.sample = None
         self.explorer = explorer
-        self.memory_space = memory_space
+        self.memory_space = explorer.memory_space
         self._explorations_count = explorations_count
         self._max_dynamic_sample_count = max_dynamic_sample_count
         self._dynamic_sampling_cv_threshold = dynamic_sampling_cv_threshold
@@ -49,7 +48,7 @@ class Sampler:
     def _sample_first_memory_config(self):
         while len(self.memory_space) >= 3:
             try:
-                self.update_sample(self.memory_space[0])
+                self.update_sample(int(self.memory_space[0]))
 
             except FunctionENOMEM:
                 self._logger.info(f"ENOMEM: trying with new memories")
@@ -58,7 +57,8 @@ class Sampler:
                         mem
                         for mem in self.memory_space
                         if mem >= self.memory_space[0] + 128
-                    ]
+                    ],
+                    dtype=int,
                 )
 
             except SamplingError as e:
@@ -83,17 +83,10 @@ class Sampler:
         """
         self._logger.info(f"Sampling: {memory_mb} MB.")
         try:
-            # Handling Cold start
-            self.explorer.explore_parallel(
-                nbr_invocations=self._explorations_count,
-                nbr_threads=self._explorations_count,
-                memory_mb=int(memory_mb),
-            )
-
-            # Do actual sampling
             subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
                 nbr_threads=self._explorations_count,
+                memory_mb=memory_mb,
             )
         except ExplorationError as e:
             self._logger.debug(e)

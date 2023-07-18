@@ -1,0 +1,18 @@
+{
+  "function_name": "formplug-dev-receive",
+  "region": "us-east-1",
+  "vendor": "AWS",
+  "memory_bounds": [
+      128,
+      3008
+  ],
+  "payload": {
+    "SERVICE_NAME": "formplug",
+    "ENCRYPTION_KEY": "formsaregreat",
+    "REGION": "us-east-1",
+    "STAGE": "dev",
+    "SENDER_ARN": "arn:aws:ses:us-east-1:880306299867:identity/arshiamoghimi77@gmail.com",
+    "WHITELISTED_RECIPIENTS": null,
+    "RECAPTCHA_SECRET_KEY": null
+  }
+}

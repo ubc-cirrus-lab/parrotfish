@@ -6,7 +6,8 @@ from .invocation_error import InvocationError
 from .function_enomem import FunctionENOMEM
 from .function_timeout_error import FunctionTimeoutError
 from .cost_calculation_error import CostCalculationError
-from .memory_config_error import MemoryConfigError
+from .function_config_error import FunctionConfigError
+from .log_parsing_error import LogParsingError
 
 __all__ = [
     "OptimizationError",
@@ -17,5 +18,6 @@ __all__ = [
     "FunctionENOMEM",
     "FunctionTimeoutError",
     "CostCalculationError",
-    "MemoryConfigError",
+    "FunctionConfigError",
+    "LogParsingError",
 ]

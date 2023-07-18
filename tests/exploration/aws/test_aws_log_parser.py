@@ -71,3 +71,10 @@ class TestAWSLogParser:
         with pytest.raises(InvocationError) as e:
             log_parser.parse_log(result_log)
         assert e.type == InvocationError
+
+    def test_log_parsing_error(self, log_parser):
+        result_log = "not a valid log"
+
+        with pytest.raises(LogParsingError) as e:
+            log_parser.parse_log(result_log)
+        assert e.type == LogParsingError

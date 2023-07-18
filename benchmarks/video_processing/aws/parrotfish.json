@@ -1,0 +1,20 @@
+{
+  "function_name": "video_processing",
+  "region": "us-east-1",
+  "vendor": "AWS",
+  "memory_bounds": [
+      512,
+      3008
+  ],
+  "payload": {
+    "bucket": {
+      "input": "larmol-public",
+      "output": "larmol-public"
+    },
+    "object": {
+      "key": "IMG_2943.mov",
+      "op": "watermark",
+      "duration": 1
+    }
+  }
+}

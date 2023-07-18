@@ -1,5 +1,5 @@
 from .data_point import DataPoint
-from .pricing_units import PricingUnits
 from .sample import Sample
+from .function_config import FunctionConfig
 
-__all__ = ["DataPoint", "PricingUnits", "Sample"]
+__all__ = ["DataPoint", "Sample", "FunctionConfig"]

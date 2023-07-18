@@ -1,12 +1,14 @@
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 
+from .config_manager import ConfigManager
 from .cost_calculator import CostCalculator
+from .invoker import Invoker
 from .log_parser import LogParser
-from src.exceptions import *
+from ..exceptions import InvocationError
 
 
 class Explorer(ABC):
@@ -14,18 +16,31 @@ class Explorer(ABC):
 
     def __init__(
         self,
-        function_name: str,
-        payload: str,
+        config_manager: ConfigManager,
+        invoker: Invoker,
         log_parser: LogParser,
         price_calculator: CostCalculator,
+        memory_space: set,
+        memory_bounds: list = None,
     ):
-        self.function_name = function_name
-        self.payload = payload
+        self.config_manager = config_manager
+        self.invoker = invoker
         self.log_parser = log_parser
         self.price_calculator = price_calculator
 
+        self.memory_space = np.array(list(memory_space), dtype=int)
+        if memory_bounds:
+            self.memory_space = np.array(
+                list(
+                    memory_space.intersection(
+                        range(memory_bounds[0], memory_bounds[1] + 1)
+                    )
+                ),
+                dtype=int,
+            )
+
         self.cost = 0
-        self._memory_config_mb = None
+        self._memory_config_mb = 0
 
         self._logger = logging.getLogger(__name__)
 
@@ -48,9 +63,11 @@ class Explorer(ABC):
         If the memory_mb input is provided, it updates the memory configuration for the serverless function if it doesn't match.
         """
         # Check and set memory configuration
-        if memory_mb is not None:
-            self.check_and_set_memory_config(memory_mb)
+        if memory_mb:
+            self.config_manager.set_config(memory_mb)
             self._memory_config_mb = memory_mb
+            # Handling cold start
+            self.explore_parallel(nbr_invocations, nbr_threads)
 
         # Concurrent exploration.
         error = None
@@ -79,7 +96,7 @@ class Explorer(ABC):
                     continue
 
         # If one thread raises an invocation error we raise it.
-        if error is not None:
+        if error:
             raise error
 
         # Calculate the cost
@@ -107,13 +124,15 @@ class Explorer(ABC):
         If the memory_mb input is provided, it updates the memory configuration for the serverless function if it doesn't match.
         If the is_compute_cost input is provided, it computes the exploration cost and adds that to the total cost.
         """
-        if memory_mb is not None:
-            self.check_and_set_memory_config(memory_mb)
+        if memory_mb:
+            self.config_manager.set_config(memory_mb)
             self._memory_config_mb = memory_mb
+            # Handling cold start
+            self.explore(enable_cost_calculation=enable_cost_calculation)
 
         try:
-            response = self.invoke()
-            exec_time = self.log_parser.parse_log(response)
+            execution_log = self.invoker.invoke()
+            exec_time = self.log_parser.parse_log(execution_log)
 
         except InvocationError as e:
             self._logger.debug(e)
@@ -129,32 +148,3 @@ class Explorer(ABC):
                     self._memory_config_mb, exec_time
                 )
             return exec_time
-
-    @abstractmethod
-    def check_and_set_memory_config(self, memory_mb: int) -> dict:
-        """Checks if the configured memory value is equal to @memory_mb and if no match it updates the serverless
-        function's configuration by setting the memory value to @memory_mb.
-
-        Args:
-            memory_mb (int): The memory size in MB.
-
-        Returns:
-            dict: The retrieved configuration of the serverless function.
-
-        Raises:
-            MemoryConfigError: If checking or updating the function's memory configuration fails.
-        """
-        pass
-
-    @abstractmethod
-    def invoke(self) -> str:
-        """Invokes the serverless function with the payload @payload and returns the response.
-
-        Returns:
-            str: The logs returned by the function in response to the invocation.
-
-        Raises:
-            InvocationError: If the invocation cannot be performed. (Possibly function not found, user not authorised,
-            or payload is wrong ...), or if the maximum number of exploration's attempts is reached.
-        """
-        pass

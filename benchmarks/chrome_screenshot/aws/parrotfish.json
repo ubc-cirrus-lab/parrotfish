@@ -1,0 +1,15 @@
+{
+    "function_name": "screenshot-service2-dev-capture",
+    "region": "us-east-1",
+    "vendor": "AWS",
+    "memory_bounds": [
+        512,
+        3008
+    ],
+    "payload": {
+        "queryStringParameters": {
+          "url": "https://cirrus.ece.ubc.ca",
+          "screen": "160,144"
+      }
+    }
+}
