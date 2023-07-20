@@ -24,6 +24,7 @@ class AWSInvoker(Invoker):
         self._logger = logging.getLogger(__name__)
 
     def invoke(self, payload: str) -> str:
+
         sleeping_interval = 1
         for _ in range(self._max_invocation_attempts):
             try:

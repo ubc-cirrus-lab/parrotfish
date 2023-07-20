@@ -47,6 +47,7 @@ class TestInvoke:
 
         with pytest.raises(InvocationError) as error:
             invoker.invoke(payload="payload")
+
         assert error.type == InvocationError
 
     @mock.patch("src.exploration.aws.aws_invoker.time.sleep")
@@ -59,6 +60,7 @@ class TestInvoke:
 
         with pytest.raises(InvocationError) as error:
             invoker.invoke(payload="payload")
+
         assert error.type == InvocationError
         assert (
             invoker.client.invoke.call_count == defaults.MAX_NUMBER_INVOCATION_ATTEMPTS

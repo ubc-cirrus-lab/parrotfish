@@ -27,7 +27,6 @@ class GCPExplorer(Explorer):
             price_calculator=GCPCostCalculator(
                 function_name=function_name, region=credentials.region
             ),
-            payload=payload,
             memory_space=set([2**i for i in range(7, 14)]),
             memory_bounds=memory_bounds,
         )

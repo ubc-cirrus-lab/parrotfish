@@ -45,6 +45,7 @@ class TestInvoke:
 
         with pytest.raises(InvocationError) as e:
             invoker.invoke(payload="payload")
+
         assert e.type == InvocationError
 
     def test_list_logs_error(self, invoker):
