@@ -20,6 +20,7 @@ class Explorer(ABC):
         invoker: Invoker,
         log_parser: LogParser,
         price_calculator: CostCalculator,
+        payload: str,
         memory_space: set,
         memory_bounds: list = None,
     ):
@@ -27,6 +28,7 @@ class Explorer(ABC):
         self.invoker = invoker
         self.log_parser = log_parser
         self.price_calculator = price_calculator
+        self.payload = payload
 
         self.memory_space = np.array(list(memory_space), dtype=int)
         if memory_bounds:
@@ -131,7 +133,7 @@ class Explorer(ABC):
             self.explore(enable_cost_calculation=enable_cost_calculation)
 
         try:
-            execution_log = self.invoker.invoke()
+            execution_log = self.invoker.invoke(self.payload)
             exec_time = self.log_parser.parse_log(execution_log)
 
         except InvocationError as e:

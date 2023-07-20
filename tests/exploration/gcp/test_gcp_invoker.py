@@ -18,7 +18,6 @@ def invoker(function_v1, google_logging):
     google_logging.Client = mock.Mock()
     return GCPInvoker(
         function_name="example_function",
-        payload="payload",
         log_keys=["Function execution took", "finished with status"],
         credentials=credentials
     )
@@ -34,7 +33,7 @@ class TestInvoke:
         invoker._get_invocation_log = mock.Mock(return_value=expected_result)
 
         # Action
-        response = invoker.invoke()
+        response = invoker.invoke(payload="payload")
 
         # Assert
         assert response == expected_result
@@ -45,7 +44,7 @@ class TestInvoke:
         )
 
         with pytest.raises(InvocationError) as e:
-            invoker.invoke()
+            invoker.invoke(payload="payload")
         assert e.type == InvocationError
 
     def test_list_logs_error(self, invoker):
@@ -57,7 +56,7 @@ class TestInvoke:
         )
 
         with pytest.raises(InvocationError) as e:
-            invoker.invoke()
+            invoker.invoke(payload="payload")
         assert e.type == InvocationError
 
 

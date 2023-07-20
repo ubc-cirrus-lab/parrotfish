@@ -14,17 +14,16 @@ class AWSInvoker(Invoker):
     def __init__(
         self,
         function_name: str,
-        payload: str,
         max_invocation_attempts: int,
         aws_session: boto3.Session,
     ):
-        super().__init__(function_name, payload)
+        super().__init__(function_name)
         self._max_invocation_attempts = max_invocation_attempts
         self.client = aws_session.client("lambda")
 
         self._logger = logging.getLogger(__name__)
 
-    def invoke(self) -> str:
+    def invoke(self, payload: str) -> str:
         sleeping_interval = 1
         for _ in range(self._max_invocation_attempts):
             try:
@@ -32,7 +31,7 @@ class AWSInvoker(Invoker):
                 response = self.client.invoke(
                     FunctionName=self.function_name,
                     LogType="Tail",
-                    Payload=self.payload,
+                    Payload=payload,
                 )
 
             except ClientError as e:
@@ -47,7 +46,7 @@ class AWSInvoker(Invoker):
                     "Lambda exploration timed out. The API request to the AWS Lambda service, "
                     "took longer than the specified timeout period. Retry ..."
                 )
-                return self.invoke()  # Retry again
+                return self.invoke(payload)  # Retry again
 
             except Exception:
                 # Handling the throttling imposed by AWS on the number of concurrent executions.

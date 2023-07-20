@@ -51,7 +51,7 @@ class ParametricFunction:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
         Returns:
-            tuples: Memory configuration that minimizes the cost function and the corresponding cost value.
+            tuple: Memory configuration that minimizes the cost function and the corresponding cost value.
 
         Raises:
             NoMemoryLeftError: If no memory configuration meets the constraint on the execution time threshold.

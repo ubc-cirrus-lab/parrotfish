@@ -21,13 +21,13 @@ class GCPExplorer(Explorer):
             ),
             invoker=GCPInvoker(
                 function_name=function_name,
-                payload=payload,
                 log_keys=log_parser.log_parsing_keys,
                 credentials=credentials,
             ),
             price_calculator=GCPCostCalculator(
                 function_name=function_name, region=credentials.region
             ),
+            payload=payload,
             memory_space=set([2**i for i in range(7, 14)]),
             memory_bounds=memory_bounds,
         )

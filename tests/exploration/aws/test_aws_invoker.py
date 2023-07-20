@@ -20,7 +20,6 @@ def invoker():
     }
     return AWSInvoker(
         function_name="example_function",
-        payload="payload",
         max_invocation_attempts=5,
         aws_session=mock_aws_session
     )
@@ -28,7 +27,7 @@ def invoker():
 
 class TestInvoke:
     def test_nominal_case(self, invoker):
-        response = invoker.invoke()
+        response = invoker.invoke(payload="payload")
         expected = "b'\\\\tDuration: 170.24 ms\\\\tBilled Duration: 171 ms\\\\tMemory Size: 128 MB\\\\tMax Memory Used: 40 MB\\\\tInit Duration: 134.70 ms\\\\t\\\\n\"'"
 
         assert response == expected
@@ -47,7 +46,7 @@ class TestInvoke:
         )
 
         with pytest.raises(InvocationError) as error:
-            invoker.invoke()
+            invoker.invoke(payload="payload")
         assert error.type == InvocationError
 
     @mock.patch("src.exploration.aws.aws_invoker.time.sleep")
@@ -59,7 +58,7 @@ class TestInvoke:
         )
 
         with pytest.raises(InvocationError) as error:
-            invoker.invoke()
+            invoker.invoke(payload="payload")
         assert error.type == InvocationError
         assert (
             invoker.client.invoke.call_count == defaults.MAX_NUMBER_INVOCATION_ATTEMPTS
@@ -72,7 +71,7 @@ class TestInvoke:
             side_effect=(Exception(), Exception(), response)
         )
 
-        invoker.invoke()
+        invoker.invoke(payload="payload")
 
         assert invoker.client.invoke.call_count == 3
 
@@ -86,7 +85,7 @@ class TestInvoke:
         )
 
         # Action
-        invoker.invoke()
+        invoker.invoke(payload="payload")
 
         # Assert
         assert invoker.client.invoke.call_count == 2

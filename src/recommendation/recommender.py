@@ -63,6 +63,7 @@ class Recommender:
         sample = self.sampler.sample
         for memory in set(sample.memories):
             self.objective.update_knowledge(memory)
+
         try:
             self.objective.param_function.fit(sample)
         except RuntimeError as e:

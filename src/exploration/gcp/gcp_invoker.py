@@ -12,9 +12,9 @@ from src.exploration.invoker import Invoker
 class GCPInvoker(Invoker):
 
     def __init__(
-        self, function_name: str, payload: str, log_keys: list, credentials: any
+        self, function_name: str, log_keys: list, credentials: any
     ):
-        super().__init__(function_name, payload)
+        super().__init__(function_name)
         self.credentials = credentials
         self.project_id = credentials.project_id
         self.region = credentials.region
@@ -28,10 +28,10 @@ class GCPInvoker(Invoker):
         self.log_keys = log_keys
         self._logger = logging.getLogger(__name__)
 
-    def invoke(self) -> str:
+    def invoke(self, payload: str) -> str:
         try:
             response = self._function_client.call_function(
-                name=self.function_url, data=self.payload
+                name=self.function_url, data=payload
             )
             return self._get_invocation_log(response.execution_id)
 
