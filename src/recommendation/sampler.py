@@ -57,7 +57,8 @@ class Sampler:
                         mem
                         for mem in self.memory_space
                         if mem >= self.memory_space[0] + 128
-                    ], dtype=int
+                    ],
+                    dtype=int,
                 )
 
             except SamplingError as e:
@@ -85,7 +86,7 @@ class Sampler:
             subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
                 nbr_threads=self._explorations_count,
-                memory_mb=memory_mb
+                memory_mb=memory_mb,
             )
         except ExplorationError as e:
             self._logger.debug(e)

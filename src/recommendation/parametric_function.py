@@ -63,12 +63,16 @@ class ParametricFunction:
 
         # Handling execution threshold constraint
         if self.execution_time_threshold:
-            memory_space, costs = self.filter_execution_time_constraint(memory_space, costs)
+            memory_space, costs = self.filter_execution_time_constraint(
+                memory_space, costs
+            )
 
         min_index = np.argmin(costs)
         return memory_space[min_index]
 
-    def filter_execution_time_constraint(self, memory_space: np.ndarray, costs: np.ndarray) -> tuple:
+    def filter_execution_time_constraint(
+        self, memory_space: np.ndarray, costs: np.ndarray
+    ) -> tuple:
         filtered_memories = np.array([])
         filtered_costs = np.array([])
         execution_times = costs / memory_space

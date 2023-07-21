@@ -17,7 +17,7 @@ class GCPLogParser(LogParser):
         if m is None:
             raise LogParsingError
         execution_id = m.group(1)
-        billed_duration = math.ceil(int(m.group(2))/100)*100
+        billed_duration = math.ceil(int(m.group(2)) / 100) * 100
         status = m.group(3)
 
         if status == "'error'":

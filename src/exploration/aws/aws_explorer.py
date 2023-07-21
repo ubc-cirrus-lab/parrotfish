@@ -30,7 +30,6 @@ class AWSExplorer(Explorer):
                 function_name=lambda_name, aws_session=aws_session
             ),
             payload=payload,
-
             memory_bounds=memory_bounds,
             memory_space=set(range(128, 3009)),
         )

@@ -70,9 +70,7 @@ class Parrotfish:
     def optimize(self) -> dict:
         if not self.payloads:
             self.recommender.run()
-            minimum_memory = self.param_function.minimize(
-                self.explorer.memory_space
-            )
+            minimum_memory = self.param_function.minimize(self.explorer.memory_space)
 
         else:
             minimum_memory = self._optimize_multiple_payloads()
@@ -89,10 +87,14 @@ class Parrotfish:
             # Run recommender for the specific payload
             self.explorer.payload = entry["payload"]
             self.recommender.run()
-            collective_costs += self.param_function(self.explorer.memory_space) * entry["weight"]
+            collective_costs += (
+                self.param_function(self.explorer.memory_space) * entry["weight"]
+            )
             # Reset the parametric function and the objective.
             self.param_function.params = None
-            self.recommender.objective.knowledge_values = {x: 0 for x in self.explorer.memory_space}
+            self.recommender.objective.knowledge_values = {
+                x: 0 for x in self.explorer.memory_space
+            }
 
         average_weighted_costs = collective_costs / len(self.payloads)
         min_index = np.argmin(average_weighted_costs)
