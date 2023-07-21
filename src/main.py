@@ -51,11 +51,10 @@ def main():
             logger.info(result)
             opt_memory_mb = result["Minimum Cost Memory"]
             print(f"Optimization result: {opt_memory_mb} MB")
-            args.memory_mb = int(opt_memory_mb)
 
     if args.invoke:
         if not args.memory_mb:
-            print("Please specify a memory value when invoking a function")
+            logger.critical("Please specify a memory value when invoking a function")
             exit(1)
         parrotfish.invoke(args.memory_mb, args.invoke)
 

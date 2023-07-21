@@ -30,8 +30,7 @@ class Configuration:
 
         if config_file:
             self._deserialize(config_file)
-            if hasattr(self, "payload"):
-                self.payload = json.dumps(self.payload)
+            self.payload = json.dumps(self.payload) if hasattr(self, "payload") else None
             if hasattr(self, "payloads"):
                 for entry in self.payloads:
                     entry["payload"] = json.dumps(entry["payload"])

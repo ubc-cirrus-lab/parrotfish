@@ -12,12 +12,11 @@ from src.recommendation.objectives import *
 class Parrotfish:
     def __init__(self, config: any):
         self.payloads = config.payloads if hasattr(config, "payloads") else None
-        payload = config.payload if hasattr(config, "payload") else None
 
         if config.vendor == "AWS":
             self.explorer = AWSExplorer(
                 lambda_name=config.function_name,
-                payload=payload,
+                payload=config.payload,
                 max_invocation_attempts=config.max_number_of_invocation_attempts,
                 memory_bounds=config.memory_bounds,
                 aws_session=boto3.Session(region_name=config.region),
@@ -33,7 +32,7 @@ class Parrotfish:
 
             self.explorer = GCPExplorer(
                 function_name=config.function_name,
-                payload=payload,
+                payload=config.payload,
                 memory_bounds=config.memory_bounds,
                 credentials=credentials,
             )
@@ -71,20 +70,19 @@ class Parrotfish:
     def optimize(self) -> dict:
         if not self.payloads:
             self.recommender.run()
-            minimum_memory, minimum_cost = self.param_function.minimize(
+            minimum_memory = self.param_function.minimize(
                 self.explorer.memory_space
             )
 
         else:
-            minimum_memory, minimum_cost = self._optimize_multiple_payloads()
+            minimum_memory = self._optimize_multiple_payloads()
 
         return {
             "Minimum Cost Memory": minimum_memory,
-            "Expected Cost": minimum_cost,
             "Exploration Cost": self.explorer.cost,
         }
 
-    def _optimize_multiple_payloads(self) -> tuple:
+    def _optimize_multiple_payloads(self) -> int:
         collective_costs = np.zeros(len(self.explorer.memory_space))
 
         for entry in self.payloads:
@@ -98,7 +96,4 @@ class Parrotfish:
 
         average_weighted_costs = collective_costs / len(self.payloads)
         min_index = np.argmin(average_weighted_costs)
-        min_memory = self.explorer.memory_space[min_index]
-        min_cost = average_weighted_costs[min_index]
-
-        return min_memory, min_cost
+        return self.explorer.memory_space[min_index]

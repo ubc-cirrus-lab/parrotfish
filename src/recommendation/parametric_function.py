@@ -20,7 +20,7 @@ class ParametricFunction:
     function: callable
     bounds: tuple
     params: np.array = None
-    execution_time_threshold: float = None
+    execution_time_threshold: int = None
 
     def __call__(self, x: int or np.array):
         return self.function(x, *self.params)
@@ -47,11 +47,14 @@ class ParametricFunction:
             bounds=self.bounds,
         )[0]
 
-    def minimize(self, memory_space: np.ndarray) -> tuple:
+    def minimize(self, memory_space: np.ndarray) -> int:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
+        Args:
+            memory_space (np.ndarray): The memory space specific to the cloud provider.
+
         Returns:
-            tuple: Memory configuration that minimizes the cost function and the corresponding cost value.
+            int: Memory configuration that minimizes the cost function.
 
         Raises:
             NoMemoryLeftError: If no memory configuration meets the constraint on the execution time threshold.
@@ -59,18 +62,23 @@ class ParametricFunction:
         costs = self.__call__(memory_space)
 
         # Handling execution threshold constraint
-        if self.execution_time_threshold is not None:
-            filtered_memories = np.array([])
-            filtered_costs = np.array([])
-            execution_times = costs / memory_space
-            for i in range(len(execution_times)):
-                if execution_times[i] <= self.execution_time_threshold:
-                    filtered_memories = np.append(filtered_memories, memory_space[i])
-                    filtered_costs = np.append(filtered_costs, costs[i])
-            memories = filtered_memories
-            costs = filtered_costs
-            if len(memories) == 0:
-                raise NoMemoryLeftError
+        if self.execution_time_threshold:
+            memory_space, costs = self.filter_execution_time_constraint(memory_space, costs)
 
         min_index = np.argmin(costs)
-        return memory_space[min_index], costs[min_index]
+        return memory_space[min_index]
+
+    def filter_execution_time_constraint(self, memory_space: np.ndarray, costs: np.ndarray) -> tuple:
+        filtered_memories = np.array([])
+        filtered_costs = np.array([])
+        execution_times = costs / memory_space
+
+        for i in range(len(execution_times)):
+            if execution_times[i] <= self.execution_time_threshold:
+                filtered_memories = np.append(filtered_memories, memory_space[i])
+                filtered_costs = np.append(filtered_costs, costs[i])
+
+        if len(filtered_memories) == 0:
+            raise NoMemoryLeftError
+
+        return filtered_memories, filtered_costs
