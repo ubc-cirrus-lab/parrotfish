@@ -1,7 +1,5 @@
 # UBC Serverless Price Optimization Tool (SPOT)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
 Save money on your serverless functions.
 
 SPOT uses your functions' performance data to configure their allocated memory and CPU for the lowest possible cost.
