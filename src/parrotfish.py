@@ -1,12 +1,12 @@
-import sys
-
 import boto3
-import numpy as np
 from google.auth import default, exceptions
+import numpy as np
 
 from src.exploration import *
+from src.logging import logger
 from src.recommendation import *
-from src.recommendation.objectives import *
+from src.objective import *
+from src.sampling import *
 
 
 class Parrotfish:
@@ -27,12 +27,13 @@ class Parrotfish:
                 credentials.project_id = project_id
                 credentials.region = config.region
             except exceptions.DefaultCredentialsError:
-                print("Failed to load Google Cloud credentials.", file=sys.stderr)
+                logger.critical("Failed to load Google Cloud credentials.")
                 exit(1)
 
             self.explorer = GCPExplorer(
                 function_name=config.function_name,
                 payload=config.payload,
+                max_invocation_attempts=config.max_number_of_invocation_attempts,
                 memory_bounds=config.memory_bounds,
                 credentials=credentials,
             )
@@ -46,11 +47,10 @@ class Parrotfish:
         sampler = Sampler(
             explorer=self.explorer,
             explorations_count=config.number_invocations,
-            max_dynamic_sample_count=config.max_dynamic_sample_size,
-            dynamic_sampling_cv_threshold=config.dynamic_sampling_termination_threshold,
+            dynamic_sampling_params=config.dynamic_sampling_params,
         )
 
-        objective = FitToRealCostObjective(
+        objective = Objective(
             param_function=self.param_function,
             memory_space=self.explorer.memory_space,
             termination_threshold=config.termination_threshold,
@@ -59,13 +59,8 @@ class Parrotfish:
         self.recommender = Recommender(
             objective=objective,
             sampler=sampler,
-            max_sample_count=config.sample_size,
+            max_sample_count=config.max_sample_count,
         )
-
-    def invoke(self, memory_mb: int, parallel: int) -> list:
-        durations = self.explorer.explore_parallel(parallel, parallel, memory_mb)
-        print("Real cost:", self.explorer.cost)
-        return durations
 
     def optimize(self) -> dict:
         if not self.payloads:
@@ -74,6 +69,8 @@ class Parrotfish:
 
         else:
             minimum_memory = self._optimize_multiple_payloads()
+
+        self.explorer.config_manager.reset_config()
 
         return {
             "Minimum Cost Memory": minimum_memory,
@@ -90,12 +87,16 @@ class Parrotfish:
             collective_costs += (
                 self.param_function(self.explorer.memory_space) * entry["weight"]
             )
-            # Reset the parametric function and the objective.
-            self.param_function.params = None
-            self.recommender.objective.knowledge_values = {
-                x: 0 for x in self.explorer.memory_space
-            }
+            self._reset()
 
-        average_weighted_costs = collective_costs / len(self.payloads)
-        min_index = np.argmin(average_weighted_costs)
+        min_index = np.argmin(collective_costs)
         return self.explorer.memory_space[min_index]
+
+    def _reset(self) -> None:
+        self.param_function.params = None
+        self.recommender.objective.knowledge_values = {
+            x: 0 for x in self.explorer.memory_space
+        }
+
+    def configure(self, memory_mb: int):
+        self.explorer.config_manager.set_config(memory_mb, self.explorer.config_manager.initial_config.timeout)

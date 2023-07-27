@@ -1,4 +1,3 @@
-import logging
 from abc import ABC
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -8,7 +7,8 @@ from .config_manager import ConfigManager
 from .cost_calculator import CostCalculator
 from .invoker import Invoker
 from .log_parser import LogParser
-from ..exceptions import InvocationError
+from ..exception import InvocationError
+from ..logging import logger
 
 
 class Explorer(ABC):
@@ -55,8 +55,6 @@ class Explorer(ABC):
         self.cost = 0
         self._memory_config_mb = 0
 
-        self._logger = logging.getLogger(__name__)
-
     def explore_parallel(
         self, nbr_invocations: int, nbr_threads: int, memory_mb: int = None
     ) -> list:
@@ -100,7 +98,7 @@ class Explorer(ABC):
                     results.append(future.result())
 
                 except InvocationError as e:
-                    self._logger.debug(e)
+                    logger.debug(e)
                     if error is None:
                         error = e
                     self.cost += self.price_calculator.calculate_price(
@@ -148,7 +146,7 @@ class Explorer(ABC):
             exec_time = self.log_parser.parse_log(execution_log)
 
         except InvocationError as e:
-            self._logger.debug(e)
+            logger.debug(e)
             if enable_cost_calculation:
                 self.cost += self.price_calculator.calculate_price(
                     self._memory_config_mb, e.duration_ms

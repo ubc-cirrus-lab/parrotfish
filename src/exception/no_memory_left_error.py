@@ -1,4 +1,4 @@
-from src.exceptions import OptimizationError
+from .optimization_error import OptimizationError
 
 
 class NoMemoryLeftError(OptimizationError):

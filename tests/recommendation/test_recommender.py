@@ -3,9 +3,10 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from src.data_model import *
-from src.exceptions import *
+from src.exception import *
 from src.recommendation import Recommender
+from src.sampling import Sample
+from src.sampling.data_point import DataPoint
 
 
 @pytest.fixture

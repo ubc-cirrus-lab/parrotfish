@@ -1,6 +1,6 @@
 import pytest
 
-from src.exceptions import *
+from src.exception import *
 from src.exploration.gcp.gcp_log_parser import GCPLogParser
 
 

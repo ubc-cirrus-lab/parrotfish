@@ -4,7 +4,7 @@ from unittest import mock
 import pytest
 from google.api_core.exceptions import GoogleAPICallError
 
-from src.exceptions import FunctionConfigError
+from src.exception import FunctionConfigError
 from src.exploration.gcp.gcp_config_manager import GCPConfigManager
 
 

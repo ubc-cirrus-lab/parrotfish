@@ -5,7 +5,7 @@ import pytest
 from botocore.exceptions import *
 
 from src.configuration import defaults
-from src.exceptions import *
+from src.exception import *
 from src.exploration.aws.aws_invoker import AWSInvoker
 
 
@@ -53,16 +53,16 @@ class TestInvoke:
     def test_max_number_of_invocations_attempts_reached_error(self, sleep, invoker):
         invoker.client.invoke = mock.Mock(
             side_effect=(
-                Exception() for _ in range(defaults.MAX_NUMBER_INVOCATION_ATTEMPTS)
+                Exception() for _ in range(defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS)
             )
         )
 
-        with pytest.raises(InvocationError) as error:
+        with pytest.raises(MaxInvocationAttemptsReachedError) as error:
             invoker.invoke(payload="payload")
 
-        assert error.type == InvocationError
+        assert error.type == MaxInvocationAttemptsReachedError
         assert (
-            invoker.client.invoke.call_count == defaults.MAX_NUMBER_INVOCATION_ATTEMPTS
+            invoker.client.invoke.call_count == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
         )
 
     @mock.patch("src.exploration.aws.aws_invoker.time.sleep")

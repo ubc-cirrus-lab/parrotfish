@@ -11,10 +11,12 @@ class GCPExplorer(Explorer):
         function_name: str,
         payload: str,
         credentials: any,
+        max_invocation_attempts: any,
         memory_bounds: list = None,
     ):
         log_parser = GCPLogParser()
         super().__init__(
+            payload=payload,
             log_parser=log_parser,
             config_manager=GCPConfigManager(
                 function_name=function_name, credentials=credentials
@@ -23,10 +25,11 @@ class GCPExplorer(Explorer):
                 function_name=function_name,
                 log_keys=log_parser.log_parsing_keys,
                 credentials=credentials,
+                max_invocation_attempts=max_invocation_attempts
             ),
             price_calculator=GCPCostCalculator(
                 function_name=function_name, region=credentials.region
             ),
             memory_space=set([2**i for i in range(7, 14)]),
-            memory_bounds=memory_bounds,
+            memory_bounds=memory_bounds
         )

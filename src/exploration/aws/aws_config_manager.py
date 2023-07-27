@@ -1,11 +1,10 @@
-import logging
-
 import boto3
 from botocore.exceptions import *
 
-from src.data_model import *
-from src.exceptions import *
+from src.exception import *
 from src.exploration.config_manager import ConfigManager
+from src.exploration.function_config import FunctionConfig
+from src.logging import logger
 
 
 class AWSConfigManager(ConfigManager):
@@ -13,7 +12,6 @@ class AWSConfigManager(ConfigManager):
         super().__init__(function_name)
         self._lambda_client = aws_session.client("lambda")
         self._quotas_client = aws_session.client("service-quotas")
-        self._logger = logging.getLogger(__name__)
 
     @property
     def max_timeout_quota(self) -> int:
@@ -70,12 +68,12 @@ class AWSConfigManager(ConfigManager):
                 )
 
         except ParamValidationError as e:
-            self._logger.debug(e.args[0])
+            logger.debug(e.args[0])
             raise FunctionConfigError(e.args[0])
 
         except ClientError as e:
-            self._logger.debug(e.args[0])
-            raise FunctionConfigError
+            logger.debug(e.args[0])
+            raise FunctionConfigError(e.args[0])
 
         else:
             return config

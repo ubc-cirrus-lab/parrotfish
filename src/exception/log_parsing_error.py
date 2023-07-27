@@ -1,4 +1,4 @@
-from src.exceptions import ExplorationError
+from src.exception import ExplorationError
 
 
 class LogParsingError(ExplorationError):

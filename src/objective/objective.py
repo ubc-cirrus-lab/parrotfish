@@ -1,11 +1,10 @@
-from abc import ABC, abstractmethod
-
 import numpy as np
+import scipy.stats as stats
 
 from .parametric_function import ParametricFunction
 
 
-class Objective(ABC):
+class Objective:
     def __init__(
         self,
         param_function: ParametricFunction,
@@ -18,22 +17,26 @@ class Objective(ABC):
         self.termination_threshold = termination_threshold
 
     @property
-    @abstractmethod
     def termination_value(self) -> float:
         """computes a value that indicates that we are confident"""
-        pass
+        knowledge_values = self.get_knowledge(self.memory_space)
+        y = self.param_function(self.memory_space)
+        return knowledge_values[np.argmin(y)]
 
-    @abstractmethod
     def get_values(self, memories: np.ndarray) -> np.ndarray:
         """Computes the objective values of the memories in input."""
-        pass
+        real_cost = self.param_function(memories)
+        knowledge = self.get_knowledge(memories)
+        return real_cost * knowledge
 
-    @abstractmethod
-    def update_knowledge(self, memory: int) -> None:
+    def update_knowledge(self, memory_mb: int) -> None:
         """Updates the knowledge values of the memory in input."""
-        pass
+        for memory in self.knowledge_values:
+            self.knowledge_values[memory] += stats.norm.pdf(
+                memory, memory_mb, 200
+            ) / stats.norm.pdf(memory_mb, memory_mb, 200)
 
-    @abstractmethod
     def get_knowledge(self, memories: np.ndarray) -> np.ndarray:
         """Returns the knowledge values of the memories in input."""
-        pass
+        knowledge = np.array([self.knowledge_values[memory] for memory in memories])
+        return 1.0 + knowledge

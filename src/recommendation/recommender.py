@@ -1,10 +1,9 @@
-import logging
-
 import numpy as np
 
-from .objective import Objective
-from .sampler import Sampler
-from ..exceptions import *
+from src.objective import Objective
+from src.sampling import Sampler
+from ..exception import *
+from ..logging import logger
 
 
 class Recommender:
@@ -17,7 +16,6 @@ class Recommender:
         self.objective = objective
         self.sampler = sampler
         self._max_sample_count = max_sample_count
-        self._logger = logging.getLogger(__name__)
 
     @property
     def _is_termination_reached(self) -> bool:
@@ -46,7 +44,6 @@ class Recommender:
         while not self._is_termination_reached:
             memory = self._choose_memory_to_explore()
             self._update(memory)
-        self.sampler.explorer.config_manager.reset_config()
 
     def _initialize(self):
         """Initializes the sample, objective knowledge, and parametric function.
@@ -67,7 +64,7 @@ class Recommender:
         try:
             self.objective.param_function.fit(sample)
         except RuntimeError as e:
-            self._logger.error(e.args[0])
+            logger.debug(e.args[0])
             raise OptimizationError(e.args[0])
 
     def _update(self, memory_mb: int):
@@ -87,7 +84,7 @@ class Recommender:
         try:
             self.objective.param_function.fit(self.sampler.sample)
         except RuntimeError as e:
-            self._logger.error(e.args[0])
+            logger.debug(e.args[0])
             raise OptimizationError(e.args[0])
 
     def _choose_memory_to_explore(self) -> int:

@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 class Invoker(ABC):
     """This class provides the operation of serverless function's invocation."""
 
-    def __init__(self, function_name: str):
+    def __init__(self, function_name: str, max_invocation_attempts: int):
         self.function_name = function_name
+        self.max_invocation_attempts = max_invocation_attempts
 
     @abstractmethod
     def invoke(self, payload: str) -> str:

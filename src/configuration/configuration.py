@@ -1,7 +1,5 @@
 import json
-import logging
 import os
-import sys
 from typing import TextIO
 
 import jsonschema
@@ -10,51 +8,51 @@ from .defaults import *
 
 
 class Configuration:
-    def __init__(self, config_file: TextIO = None):
+    def __init__(self, config_file: TextIO):
+        self._load_config_schema()
+
+        # Setup default values
+        self.dynamic_sampling_params = DYNAMIC_SAMPLING_PARAMS
+        self.termination_threshold = TERMINATION_THRESHOLD
+        self.max_sample_count = MAX_SAMPLE_COUNT
+        self.number_invocations = NUMBER_INVOCATIONS
+        self.max_number_of_invocation_attempts = MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+        self.execution_time_threshold = None
+        self.memory_bounds = None
+
+        # Parse the configuration file
+        self._deserialize(config_file)
+
+    def _load_config_schema(self):
         config_file_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "config_file_schema.json"
         )
         with open(config_file_path) as config_file_schema:
             self._config_json_schema = json.load(config_file_schema)
-        self._logger = logging.getLogger(__name__)
 
-        # Setup default values
-        self.dynamic_sampling_termination_threshold = TERMINATION_CV
-        self.termination_threshold = TERMINATION_THRESHOLD
-        self.sample_size = TOTAL_SAMPLE_COUNT
-        self.number_invocations = DYNAMIC_SAMPLING_INITIAL_STEP
-        self.max_dynamic_sample_size = DYNAMIC_SAMPLING_MAX
-        self.max_number_of_invocation_attempts = MAX_NUMBER_INVOCATION_ATTEMPTS
-        self.execution_time_threshold = None
-        self.memory_bounds = None
-
-        if config_file:
-            self._deserialize(config_file)
-            self.payload = (
-                json.dumps(self.payload) if hasattr(self, "payload") else None
-            )
-            if hasattr(self, "payloads"):
-                for entry in self.payloads:
-                    entry["payload"] = json.dumps(entry["payload"])
-
-    def _deserialize(self, f):
+    def _deserialize(self, config_file: TextIO):
         try:
-            j_dict = json.load(f)
-            self._validate_config_schema(j_dict)
+            j_dict = json.load(config_file)
+            jsonschema.validate(instance=j_dict, schema=self._config_json_schema)
+
         except json.decoder.JSONDecodeError as e:
-            self._logger.debug(e.args[0])
-            print("Failed to deserialize the given file", file=sys.stderr)
-            raise IOError
-        except ValueError as e:
-            self._logger.debug(e.args[0])
-            print("Config schema not valid", file=sys.stderr)
-            raise IOError
-        else:
-            self.__dict__.update(**j_dict)
+            raise ValueError(
+                f"Please make sure to provide a valid json object in file {config_file.name}: \n{e.args[0]}"
+            )
 
-    def _validate_config_schema(self, json_data):
-        try:
-            jsonschema.validate(instance=json_data, schema=self._config_json_schema)
-        except jsonschema.exceptions.ValidationError as err:
-            raise ValueError(err.args[0])
-        return True
+        except jsonschema.exceptions.ValidationError as e:
+            raise ValueError(
+                f"Please make sure to provide a valid json object in file {config_file.name}: \n{e.args[0]}"
+            )
+
+        else:
+            j_dict["payload"] = json.dumps(j_dict["payload"]) if "payload" in j_dict else None
+            if "payloads" in j_dict:
+                for entry in j_dict["payloads"]:
+                    entry["payload"] = json.dumps(entry["payload"])
+                # Validate that sum of weights is 1.
+                if sum([entry["weight"] for entry in j_dict["payloads"]]) != 1:
+                    raise ValueError(f"Please make sure that the weights in {config_file.name} are in [0,1] interval "
+                                     f"and that their sum is 1")
+
+            self.__dict__.update(**j_dict)

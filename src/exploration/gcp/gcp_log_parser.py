@@ -1,7 +1,7 @@
 import math
 import re
 
-from src.exceptions import LogParsingError, FunctionENOMEM, InvocationError
+from src.exception import LogParsingError, FunctionENOMEM, InvocationError
 from src.exploration.log_parser import LogParser
 
 

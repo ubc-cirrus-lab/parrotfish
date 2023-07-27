@@ -3,8 +3,9 @@ from unittest import mock
 import pytest
 from google.api_core.exceptions import GoogleAPICallError
 
-from src.exceptions import InvocationError
+from src.exception import InvocationError, MaxInvocationAttemptsReachedError
 from src.exploration.gcp.gcp_invoker import GCPInvoker
+from src.configuration import defaults
 
 
 @pytest.fixture
@@ -20,6 +21,7 @@ def invoker(function_v1, google_logging):
         function_name="example_function",
         log_keys=["Function execution took", "finished with status"],
         credentials=credentials,
+        max_invocation_attempts=defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
     )
 
 
@@ -57,6 +59,22 @@ class TestInvoke:
         with pytest.raises(InvocationError) as e:
             invoker.invoke(payload="payload")
         assert e.type == InvocationError
+
+    @mock.patch("src.exploration.aws.aws_invoker.time.sleep")
+    def test_max_number_of_invocations_attempts_reached_error(self, sleep, invoker):
+        invoker._function_client.call_function = mock.Mock(
+            side_effect=(
+                Exception() for _ in range(defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS)
+            )
+        )
+
+        with pytest.raises(MaxInvocationAttemptsReachedError) as error:
+            invoker.invoke(payload="payload")
+
+        assert error.type == MaxInvocationAttemptsReachedError
+        assert (
+            invoker._function_client.call_function.call_count == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+        )
 
 
 class TestGetInvocationLog:

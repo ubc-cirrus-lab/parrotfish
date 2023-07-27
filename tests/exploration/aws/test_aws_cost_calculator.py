@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from src.exceptions import *
+from src.exception import *
 from src.exploration.aws.aws_cost_calculator import AWSCostCalculator
 
 

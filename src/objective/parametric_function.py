@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import curve_fit
 
-from src.data_model import Sample
-from src.exceptions import NoMemoryLeftError
+from src.exception import NoMemoryLeftError
+from src.sampling import Sample
 
 
 @dataclass
