@@ -10,11 +10,17 @@ from src.parrotfish import Parrotfish
 
 def main():
     # Parse arguments
-    parser = argparse.ArgumentParser(description="Parametric Regression for Optimizing Serverless Functions")
+    parser = argparse.ArgumentParser(
+        description="Parametric Regression for Optimizing Serverless Functions"
+    )
 
     parser.add_argument("--path", "-p", type=str, help="Path to the configuration file")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Set the logging level to INFO")
-    parser.add_argument("--apply", action="store_true", help="Apply optimized configuration")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Set the logging level to INFO"
+    )
+    parser.add_argument(
+        "--apply", action="store_true", help="Apply optimized configuration"
+    )
 
     args = parser.parse_args()
 

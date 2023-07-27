@@ -21,7 +21,7 @@ def invoker(function_v1, google_logging):
         function_name="example_function",
         log_keys=["Function execution took", "finished with status"],
         credentials=credentials,
-        max_invocation_attempts=defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+        max_invocation_attempts=defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS,
     )
 
 
@@ -73,7 +73,8 @@ class TestInvoke:
 
         assert error.type == MaxInvocationAttemptsReachedError
         assert (
-            invoker._function_client.call_function.call_count == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+            invoker._function_client.call_function.call_count
+            == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
         )
 
 

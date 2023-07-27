@@ -25,11 +25,11 @@ class GCPExplorer(Explorer):
                 function_name=function_name,
                 log_keys=log_parser.log_parsing_keys,
                 credentials=credentials,
-                max_invocation_attempts=max_invocation_attempts
+                max_invocation_attempts=max_invocation_attempts,
             ),
             price_calculator=GCPCostCalculator(
                 function_name=function_name, region=credentials.region
             ),
             memory_space=set([2**i for i in range(7, 14)]),
-            memory_bounds=memory_bounds
+            memory_bounds=memory_bounds,
         )

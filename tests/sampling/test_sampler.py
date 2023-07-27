@@ -93,7 +93,10 @@ class TestExploreDynamically:
 
         # Assert
         assert sampler.explorer.explore.called
-        assert min_cv < sampler._dynamic_sampling_params["coefficient_of_variation_threshold"]
+        assert (
+            min_cv
+            < sampler._dynamic_sampling_params["coefficient_of_variation_threshold"]
+        )
 
     def test_sampling_error(self, sampler):
         sampler.explorer.explore = mock.Mock(side_effect=ExplorationError("error"))

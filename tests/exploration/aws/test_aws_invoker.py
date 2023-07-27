@@ -62,7 +62,8 @@ class TestInvoke:
 
         assert error.type == MaxInvocationAttemptsReachedError
         assert (
-            invoker.client.invoke.call_count == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+            invoker.client.invoke.call_count
+            == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
         )
 
     @mock.patch("src.exploration.aws.aws_invoker.time.sleep")

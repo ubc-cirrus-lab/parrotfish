@@ -25,9 +25,7 @@ class AWSInvoker(Invoker):
             try:
                 # Invoking the function and getting back the response log to parse.
                 response = self.client.invoke(
-                    FunctionName=self.function_name,
-                    LogType="Tail",
-                    Payload=payload
+                    FunctionName=self.function_name, LogType="Tail", Payload=payload
                 )
 
             except ClientError as e:

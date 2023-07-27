@@ -124,7 +124,8 @@ class Sampler:
 
         while (
             dynamic_sample_count < self._dynamic_sampling_params["max_sample_count"]
-            and min_cv > self._dynamic_sampling_params["coefficient_of_variation_threshold"]
+            and min_cv
+            > self._dynamic_sampling_params["coefficient_of_variation_threshold"]
         ):
             try:
                 result = self.explorer.explore()

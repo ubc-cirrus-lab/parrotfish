@@ -10,7 +10,13 @@ from src.logging import logger
 
 
 class GCPInvoker(Invoker):
-    def __init__(self, function_name: str, max_invocation_attempts: int, log_keys: list, credentials: any):
+    def __init__(
+        self,
+        function_name: str,
+        max_invocation_attempts: int,
+        log_keys: list,
+        credentials: any,
+    ):
         super().__init__(function_name, max_invocation_attempts)
         self.credentials = credentials
         self.project_id = credentials.project_id

@@ -99,4 +99,6 @@ class Parrotfish:
         }
 
     def configure(self, memory_mb: int):
-        self.explorer.config_manager.set_config(memory_mb, self.explorer.config_manager.initial_config.timeout)
+        self.explorer.config_manager.set_config(
+            memory_mb, self.explorer.config_manager.initial_config.timeout
+        )
