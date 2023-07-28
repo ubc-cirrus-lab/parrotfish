@@ -85,10 +85,17 @@ class Parrotfish:
     def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> int:
         self.explorer.payload = entry["payload"]
         self.recommender.run()
-        collective_costs += self.param_function(self.explorer.memory_space) * entry["weight"]
-        execution_time_threshold = entry[
-            "execution_time_threshold"] if "execution_time_threshold" in entry else self.config.execution_time_threshold
-        minimum_memory = self.param_function.minimize(self.explorer.memory_space, execution_time_threshold)
+        collective_costs += (
+            self.param_function(self.explorer.memory_space) * entry["weight"]
+        )
+        execution_time_threshold = (
+            entry["execution_time_threshold"]
+            if "execution_time_threshold" in entry
+            else self.config.execution_time_threshold
+        )
+        minimum_memory = self.param_function.minimize(
+            self.explorer.memory_space, execution_time_threshold
+        )
         self.objective.reset()
         return minimum_memory
 

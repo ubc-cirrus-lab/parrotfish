@@ -49,7 +49,11 @@ class Configuration:
             if "payloads" in j_dict:
                 for entry in j_dict["payloads"]:
                     entry["payload"] = json.dumps(entry["payload"])
-                    entry["execution_time_threshold"] = j_dict["execution_time_threshold"] if "execution_time_threshold" in j_dict else None
+                    entry["execution_time_threshold"] = (
+                        j_dict["execution_time_threshold"]
+                        if "execution_time_threshold" in j_dict
+                        else None
+                    )
                 # Validate that sum of weights is 1.
                 if sum([entry["weight"] for entry in j_dict["payloads"]]) != 1:
                     raise ValueError(

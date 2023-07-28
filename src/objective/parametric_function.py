@@ -47,7 +47,9 @@ class ParametricFunction:
             bounds=self.bounds,
         )[0]
 
-    def minimize(self, memory_space: np.ndarray, execution_time_threshold: int = None) -> int:
+    def minimize(
+        self, memory_space: np.ndarray, execution_time_threshold: int = None
+    ) -> int:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
         Args:
@@ -72,7 +74,10 @@ class ParametricFunction:
         return memory_space[min_index]
 
     def _filter_execution_time_constraint(
-        self, memory_space: np.ndarray, costs: np.ndarray, execution_time_threshold: int = None
+        self,
+        memory_space: np.ndarray,
+        costs: np.ndarray,
+        execution_time_threshold: int = None,
     ) -> tuple:
         filtered_memories = np.array([])
         filtered_costs = np.array([])
@@ -84,6 +89,8 @@ class ParametricFunction:
                 filtered_costs = np.append(filtered_costs, costs[i])
 
         if len(filtered_memories) == 0:
-            raise UnfeasibleConstraintError("The execution time threshold constraint cannot be satisfied")
+            raise UnfeasibleConstraintError(
+                "The execution time threshold constraint cannot be satisfied"
+            )
 
         return filtered_memories, filtered_costs
