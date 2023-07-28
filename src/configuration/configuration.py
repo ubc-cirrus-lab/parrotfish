@@ -46,17 +46,20 @@ class Configuration:
             )
 
         else:
-            j_dict["payload"] = (
-                json.dumps(j_dict["payload"]) if "payload" in j_dict else None
-            )
             if "payloads" in j_dict:
                 for entry in j_dict["payloads"]:
                     entry["payload"] = json.dumps(entry["payload"])
+                    entry["execution_time_threshold"] = j_dict["execution_time_threshold"] if "execution_time_threshold" in j_dict else None
                 # Validate that sum of weights is 1.
                 if sum([entry["weight"] for entry in j_dict["payloads"]]) != 1:
                     raise ValueError(
                         f"Please make sure that the weights in {config_file.name} are in [0,1] interval "
                         f"and that their sum is 1"
                     )
+
+            if "payload" in j_dict:
+                payload_str = json.dumps(j_dict["payload"])
+                j_dict["payloads"] = [{"payload": payload_str, "weight": 1}]
+                del j_dict["payload"]
 
             self.__dict__.update(**j_dict)

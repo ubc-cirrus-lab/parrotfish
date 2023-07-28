@@ -9,11 +9,13 @@ from .max_invocation_attempts_reached_error import MaxInvocationAttemptsReachedE
 from .no_memory_left_error import NoMemoryLeftError
 from .optimization_error import OptimizationError
 from .sampling_error import SamplingError
+from .unfeasible_constraint_error import UnfeasibleConstraintError
 
 __all__ = [
     "OptimizationError",
-    "NoMemoryLeftError",
+    "UnfeasibleConstraintError",
     "SamplingError",
+    "NoMemoryLeftError",
     "ExplorationError",
     "InvocationError",
     "MaxInvocationAttemptsReachedError",

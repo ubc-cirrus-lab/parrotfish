@@ -11,9 +11,9 @@ class AWSExplorer(Explorer):
     def __init__(
         self,
         lambda_name: str,
-        payload: str,
         max_invocation_attempts: int,
         aws_session: boto3.Session,
+        payload: str = None,
         memory_bounds: list = None,
     ):
         super().__init__(

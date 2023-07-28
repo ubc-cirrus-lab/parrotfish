@@ -20,8 +20,8 @@ class Explorer(ABC):
         invoker: Invoker,
         log_parser: LogParser,
         price_calculator: CostCalculator,
-        payload: str,
         memory_space: set,
+        payload: str = None,
         memory_bounds: list = None,
     ):
         self.config_manager = config_manager

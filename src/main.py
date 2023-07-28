@@ -47,15 +47,8 @@ def main():
     parrotfish = Parrotfish(configuration)
 
     try:
-        result = parrotfish.optimize()
+        parrotfish.optimize(args.apply)
 
     except OptimizationError as e:
         logger.critical(e)
         exit(1)
-
-    else:
-        logger.info(result)
-        opt_memory_mb = result["Minimum Cost Memory"]
-        print(f"Optimization result: {opt_memory_mb} MB")
-        if args.apply:
-            parrotfish.configure(opt_memory_mb)

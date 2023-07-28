@@ -1,22 +1,21 @@
 import boto3
-from google.auth import default, exceptions
 import numpy as np
+from google.auth import default, exceptions
 
 from src.exploration import *
 from src.logging import logger
-from src.recommendation import *
 from src.objective import *
+from src.recommendation import *
 from src.sampling import *
 
 
 class Parrotfish:
     def __init__(self, config: any):
-        self.payloads = config.payloads if hasattr(config, "payloads") else None
+        self.config = config
 
         if config.vendor == "AWS":
             self.explorer = AWSExplorer(
                 lambda_name=config.function_name,
-                payload=config.payload,
                 max_invocation_attempts=config.max_number_of_invocation_attempts,
                 memory_bounds=config.memory_bounds,
                 aws_session=boto3.Session(region_name=config.region),
@@ -32,7 +31,6 @@ class Parrotfish:
 
             self.explorer = GCPExplorer(
                 function_name=config.function_name,
-                payload=config.payload,
                 max_invocation_attempts=config.max_number_of_invocation_attempts,
                 memory_bounds=config.memory_bounds,
                 credentials=credentials,
@@ -41,64 +39,60 @@ class Parrotfish:
         self.param_function = ParametricFunction(
             function=lambda x, a0, a1, a2: a0 * x + a1 * np.exp(-x / a2) * x,
             bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
-            execution_time_threshold=config.execution_time_threshold,
         )
 
-        sampler = Sampler(
-            explorer=self.explorer,
-            explorations_count=config.number_invocations,
-            dynamic_sampling_params=config.dynamic_sampling_params,
-        )
-
-        objective = Objective(
+        self.objective = Objective(
             param_function=self.param_function,
             memory_space=self.explorer.memory_space,
             termination_threshold=config.termination_threshold,
         )
 
+        self.sampler = Sampler(
+            explorer=self.explorer,
+            explorations_count=config.number_invocations,
+            dynamic_sampling_params=config.dynamic_sampling_params,
+        )
+
         self.recommender = Recommender(
-            objective=objective,
-            sampler=sampler,
+            objective=self.objective,
+            sampler=self.sampler,
             max_sample_count=config.max_sample_count,
         )
 
-    def optimize(self) -> dict:
-        if not self.payloads:
-            self.recommender.run()
-            minimum_memory = self.param_function.minimize(self.explorer.memory_space)
-
-        else:
-            minimum_memory = self._optimize_multiple_payloads()
-
-        self.explorer.config_manager.reset_config()
-
-        return {
-            "Minimum Cost Memory": minimum_memory,
-            "Exploration Cost": self.explorer.cost,
-        }
-
-    def _optimize_multiple_payloads(self) -> int:
+    def optimize(self, apply: bool = None) -> None:
         collective_costs = np.zeros(len(self.explorer.memory_space))
+        min_memories = []
 
-        for entry in self.payloads:
+        for entry in self.config.payloads:
             # Run recommender for the specific payload
-            self.explorer.payload = entry["payload"]
-            self.recommender.run()
-            collective_costs += (
-                self.param_function(self.explorer.memory_space) * entry["weight"]
-            )
-            self._reset()
+            min_memories.append(self._optimize_one_payload(entry, collective_costs))
 
-        min_index = np.argmin(collective_costs)
-        return self.explorer.memory_space[min_index]
+        if len(min_memories) == 1:
+            minimum_memory = min_memories[0]
+            print(f"Optimization result: {minimum_memory} MB")
+        else:
+            for i in range(len(min_memories)):
+                print(f"Optimization result for payload {i}: {min_memories[i]} MB")
+            min_index = np.argmin(collective_costs)
+            minimum_memory = self.explorer.memory_space[min_index]
+            print(f"Optimization result of the average cost: {minimum_memory} MB")
 
-    def _reset(self) -> None:
-        self.param_function.params = None
-        self.recommender.objective.knowledge_values = {
-            x: 0 for x in self.explorer.memory_space
-        }
+        if apply:
+            self._apply_configuration(minimum_memory)
+        else:
+            self.explorer.config_manager.reset_config()
 
-    def configure(self, memory_mb: int):
+    def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> int:
+        self.explorer.payload = entry["payload"]
+        self.recommender.run()
+        collective_costs += self.param_function(self.explorer.memory_space) * entry["weight"]
+        execution_time_threshold = entry[
+            "execution_time_threshold"] if "execution_time_threshold" in entry else self.config.execution_time_threshold
+        minimum_memory = self.param_function.minimize(self.explorer.memory_space, execution_time_threshold)
+        self.objective.reset()
+        return minimum_memory
+
+    def _apply_configuration(self, memory_mb: int):
         self.explorer.config_manager.set_config(
             memory_mb, self.explorer.config_manager.initial_config.timeout
         )

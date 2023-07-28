@@ -28,8 +28,10 @@
                         "type": "number",
                         "minimum": 0,
                         "maximum": 1
-                    }
-                }
+                    },
+                    "execution_time_threshold": {"type": "number"}
+                },
+                "required": ["payload", "weight"]
             },
             "minItems": 1
         },

@@ -3,7 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.optimize import curve_fit
 
-from src.exception import NoMemoryLeftError
+from src.exception import UnfeasibleConstraintError
+from src.logging import logger
 from src.sampling import Sample
 
 
@@ -19,10 +20,9 @@ class ParametricFunction:
 
     function: callable
     bounds: tuple
-    params: np.array = None
-    execution_time_threshold: int = None
+    params: any = None
 
-    def __call__(self, x: int or np.array):
+    def __call__(self, x: int or np.ndarray):
         return self.function(x, *self.params)
 
     def fit(self, sample: Sample) -> None:
@@ -47,42 +47,43 @@ class ParametricFunction:
             bounds=self.bounds,
         )[0]
 
-    def minimize(self, memory_space: np.ndarray) -> int:
+    def minimize(self, memory_space: np.ndarray, execution_time_threshold: int = None) -> int:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
         Args:
             memory_space (np.ndarray): The memory space specific to the cloud provider.
+            execution_time_threshold (int): The execution time threshold constraint.
 
         Returns:
             int: Memory configuration that minimizes the cost function.
-
-        Raises:
-            NoMemoryLeftError: If no memory configuration meets the constraint on the execution time threshold.
         """
         costs = self.__call__(memory_space)
 
         # Handling execution threshold constraint
-        if self.execution_time_threshold:
-            memory_space, costs = self.filter_execution_time_constraint(
-                memory_space, costs
-            )
+        if execution_time_threshold:
+            try:
+                memory_space, costs = self._filter_execution_time_constraint(
+                    memory_space, costs, execution_time_threshold
+                )
+            except UnfeasibleConstraintError as e:
+                logger.warning(e)
 
         min_index = np.argmin(costs)
         return memory_space[min_index]
 
-    def filter_execution_time_constraint(
-        self, memory_space: np.ndarray, costs: np.ndarray
+    def _filter_execution_time_constraint(
+        self, memory_space: np.ndarray, costs: np.ndarray, execution_time_threshold: int = None
     ) -> tuple:
         filtered_memories = np.array([])
         filtered_costs = np.array([])
         execution_times = costs / memory_space
 
         for i in range(len(execution_times)):
-            if execution_times[i] <= self.execution_time_threshold:
+            if execution_times[i] <= execution_time_threshold:
                 filtered_memories = np.append(filtered_memories, memory_space[i])
                 filtered_costs = np.append(filtered_costs, costs[i])
 
         if len(filtered_memories) == 0:
-            raise NoMemoryLeftError
+            raise UnfeasibleConstraintError("The execution time threshold constraint cannot be satisfied")
 
         return filtered_memories, filtered_costs

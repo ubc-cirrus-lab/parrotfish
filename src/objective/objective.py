@@ -40,3 +40,8 @@ class Objective:
         """Returns the knowledge values of the memories in input."""
         knowledge = np.array([self.knowledge_values[memory] for memory in memories])
         return 1.0 + knowledge
+
+    def reset(self) -> None:
+        """Resets the knowledge values and parametric function."""
+        self.param_function.params = None
+        self.knowledge_values = {x: 0 for x in self.memory_space}

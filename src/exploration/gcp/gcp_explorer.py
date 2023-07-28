@@ -9,9 +9,9 @@ class GCPExplorer(Explorer):
     def __init__(
         self,
         function_name: str,
-        payload: str,
         credentials: any,
         max_invocation_attempts: any,
+        payload: str = None,
         memory_bounds: list = None,
     ):
         log_parser = GCPLogParser()
