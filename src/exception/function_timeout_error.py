@@ -1,4 +1,4 @@
-from src.exceptions import FunctionENOMEM
+from src.exception import FunctionENOMEM
 
 
 class FunctionTimeoutError(FunctionENOMEM):

@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 
-from src.data_model import *
-from src.recommendation import *
+from src.objective import ParametricFunction
+from src.sampling import Sample
+from src.sampling.data_point import DataPoint
 
 
 @pytest.fixture

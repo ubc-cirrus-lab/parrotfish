@@ -9,21 +9,23 @@ class GCPExplorer(Explorer):
     def __init__(
         self,
         function_name: str,
-        payload: str,
         credentials: any,
+        max_invocation_attempts: any,
+        payload: str = None,
         memory_bounds: list = None,
     ):
         log_parser = GCPLogParser()
         super().__init__(
+            payload=payload,
             log_parser=log_parser,
             config_manager=GCPConfigManager(
                 function_name=function_name, credentials=credentials
             ),
             invoker=GCPInvoker(
                 function_name=function_name,
-                payload=payload,
                 log_keys=log_parser.log_parsing_keys,
                 credentials=credentials,
+                max_invocation_attempts=max_invocation_attempts,
             ),
             price_calculator=GCPCostCalculator(
                 function_name=function_name, region=credentials.region

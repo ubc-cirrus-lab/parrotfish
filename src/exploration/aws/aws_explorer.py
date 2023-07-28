@@ -11,9 +11,9 @@ class AWSExplorer(Explorer):
     def __init__(
         self,
         lambda_name: str,
-        payload: str,
         max_invocation_attempts: int,
         aws_session: boto3.Session,
+        payload: str = None,
         memory_bounds: list = None,
     ):
         super().__init__(
@@ -23,13 +23,13 @@ class AWSExplorer(Explorer):
             ),
             invoker=AWSInvoker(
                 function_name=lambda_name,
-                payload=payload,
                 max_invocation_attempts=max_invocation_attempts,
                 aws_session=aws_session,
             ),
             price_calculator=AWSCostCalculator(
                 function_name=lambda_name, aws_session=aws_session
             ),
+            payload=payload,
             memory_bounds=memory_bounds,
             memory_space=set(range(128, 3009)),
         )

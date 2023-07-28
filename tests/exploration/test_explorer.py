@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from src.exceptions import *
+from src.exception import *
 from tests.mocks import MockExplorer
 
 

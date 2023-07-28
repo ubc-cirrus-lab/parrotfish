@@ -1,6 +1,7 @@
+import math
 import re
 
-from src.exceptions import LogParsingError, FunctionENOMEM, InvocationError
+from src.exception import LogParsingError, FunctionENOMEM, InvocationError
 from src.exploration.log_parser import LogParser
 
 
@@ -16,7 +17,7 @@ class GCPLogParser(LogParser):
         if m is None:
             raise LogParsingError
         execution_id = m.group(1)
-        billed_duration = int(m.group(2))
+        billed_duration = math.ceil(int(m.group(2)) / 100) * 100
         status = m.group(3)
 
         if status == "'error'":

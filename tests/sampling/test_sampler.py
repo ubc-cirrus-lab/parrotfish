@@ -3,15 +3,16 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from src.data_model import *
-from src.exceptions import *
-from src.recommendation import Sampler
+from src.configuration import defaults
+from src.exception import *
+from src.sampling import *
+from src.sampling.data_point import DataPoint
 from tests.mocks import MockExplorer
 
 
 @pytest.fixture
 def sampler() -> Sampler:
-    return Sampler(MockExplorer(), 3, 3, 0.5)
+    return Sampler(MockExplorer(), 3, defaults.DYNAMIC_SAMPLING_PARAMS)
 
 
 class TestInitializeSample:
@@ -84,7 +85,7 @@ class TestExploreDynamically:
     def test_nominal_case(self, sampler):
         # Arrange
         sampler.sample = Sample()
-        sampler.explorer.explore = mock.Mock(side_effect=(110, 120, 130))
+        sampler.explorer.explore = mock.Mock(side_effect=(110, 115, 120))
 
         # Action
         durations = sampler._explore_dynamically([10, 230, 1570])
@@ -92,7 +93,10 @@ class TestExploreDynamically:
 
         # Assert
         assert sampler.explorer.explore.called
-        assert min_cv < sampler._dynamic_sampling_cv_threshold
+        assert (
+            min_cv
+            < sampler._dynamic_sampling_params["coefficient_of_variation_threshold"]
+        )
 
     def test_sampling_error(self, sampler):
         sampler.explorer.explore = mock.Mock(side_effect=ExplorationError("error"))

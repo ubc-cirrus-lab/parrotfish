@@ -1,4 +1,3 @@
-import logging
 from abc import ABC
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -8,7 +7,8 @@ from .config_manager import ConfigManager
 from .cost_calculator import CostCalculator
 from .invoker import Invoker
 from .log_parser import LogParser
-from ..exceptions import InvocationError
+from ..exception import InvocationError
+from ..logging import logger
 
 
 class Explorer(ABC):
@@ -21,12 +21,25 @@ class Explorer(ABC):
         log_parser: LogParser,
         price_calculator: CostCalculator,
         memory_space: set,
+        payload: str = None,
         memory_bounds: list = None,
     ):
         self.config_manager = config_manager
         self.invoker = invoker
         self.log_parser = log_parser
         self.price_calculator = price_calculator
+        self.payload = payload
+
+        self.memory_space = np.array(list(memory_space), dtype=int)
+        if memory_bounds:
+            self.memory_space = np.array(
+                list(
+                    memory_space.intersection(
+                        range(memory_bounds[0], memory_bounds[1] + 1)
+                    )
+                ),
+                dtype=int,
+            )
 
         self.memory_space = np.array(list(memory_space), dtype=int)
         if memory_bounds:
@@ -41,8 +54,6 @@ class Explorer(ABC):
 
         self.cost = 0
         self._memory_config_mb = 0
-
-        self._logger = logging.getLogger(__name__)
 
     def explore_parallel(
         self, nbr_invocations: int, nbr_threads: int, memory_mb: int = None
@@ -87,7 +98,7 @@ class Explorer(ABC):
                     results.append(future.result())
 
                 except InvocationError as e:
-                    self._logger.debug(e)
+                    logger.debug(e)
                     if error is None:
                         error = e
                     self.cost += self.price_calculator.calculate_price(
@@ -131,11 +142,11 @@ class Explorer(ABC):
             self.explore(enable_cost_calculation=enable_cost_calculation)
 
         try:
-            execution_log = self.invoker.invoke()
+            execution_log = self.invoker.invoke(self.payload)
             exec_time = self.log_parser.parse_log(execution_log)
 
         except InvocationError as e:
-            self._logger.debug(e)
+            logger.debug(e)
             if enable_cost_calculation:
                 self.cost += self.price_calculator.calculate_price(
                     self._memory_config_mb, e.duration_ms

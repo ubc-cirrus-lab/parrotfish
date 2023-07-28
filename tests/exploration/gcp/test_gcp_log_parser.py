@@ -1,6 +1,6 @@
 import pytest
 
-from src.exceptions import *
+from src.exception import *
 from src.exploration.gcp.gcp_log_parser import GCPLogParser
 
 
@@ -18,7 +18,7 @@ class TestParseLog:
         try:
             log_parser.parse_log(result_log)
         except FunctionENOMEM as e:
-            assert e.duration_ms == 50
+            assert e.duration_ms == 100
 
         with pytest.raises(FunctionENOMEM) as e:
             log_parser.parse_log(result_log)
@@ -32,7 +32,7 @@ class TestParseLog:
         try:
             log_parser.parse_log(result_log)
         except InvocationError as e:
-            assert e.duration_ms == 50
+            assert e.duration_ms == 100
 
         with pytest.raises(InvocationError) as e:
             log_parser.parse_log(result_log)

@@ -3,8 +3,8 @@ from unittest import mock
 import pytest
 from botocore.exceptions import *
 
-from src.data_model import FunctionConfig
-from src.exceptions import FunctionConfigError
+from src.exploration.function_config import FunctionConfig
+from src.exception import FunctionConfigError
 from src.exploration.aws.aws_config_manager import AWSConfigManager
 
 

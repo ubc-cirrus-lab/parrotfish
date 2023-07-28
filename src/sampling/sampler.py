@@ -1,11 +1,12 @@
-import logging
 import math
 
 import numpy as np
 
-from src.data_model import Sample, DataPoint
-from src.exceptions import *
+from src.exception import *
 from src.exploration import *
+from src.logging import logger
+from .data_point import DataPoint
+from .sample import Sample
 
 
 class Sampler:
@@ -13,16 +14,13 @@ class Sampler:
         self,
         explorer: Explorer,
         explorations_count: int,
-        max_dynamic_sample_count: int,
-        dynamic_sampling_cv_threshold: float,
+        dynamic_sampling_params: dict,
     ):
         self.sample = None
         self.explorer = explorer
         self.memory_space = explorer.memory_space
         self._explorations_count = explorations_count
-        self._max_dynamic_sample_count = max_dynamic_sample_count
-        self._dynamic_sampling_cv_threshold = dynamic_sampling_cv_threshold
-        self._logger = logging.getLogger(__name__)
+        self._dynamic_sampling_params = dynamic_sampling_params
 
     def initialize_sample(self) -> None:
         """Initializes the sample by exploring with 3 memory values from the memory space.
@@ -42,7 +40,7 @@ class Sampler:
                 self.update_sample(memory)
 
             except SamplingError as e:
-                self._logger.debug(e)
+                logger.debug(e)
                 raise
 
     def _sample_first_memory_config(self):
@@ -51,7 +49,7 @@ class Sampler:
                 self.update_sample(int(self.memory_space[0]))
 
             except FunctionENOMEM:
-                self._logger.info(f"ENOMEM: trying with new memories")
+                logger.info(f"ENOMEM: trying with new memories")
                 self.memory_space = np.array(
                     [
                         mem
@@ -62,7 +60,7 @@ class Sampler:
                 )
 
             except SamplingError as e:
-                self._logger.debug(e)
+                logger.debug(e)
                 raise
 
             else:
@@ -81,7 +79,7 @@ class Sampler:
         Raises:
             SamplingError: If an error occurred while sampling.
         """
-        self._logger.info(f"Sampling: {memory_mb} MB.")
+        logger.info(f"Sampling: {memory_mb} MB.")
         try:
             subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
@@ -89,7 +87,7 @@ class Sampler:
                 memory_mb=memory_mb,
             )
         except ExplorationError as e:
-            self._logger.debug(e)
+            logger.debug(e)
             raise
 
         subsample_durations = self._explore_dynamically(durations=subsample_durations)
@@ -97,8 +95,8 @@ class Sampler:
         subsample = [DataPoint(memory_mb, result) for result in subsample_durations]
         self.sample.update(subsample)
 
-        self._logger.info(
-            f"Finished sampling {memory_mb} with {len(subsample)} datapoints."
+        logger.info(
+            f"Finished sampling {memory_mb} with billed duration results: {subsample_durations} is ms."
         )
 
     def _explore_dynamically(self, durations: list) -> list:
@@ -125,14 +123,15 @@ class Sampler:
         min_cv = np.std(durations, ddof=1) / np.mean(durations)
 
         while (
-            dynamic_sample_count < self._max_dynamic_sample_count
-            and min_cv > self._dynamic_sampling_cv_threshold
+            dynamic_sample_count < self._dynamic_sampling_params["max_sample_count"]
+            and min_cv
+            > self._dynamic_sampling_params["coefficient_of_variation_threshold"]
         ):
             try:
                 result = self.explorer.explore()
 
             except ExplorationError as e:
-                self._logger.debug(e)
+                logger.debug(e)
                 raise
 
             dynamic_sample_count += 1

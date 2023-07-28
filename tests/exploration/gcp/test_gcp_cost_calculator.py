@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 from google.api_core.exceptions import GoogleAPICallError
 
-from src.exceptions import CostCalculationError
+from src.exception import CostCalculationError
 from src.exploration.gcp.gcp_cost_calculator import GCPCostCalculator
 
 

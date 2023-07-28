@@ -1,10 +1,10 @@
 import numpy as np
 from google.api_core.exceptions import GoogleAPICallError
+from google.cloud import billing
 from google.type.money_pb2 import Money
 
-from src.exceptions import CostCalculationError
+from src.exception import CostCalculationError
 from src.exploration.cost_calculator import CostCalculator
-from google.cloud import billing
 
 
 class GCPCostCalculator(CostCalculator):
