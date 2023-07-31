@@ -8,7 +8,10 @@ from src.exploration.gcp.gcp_cost_calculator import GCPCostCalculator
 
 
 @pytest.fixture
-def calculator() -> GCPCostCalculator:
+@mock.patch("src.exploration.gcp.gcp_cost_calculator.billing")
+def calculator(billing) -> GCPCostCalculator:
+    client = mock.Mock()
+    billing.CloudCatalogClient = mock.Mock(return_value=client)
     return GCPCostCalculator("example_function", "us-east1")
 
 
