@@ -24,11 +24,59 @@ class Configuration:
         self._deserialize(config_file)
 
     def _load_config_schema(self):
-        config_file_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "config_file_schema.json"
-        )
-        with open(config_file_path) as config_file_schema:
-            self._config_json_schema = json.load(config_file_schema)
+        self._config_json_schema = {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "title": "Parrotfish Configuration Schema",
+            "description": "The configuration input's schema.",
+            "type": "object",
+            "properties": {
+                "function_name": {"type": "string"},
+                "vendor": {"type": "string", "enum": ["AWS", "GCP"]},
+                "region": {"type": "string"},
+                "payload": {"anyOf": [{"type": "object"}, {"type": "array"}]},
+                "payloads": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "payload": {
+                                "anyOf": [{"type": "object"}, {"type": "array"}]
+                            },
+                            "weight": {"type": "number", "minimum": 0, "maximum": 1},
+                            "execution_time_threshold": {"type": "number"},
+                        },
+                        "required": ["payload", "weight"],
+                    },
+                    "minItems": 1,
+                },
+                "memory_bounds": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "minItems": 2,
+                    "maxItems": 2,
+                },
+                "termination_threshold": {"type": "number", "minimum": 0},
+                "max_sample_count": {"type": "integer", "minimum": 0},
+                "number_invocations": {"type": "integer", "minimum": 0},
+                "dynamic_sampling_params": {
+                    "type": "object",
+                    "properties": {
+                        "max_sample_count": {"type": "integer", "minimum": 0},
+                        "coefficient_of_variation_threshold": {
+                            "type": "number",
+                            "minimum": 0,
+                        },
+                    },
+                },
+                "max_number_of_invocation_attempts": {"type": "integer", "minimum": 0},
+                "execution_time_threshold": {"type": "integer", "minimum": 0},
+            },
+            "required": ["function_name", "vendor", "region"],
+            "if": {"not": {"required": ["payload"]}},
+            "then": {"required": ["payloads"]},
+            "else": {"required": ["payload"]},
+            "additionalProperties": False,
+        }
 
     def _deserialize(self, config_file: TextIO):
         try:
