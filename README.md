@@ -28,7 +28,7 @@ source src-env/bin/activate
 pip install ${path to parrotfish-version.whl}
 ```
 
-3. Create the parrotfish configuration file.
+3. Create the parrotfish configuration file.  
 Check the [configuration json object](src/configuration/README.md) to know configuration options.
 
 4. Running it!
