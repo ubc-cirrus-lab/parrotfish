@@ -1,15 +1,20 @@
-# UBC Serverless Price Optimization Tool (SPOT)
+# Parametric Regression for Optimizing Serverless Functions (Parrotfish)
 
-Save money on your serverless functions.
-
-SPOT uses your functions' performance data to configure their allocated memory and CPU for the lowest possible cost.
+Save money on your serverless functions.  
+Parrotfish is a configuration tool that helps developers rightsize their serverless functions by invoking them parallely a couple of times.
 
 ## Setup
 
 ### Requirements
-- Python 3
-- AWS CLI (configured with `aws configure`)
-- MongoDB (by default, accessible on `localhost:27017`)
+- Python >= 3.8
+
+#### Requirement to run parrotfish for AWS Lambda Function:
+- AWS CLI (Configured with `aws configure`)
+
+#### Requirement to run parrotfish for Google Cloud Function:
+- gcloud CLI (Authenticate with your credentials: `gcloud auth application-default login`)
+- Should enable the Cloud Billing API in your account.
+
 
 ### Steps
 1. Create and activate a virtualenv.
@@ -18,49 +23,22 @@ python3 -m venv src-env
 source src-env/bin/activate
 ```
 
-2. Install required packages.
-```
-pip install -r requirements.txt
+2. Install the parrtofish package from the latest release. 
+```bash
+pip install ${path to parrotfish-version.whl}
 ```
 
-3. Install SPOT as an editable package.
-```bash
-pip install -e .
-```
+3. Create the parrotfish configuration file.
+Check the [configuration json object](src/configuration/README.md) to know configuration options.
 
-4. Run it!
+4. Running it!
 ```bash
-parrotfish
+parrotfish ${path to the configuration file}
 ```
-
-## Running new benchmark fucntions
-### Add a new function
-Follow the instructions [here](src/serverless_functions/README.md)
-### Prepare and train
-1. Profile to get initial data 
-```bash
-parrotfish <function_name> -p
+```text
+optional arguments:
+  -h, --help            show this help message and exit
+  --path PATH, -p PATH  Path to the configuration file
+  --verbose, -v         Set the logging level to INFO
+  --apply               Apply optimized configuration
 ```
-2. fetch new logs from CloudWatch
-```bash
-parrotfish <function_name> -f
-```
-3. train with selected model
-```bash
-parrotfish <function_name> -tm polynomial
-```
-4. You can get recommendation without updating config file at or after the previous step with `-r`
-5. update the config file and calculate error rate
-```bash
-parrotfish -um polynomial
-```
-Graphs for error and prediction vs epoch can be found corresponding folders in `serverless_functions/<function>/`
-
-### Profiling alternative
-To invoke only with the configurations defined in `config.json`, use `-i` flag
-```bash
-parrotfish <function_name> -i
-```
-
-### SPOT UML Class Diagram
-![SPOT UML Class Diagram](/src/visualize/SPOT_UML_Class_Diagram.jpeg)

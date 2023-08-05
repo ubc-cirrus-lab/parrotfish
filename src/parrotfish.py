@@ -62,8 +62,12 @@ class Parrotfish:
     def optimize(self, apply: bool = None) -> None:
         collective_costs = np.zeros(len(self.explorer.memory_space))
         min_memories = []
+        i = 1
 
         for entry in self.config.payloads:
+            if len(self.config.payloads) != 1:
+                print(f"Explorations for payload {i}:")
+                i += 1
             # Run recommender for the specific payload
             min_memories.append(self._optimize_one_payload(entry, collective_costs))
 
