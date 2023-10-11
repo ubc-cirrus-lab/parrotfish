@@ -1,8 +1,10 @@
-# UBC Serverless Price Optimization Tool (SPOT)
+# Parrotfish
 
-Save money on your serverless functions.
-
-SPOT uses your functions' performance data to configure their allocated memory and CPU for the lowest possible cost.
+<img src="./parrotfish_icon.jpeg" alt="parrotfish icon" width=20%>
+<sup>Image made by Bing Image Creator powered by DALL·E 3. [Generated with AI ∙ October 10, 2023 at 5:09 p.m] </sup>
+<br><br>
+Parrotfish is a tool for optimizing configuration of serverless functions using parametric regression.
+You can learn more about the architecture and performance of Parrotfish in our recent 2023 ACM Symposium on Cloud Computing (SoCC '23) paper: https://cirrus.ece.ubc.ca/papers/socc23_parrotfish.pdf
 
 ## Setup
 
@@ -62,5 +64,7 @@ To invoke only with the configurations defined in `config.json`, use `-i` flag
 parrotfish <function_name> -i
 ```
 
-### SPOT UML Class Diagram
-![SPOT UML Class Diagram](/src/visualize/SPOT_UML_Class_Diagram.jpeg)
+## Acknowledgments
+
+This work was supported by the Natural Sciences and Engineering Research Council of Canada (NSERC), Mitacs, and The University of British Columbia (UBC).
+This work was enabled by cloud resources made available to us by the Digital Research Alliance of Canada, the Google Cloud Research Credits program, and the AWS Cloud Credit for Research program.
