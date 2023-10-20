@@ -1,7 +1,10 @@
-# Parametric Regression for Optimizing Serverless Functions (Parrotfish)
+# Parrotfish
 
-Save money on your serverless functions.  
-Parrotfish is a configuration tool that helps developers rightsize their serverless functions by invoking them parallely a couple of times.
+<img src="./parrotfish_icon.jpeg" alt="parrotfish icon" width=20%>
+<sup>Image made by Bing Image Creator powered by DALL·E 3. [Generated with AI ∙ October 10, 2023 at 5:09 p.m] </sup>
+<br><br>
+Parrotfish is a tool for optimizing configuration of serverless functions using parametric regression.
+You can learn more about the architecture and performance of Parrotfish in our recent 2023 ACM Symposium on Cloud Computing (SoCC '23) paper: https://cirrus.ece.ubc.ca/papers/socc23_parrotfish.pdf
 
 ## Setup
 
@@ -42,3 +45,8 @@ optional arguments:
   --verbose, -v         Set the logging level to INFO
   --apply               Apply optimized configuration
 ```
+
+## Acknowledgments
+
+This work was supported by the Natural Sciences and Engineering Research Council of Canada (NSERC), Mitacs, and The University of British Columbia (UBC).
+This work was enabled by cloud resources made available to us by the Digital Research Alliance of Canada, the Google Cloud Research Credits program, and the AWS Cloud Credit for Research program.
