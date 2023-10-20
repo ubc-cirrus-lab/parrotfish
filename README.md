@@ -11,10 +11,10 @@ You can learn more about the architecture and performance of Parrotfish in our r
 ### Requirements
 - Python >= 3.8
 
-#### Requirement to run parrotfish for AWS Lambda Function:
+#### Requirement to run Parrotfish for AWS Lambda Function:
 - AWS CLI (Configured with `aws configure`)
 
-#### Requirement to run parrotfish for Google Cloud Function:
+#### Requirement to run Parrotfish for Google Cloud Function:
 - gcloud CLI (Authenticate with your credentials: `gcloud auth application-default login`)
 - Should enable the Cloud Billing API in your account.
 
@@ -31,8 +31,7 @@ source src-env/bin/activate
 pip install ${path to parrotfish-version.whl}
 ```
 
-3. Create the parrotfish configuration file.  
-Check the [configuration json object](src/configuration/README.md) to know configuration options.
+3. Create and optimize your Parrotfish configuration file. Check [here](src/configuration/README.md) to learn more.
 
 4. Running it!
 ```bash
