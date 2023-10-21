@@ -23,9 +23,9 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ubc-cirrus-lab/parrotfish",
-    license="MIT",
+    license="Apache License 2.0",
     classifiers=[
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
     ],
