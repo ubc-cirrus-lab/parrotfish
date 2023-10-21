@@ -23,7 +23,4 @@ jobs:
           pr-message: |
             Hello! Thank you for your contribution.
             
-            If you've spotted a mistake that you'd like to see fixed, please create an issue instead. This PR will be closed shortly.
-
-      - uses: superbrothers/close-pull-request@v3
-        if: ${{ github.event_name == 'pull_request_target' }}
+            Thank you for contributing to this repository. The maintainers will review the code and respond within a few days.
