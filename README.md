@@ -9,9 +9,15 @@ You can learn more about the architecture and performance of Parrotfish in our r
 ## Setup
 
 ### Requirements
-- Python 3
-- AWS CLI (configured with `aws configure`)
-- MongoDB (by default, accessible on `localhost:27017`)
+- Python >= 3.8
+
+#### Requirement to run Parrotfish for AWS Lambda Function:
+- AWS CLI (Configured with `aws configure`)
+
+#### Requirement to run Parrotfish for Google Cloud Function:
+- gcloud CLI (Authenticate with your credentials: `gcloud auth application-default login`)
+- Should enable the Cloud Billing API in your account.
+
 
 ### Steps
 1. Create and activate a virtualenv.
@@ -20,48 +26,23 @@ python3 -m venv src-env
 source src-env/bin/activate
 ```
 
-2. Install required packages.
-```
-pip install -r requirements.txt
+2. Install the parrtofish package from the latest release. 
+```bash
+pip install ${path to parrotfish-version.whl}
 ```
 
-3. Install SPOT as an editable package.
-```bash
-pip install -e .
-```
+3. Create and optimize your Parrotfish configuration file. Check [here](src/configuration/README.md) to learn more.
 
-4. Run it!
+4. Running it!
 ```bash
-parrotfish
+parrotfish ${path to the configuration file}
 ```
-
-## Running new benchmark fucntions
-### Add a new function
-Follow the instructions [here](src/serverless_functions/README.md)
-### Prepare and train
-1. Profile to get initial data 
-```bash
-parrotfish <function_name> -p
-```
-2. fetch new logs from CloudWatch
-```bash
-parrotfish <function_name> -f
-```
-3. train with selected model
-```bash
-parrotfish <function_name> -tm polynomial
-```
-4. You can get recommendation without updating config file at or after the previous step with `-r`
-5. update the config file and calculate error rate
-```bash
-parrotfish -um polynomial
-```
-Graphs for error and prediction vs epoch can be found corresponding folders in `serverless_functions/<function>/`
-
-### Profiling alternative
-To invoke only with the configurations defined in `config.json`, use `-i` flag
-```bash
-parrotfish <function_name> -i
+```text
+optional arguments:
+  -h, --help            show this help message and exit
+  --path PATH, -p PATH  Path to the configuration file
+  --verbose, -v         Set the logging level to INFO
+  --apply               Apply optimized configuration
 ```
 
 ## Acknowledgments

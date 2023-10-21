@@ -2,7 +2,7 @@ import os
 
 from setuptools import setup, find_packages
 
-version = os.environ['PACKAGE_VERSION']
+version = os.environ["PACKAGE_VERSION"]
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -13,7 +13,7 @@ with open("requirements.txt", "r") as r:
 with open("requirements-dev.txt", "r") as rdev:
     requirements_dev = rdev.read()
 
-#TODO: Update licence attribute
+# TODO: Update licence attribute
 setup(
     name="parrotfish",
     version=version,
