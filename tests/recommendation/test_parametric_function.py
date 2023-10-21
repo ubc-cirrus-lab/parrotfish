@@ -8,10 +8,7 @@ from src.sampling.data_point import DataPoint
 
 @pytest.fixture
 def param_function():
-    bounds = ([0, 0, 0], [np.inf, np.inf, np.inf])
-    return ParametricFunction(
-        function=lambda x, a, b, c: a * x + b * np.exp(-x / c) * x, bounds=bounds
-    )
+    return ParametricFunction()
 
 
 class TestFittingFunction:

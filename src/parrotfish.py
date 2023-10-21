@@ -36,10 +36,7 @@ class Parrotfish:
                 credentials=credentials,
             )
 
-        self.param_function = ParametricFunction(
-            function=lambda x, a0, a1, a2: a0 * x + a1 * np.exp(-x / a2) * x,
-            bounds=([0, 0, 0], [np.inf, np.inf, np.inf]),
-        )
+        self.param_function = ParametricFunction()
 
         self.objective = Objective(
             param_function=self.param_function,

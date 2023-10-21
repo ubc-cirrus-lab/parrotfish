@@ -45,6 +45,12 @@ optional arguments:
   --apply               Apply optimized configuration
 ```
 
+## Using custom models and objectives
+To explore the effects of other objectives and models, you need to modify the `src/objective/objective.py` and 
+`src/objective/parametric_function.py` files.
+If you need to change the sampling process, e.g. the initial samples, you need to modify the `src/sampling/sampler.py` 
+file. 
+
 ## Acknowledgments
 
 This work was supported by the Natural Sciences and Engineering Research Council of Canada (NSERC), Mitacs, and The University of British Columbia (UBC).

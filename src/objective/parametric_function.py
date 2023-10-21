@@ -18,8 +18,8 @@ class ParametricFunction:
         bounds (tuple): Lower and upper bounds on parameters.
     """
 
-    function: callable
-    bounds: tuple
+    function: callable = lambda x, a0, a1, a2: a0 + a1 * np.exp(-x / a2)
+    bounds: tuple = ([-np.inf, -np.inf, -np.inf], [np.inf, np.inf, np.inf])
     params: any = None
 
     def __call__(self, x: int or np.ndarray):
@@ -41,14 +41,14 @@ class ParametricFunction:
         self.params = curve_fit(
             f=self.function,
             xdata=sample.memories,
-            ydata=sample.costs,
+            ydata=sample.durations,
             maxfev=int(1e8),
             p0=self.params,
             bounds=self.bounds,
         )[0]
 
     def minimize(
-        self, memory_space: np.ndarray, execution_time_threshold: int = None
+            self, memory_space: np.ndarray, execution_time_threshold: int = None
     ) -> int:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
@@ -59,7 +59,7 @@ class ParametricFunction:
         Returns:
             int: Memory configuration that minimizes the cost function.
         """
-        costs = self.__call__(memory_space)
+        costs = self.__call__(memory_space) * memory_space
 
         # Handling execution threshold constraint
         if execution_time_threshold:
@@ -73,11 +73,11 @@ class ParametricFunction:
         min_index = np.argmin(costs)
         return memory_space[min_index]
 
+    @staticmethod
     def _filter_execution_time_constraint(
-        self,
-        memory_space: np.ndarray,
-        costs: np.ndarray,
-        execution_time_threshold: int = None,
+            memory_space: np.ndarray,
+            costs: np.ndarray,
+            execution_time_threshold: int = None,
     ) -> tuple:
         filtered_memories = np.array([])
         filtered_costs = np.array([])

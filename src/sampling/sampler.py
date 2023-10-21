@@ -96,7 +96,7 @@ class Sampler:
         self.sample.update(subsample)
 
         logger.info(
-            f"Finished sampling {memory_mb} with billed duration results: {subsample_durations} is ms."
+            f"Finished sampling {memory_mb} with billed duration results: {subsample_durations} in ms."
         )
 
     def _explore_dynamically(self, durations: list) -> list:

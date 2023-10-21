@@ -20,12 +20,12 @@ class Objective:
     def termination_value(self) -> float:
         """computes a value that indicates that we are confident"""
         knowledge_values = self.get_knowledge(self.memory_space)
-        y = self.param_function(self.memory_space)
+        y = self.param_function(self.memory_space) * self.memory_space
         return knowledge_values[np.argmin(y)]
 
     def get_values(self, memories: np.ndarray) -> np.ndarray:
         """Computes the objective values of the memories in input."""
-        real_cost = self.param_function(memories)
+        real_cost = self.param_function(memories) * memories
         knowledge = self.get_knowledge(memories)
         return real_cost * knowledge
 
