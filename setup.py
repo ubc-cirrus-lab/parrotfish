@@ -13,7 +13,7 @@ with open("requirements.txt", "r") as r:
 with open("requirements-dev.txt", "r") as rdev:
     requirements_dev = rdev.read()
 
-# TODO: Update licence attribute
+# TODO: Update license attribute
 setup(
     name="parrotfish",
     version=version,
