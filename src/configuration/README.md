@@ -76,6 +76,3 @@ termination_threshold=2
 min_invocations=2
 dynamic_sampling_params.max_sample_count=5
 ```
-
-
-
