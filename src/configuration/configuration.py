@@ -15,9 +15,10 @@ class Configuration:
         self.dynamic_sampling_params = DYNAMIC_SAMPLING_PARAMS
         self.termination_threshold = TERMINATION_THRESHOLD
         self.max_sample_count = MAX_SAMPLE_COUNT
-        self.number_invocations = NUMBER_INVOCATIONS
+        self.min_invocations = MIN_INVOCATIONS
         self.max_number_of_invocation_attempts = MAX_NUMBER_OF_INVOCATION_ATTEMPTS
         self.execution_time_threshold = None
+        self.cost_tolerance_window = None
         self.memory_bounds = None
 
         # Parse the configuration file
@@ -43,7 +44,6 @@ class Configuration:
                                 "anyOf": [{"type": "object"}, {"type": "array"}]
                             },
                             "weight": {"type": "number", "minimum": 0, "maximum": 1},
-                            "execution_time_threshold": {"type": "number"},
                         },
                         "required": ["payload", "weight"],
                     },
@@ -57,7 +57,7 @@ class Configuration:
                 },
                 "termination_threshold": {"type": "number", "minimum": 0},
                 "max_sample_count": {"type": "integer", "minimum": 0},
-                "number_invocations": {"type": "integer", "minimum": 0},
+                "min_invocations": {"type": "integer", "minimum": 0},
                 "dynamic_sampling_params": {
                     "type": "object",
                     "properties": {
@@ -69,7 +69,8 @@ class Configuration:
                     },
                 },
                 "max_number_of_invocation_attempts": {"type": "integer", "minimum": 0},
-                "execution_time_threshold": {"type": "integer", "minimum": 0},
+                "execution_time_threshold": {"type": "integer", "minimum": 1},
+                "cost_tolerance_window": {"type": "integer", "minimum": 1},
             },
             "required": ["function_name", "vendor", "region"],
             "if": {"not": {"required": ["payload"]}},
@@ -97,11 +98,6 @@ class Configuration:
             if "payloads" in j_dict:
                 for entry in j_dict["payloads"]:
                     entry["payload"] = json.dumps(entry["payload"])
-                    entry["execution_time_threshold"] = (
-                        j_dict["execution_time_threshold"]
-                        if "execution_time_threshold" in j_dict
-                        else None
-                    )
                 # Validate that sum of weights is 1.
                 if sum([entry["weight"] for entry in j_dict["payloads"]]) != 1:
                     raise ValueError(
