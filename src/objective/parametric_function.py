@@ -48,13 +48,14 @@ class ParametricFunction:
         )[0]
 
     def minimize(
-            self, memory_space: np.ndarray, execution_time_threshold: int = None
+            self, memory_space: np.ndarray, execution_time_threshold: int = None, cost_tolerance_window: int = None
     ) -> int:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
         Args:
             memory_space (np.ndarray): The memory space specific to the cloud provider.
             execution_time_threshold (int): The execution time threshold constraint.
+            cost_tolerance_window (int): The cost tolerance window constraint.
 
         Returns:
             int: Memory configuration that minimizes the cost function.
@@ -70,8 +71,26 @@ class ParametricFunction:
             except UnfeasibleConstraintError as e:
                 logger.warning(e)
 
-        min_index = np.argmin(costs)
+        if cost_tolerance_window:
+            execution_times = costs / memory_space
+            min_index = self._find_min_index_within_tolerance(costs, execution_times, cost_tolerance_window)
+        else:
+            min_index = np.argmin(costs)
         return memory_space[min_index]
+
+    @staticmethod
+    def _find_min_index_within_tolerance(costs: np.ndarray, execution_times: np.ndarray,
+                                         cost_tolerance_window: int) -> int:
+        min_cost = np.min(costs)
+        min_cost_tolerance_window = min_cost + cost_tolerance_window / 100 * min_cost
+        min_index = 0
+        min_execution_time = np.inf
+        for i in range(len(execution_times)):
+            if costs[i] <= min_cost_tolerance_window:
+                if execution_times[i] < min_execution_time:
+                    min_index = i
+                    min_execution_time = execution_times[i]
+        return min_index
 
     @staticmethod
     def _filter_execution_time_constraint(
