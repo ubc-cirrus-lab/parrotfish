@@ -67,3 +67,15 @@
     ]
 }
 ```
+
+
+### Replicating the results in the paper
+To generate the results in the paper, we used these parameters:
+```
+termination_threshold=2
+min_invocations=2
+dynamic_sampling_params.max_sample_count=5
+```
+
+
+
