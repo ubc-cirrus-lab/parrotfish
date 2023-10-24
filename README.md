@@ -26,19 +26,24 @@ python3 -m venv src-env
 source src-env/bin/activate
 ```
 
-2. Install the parrtofish package from the latest release. 
+2. Download and install the latest Parrotfish release. 
 ```bash
 pip install ${path to parrotfish-version.whl}
 ```
-
-3. Create and optimize your Parrotfish configuration file. Check [here](src/configuration/README.md) to learn more.
-
-4. Running it!
+> **Note:** If you want to make changes to the code, you can install Parrotfish as an editable package:
 ```bash
-parrotfish ${path to the configuration file}
+export PACKAGE_VERSION="0.0.0"
+pip install -e .
+```
+
+3. Create and optimize your Parrotfish configuration file. Check [here](src/configuration/README.md) to learn more about options and see some examples.
+
+4. Run Parrotfish!
+```bash
+parrotfish --path ${path to the configuration file}
 ```
 ```text
-optional arguments:
+Arguments:
   -h, --help            show this help message and exit
   --path PATH, -p PATH  Path to the configuration file
   --verbose, -v         Set the logging level to INFO

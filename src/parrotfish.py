@@ -46,7 +46,7 @@ class Parrotfish:
 
         self.sampler = Sampler(
             explorer=self.explorer,
-            explorations_count=config.number_invocations,
+            explorations_count=config.min_invocations,
             dynamic_sampling_params=config.dynamic_sampling_params,
         )
 
@@ -89,13 +89,8 @@ class Parrotfish:
         collective_costs += (
             self.param_function(self.explorer.memory_space) * entry["weight"]
         )
-        execution_time_threshold = (
-            entry["execution_time_threshold"]
-            if "execution_time_threshold" in entry
-            else self.config.execution_time_threshold
-        )
         minimum_memory = self.param_function.minimize(
-            self.explorer.memory_space, execution_time_threshold
+            self.explorer.memory_space, self.config.execution_time_threshold, self.config.cost_tolerance_window
         )
         self.objective.reset()
         return minimum_memory
