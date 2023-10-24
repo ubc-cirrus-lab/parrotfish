@@ -1,7 +1,7 @@
 import logging
 
 DYNAMIC_SAMPLING_PARAMS = {
-    "max_sample_count": 3,
+    "max_sample_count": 8,
     "coefficient_of_variation_threshold": 0.05,
 }
 MAX_NUMBER_OF_INVOCATION_ATTEMPTS = 5
