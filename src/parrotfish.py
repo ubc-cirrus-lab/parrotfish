@@ -46,14 +46,14 @@ class Parrotfish:
 
         self.sampler = Sampler(
             explorer=self.explorer,
-            explorations_count=config.min_invocations,
+            explorations_count=config.min_sample_per_config,
             dynamic_sampling_params=config.dynamic_sampling_params,
         )
 
         self.recommender = Recommender(
             objective=self.objective,
             sampler=self.sampler,
-            max_sample_count=config.max_sample_count,
+            max_total_sample_count=config.max_total_sample_count,
         )
 
     def optimize(self, apply: bool = None) -> None:
@@ -90,7 +90,7 @@ class Parrotfish:
             self.param_function(self.explorer.memory_space) * entry["weight"]
         )
         minimum_memory = self.param_function.minimize(
-            self.explorer.memory_space, self.config.execution_time_threshold, self.config.cost_tolerance_window
+            self.explorer.memory_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
         )
         self.objective.reset()
         return minimum_memory
