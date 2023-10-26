@@ -123,7 +123,7 @@ class Sampler:
         min_cv = np.std(durations, ddof=1) / np.mean(durations)
 
         while (
-            dynamic_sample_count < self._dynamic_sampling_params["max_sample_count"]
+            dynamic_sample_count < self._dynamic_sampling_params["max_sample_per_config"]
             and min_cv
             > self._dynamic_sampling_params["coefficient_of_variation_threshold"]
         ):

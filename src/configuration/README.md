@@ -23,18 +23,18 @@
     ...
     "memory_bounds": Array containing two memory values that represent the memory configuration bounds (Optional),
     "termination_threshold": When the knowledge value for the optimal memory configuration reaches this threshold the recommendation algorithm terminates. (Optional, Default is 3),
-    "max_sample_count": The maximum size of the sample. (Optional, Default is 20),
-    "min_invocations": The minimum number of invocations per iteration. (Optional, Default is 4),
+    "max_total_sample_count": The maximum size of the sample. (Optional, Default is 20),
+    "min_sample_per_config": The minimum number of invocations per iteration. (Optional, Default is 4, minimum is 2),
     "dynamic_sampling_params": {
-        "max_sample_count": The maximum number of samples we gather through dynamically (Default is 8),
+        "max_sample_per_config": The maximum number of samples we gather through dynamically (Default is 8),
         "coefficient_of_variation_threshold": When sample dynamically until we find a consistant enough. Consistency is measured by the coefficient of variation, 
                                               and when the calculated coefficient of variation reaches this threshold we terminate the dynamic sampling (Default is 0.05),
     } (Optional),
     "max_number_of_invocation_attempts": The maximum number of attempts per invocation when this number is reached an error is raised. (Optional, Default is 5)
-    "execution_time_threshold": The execution time threshold constraint. We leverages the execution time model to recommend a configuration 
-                                that minimizes cost while adhering to the specified execution time constraint. (Optional)
-    "cost_tolerance_window": The cost tolerance window (in percent). We leverage the cost model to recommend a configuration that maximizes performance while 
-                             increasing the cost by at most X%, where X is the cost tolerance window . (Optional)
+    "constraint_execution_time_threshold": The execution time threshold constraint. We leverages the execution time model to recommend a configuration 
+                                that minimizes cost while adhering to the specified execution time constraint. (Optional, Default is +infinity)
+    "constraint_cost_tolerance_percent": The cost tolerance window (in percent). We leverage the cost model to recommend a configuration that maximizes performance while 
+                             increasing the cost by at most X%, where X is the cost tolerance window . (Optional, Default is 0)
 }
 ```
 
@@ -66,4 +66,13 @@
       }
     ]
 }
+```
+
+
+### Replicating the results in the paper
+To generate the results in the paper, we used these parameters:
+```
+termination_threshold=2
+min_invocations=2
+dynamic_sampling_params.max_sample_count=5
 ```
