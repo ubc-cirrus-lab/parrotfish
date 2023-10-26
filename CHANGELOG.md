@@ -1,3 +1,9 @@
+## 0.3.1 (2023-10-26)
+
+### Fix
+
+- fixed configuration parameters naming (#158)
+
 ## 0.3.0 (2023-10-24)
 
 ## 0.1.0 (2023-10-20)
