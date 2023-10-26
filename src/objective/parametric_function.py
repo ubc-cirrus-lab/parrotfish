@@ -48,14 +48,15 @@ class ParametricFunction:
         )[0]
 
     def minimize(
-            self, memory_space: np.ndarray, execution_time_threshold: int = None, cost_tolerance_window: int = None
+            self, memory_space: np.ndarray, constraint_execution_time_threshold: int = None,
+            constraint_cost_tolerance_percent: int = None
     ) -> int:
         """Minimizes the cost function and returns the corresponding memory configuration.
 
         Args:
             memory_space (np.ndarray): The memory space specific to the cloud provider.
-            execution_time_threshold (int): The execution time threshold constraint.
-            cost_tolerance_window (int): The cost tolerance window constraint.
+            constraint_execution_time_threshold (int): The execution time threshold constraint.
+            constraint_cost_tolerance_percent (int): The cost tolerance window constraint.
 
         Returns:
             int: Memory configuration that minimizes the cost function.
@@ -63,26 +64,26 @@ class ParametricFunction:
         costs = self.__call__(memory_space) * memory_space
 
         # Handling execution threshold constraint
-        if execution_time_threshold:
+        if constraint_execution_time_threshold:
             try:
                 memory_space, costs = self._filter_execution_time_constraint(
-                    memory_space, costs, execution_time_threshold
+                    memory_space, costs, constraint_execution_time_threshold
                 )
             except UnfeasibleConstraintError as e:
                 logger.warning(e)
 
-        if cost_tolerance_window:
+        if constraint_cost_tolerance_percent:
             execution_times = costs / memory_space
-            min_index = self._find_min_index_within_tolerance(costs, execution_times, cost_tolerance_window)
+            min_index = self._find_min_index_within_tolerance(costs, execution_times, constraint_cost_tolerance_percent)
         else:
             min_index = np.argmin(costs)
         return memory_space[min_index]
 
     @staticmethod
     def _find_min_index_within_tolerance(costs: np.ndarray, execution_times: np.ndarray,
-                                         cost_tolerance_window: int) -> int:
+                                         constraint_cost_tolerance_percent: int) -> int:
         min_cost = np.min(costs)
-        min_cost_tolerance_window = min_cost + cost_tolerance_window / 100 * min_cost
+        min_cost_tolerance_window = min_cost + constraint_cost_tolerance_percent / 100 * min_cost
         min_index = 0
         min_execution_time = np.inf
         for i in range(len(execution_times)):
@@ -96,20 +97,18 @@ class ParametricFunction:
     def _filter_execution_time_constraint(
             memory_space: np.ndarray,
             costs: np.ndarray,
-            execution_time_threshold: int = None,
+            constraint_execution_time_threshold: int = None,
     ) -> tuple:
         filtered_memories = np.array([])
         filtered_costs = np.array([])
         execution_times = costs / memory_space
 
         for i in range(len(execution_times)):
-            if execution_times[i] <= execution_time_threshold:
+            if execution_times[i] <= constraint_execution_time_threshold:
                 filtered_memories = np.append(filtered_memories, memory_space[i])
                 filtered_costs = np.append(filtered_costs, costs[i])
 
         if len(filtered_memories) == 0:
-            raise UnfeasibleConstraintError(
-                "The execution time threshold constraint cannot be satisfied"
-            )
+            raise UnfeasibleConstraintError()
 
         return filtered_memories, filtered_costs

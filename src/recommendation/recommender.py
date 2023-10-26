@@ -11,11 +11,11 @@ class Recommender:
         self,
         objective: Objective,
         sampler: Sampler,
-        max_sample_count: int,
+        max_total_sample_count: int,
     ):
         self.objective = objective
         self.sampler = sampler
-        self._max_sample_count = max_sample_count
+        self._max_total_sample_count = max_total_sample_count
 
     @property
     def _is_termination_reached(self) -> bool:
@@ -27,7 +27,7 @@ class Recommender:
         sample_count = len(self.sampler.sample)
         termination_value = self.objective.termination_value
         return (
-            sample_count > self._max_sample_count
+            sample_count > self._max_total_sample_count
             or termination_value > self.objective.termination_threshold
         )
 

@@ -14,11 +14,11 @@ class Configuration:
         # Setup default values
         self.dynamic_sampling_params = DYNAMIC_SAMPLING_PARAMS
         self.termination_threshold = TERMINATION_THRESHOLD
-        self.max_sample_count = MAX_SAMPLE_COUNT
-        self.min_invocations = MIN_INVOCATIONS
+        self.max_total_sample_count = MAX_TOTAL_SAMPLE_COUNT
+        self.min_sample_per_config = MIN_SAMPLE_PER_CONFIG
         self.max_number_of_invocation_attempts = MAX_NUMBER_OF_INVOCATION_ATTEMPTS
-        self.execution_time_threshold = None
-        self.cost_tolerance_window = None
+        self.constraint_execution_time_threshold = None
+        self.constraint_cost_tolerance_percent = None
         self.memory_bounds = None
 
         # Parse the configuration file
@@ -56,12 +56,12 @@ class Configuration:
                     "maxItems": 2,
                 },
                 "termination_threshold": {"type": "number", "minimum": 0},
-                "max_sample_count": {"type": "integer", "minimum": 0},
-                "min_invocations": {"type": "integer", "minimum": 0},
+                "max_total_sample_count": {"type": "integer", "minimum": 0},
+                "min_sample_per_config": {"type": "integer", "minimum": 2},
                 "dynamic_sampling_params": {
                     "type": "object",
                     "properties": {
-                        "max_sample_count": {"type": "integer", "minimum": 0},
+                        "max_sample_per_config": {"type": "integer", "minimum": 0},
                         "coefficient_of_variation_threshold": {
                             "type": "number",
                             "minimum": 0,
@@ -69,8 +69,8 @@ class Configuration:
                     },
                 },
                 "max_number_of_invocation_attempts": {"type": "integer", "minimum": 0},
-                "execution_time_threshold": {"type": "integer", "minimum": 1},
-                "cost_tolerance_window": {"type": "integer", "minimum": 1},
+                "constraint_execution_time_threshold": {"type": "integer", "minimum": 1},
+                "constraint_cost_tolerance_percent": {"type": "integer", "minimum": 1},
             },
             "required": ["function_name", "vendor", "region"],
             "if": {"not": {"required": ["payload"]}},
