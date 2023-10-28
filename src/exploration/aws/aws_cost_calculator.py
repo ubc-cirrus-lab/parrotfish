@@ -48,7 +48,7 @@ class AWSCostCalculator(CostCalculator):
         pricing information and parse it accordingly to determine the pricing units.
         """
         try:
-            response = self.aws_session.client("pricing").get_products(
+            response = boto3.client("pricing", region_name="us-east-1").get_products(
                 ServiceCode="AWSLambda",
                 Filters=[
                     {

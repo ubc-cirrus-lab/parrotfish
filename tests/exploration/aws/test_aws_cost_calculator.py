@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 
@@ -20,49 +21,49 @@ def calculator_with_mock_aws_session() -> AWSCostCalculator:
 
 class TestGetPricingUnits:
     def test_get_pricing_units(self, calculator_with_mock_aws_session):
-        # Mock the response for get_products() from pricing client
-        calculator_with_mock_aws_session.aws_session.client(
-            "pricing"
-        ).get_products.return_value = {
-            "PriceList": [
-                '{"product": {"attributes": {"group": "AWS-Lambda-Duration-ARM"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000150000"}}}}}}}',
-                '{"product": {"attributes": {"group": "AWS-Lambda-Duration"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000166667"}}}}}}}',
-                '{"product": {"attributes": {"group": "AWS-Lambda-Requests-ARM"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000002000"}}}}}}}',
-                '{"product": {"attributes": {"group": "AWS-Lambda-Requests"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000002000"}}}}}}}',
-            ]
-        }
+        boto3_client_mock = mock.Mock()
+        with patch('boto3.client', return_value=boto3_client_mock):
+            # Mock the response for get_products() from pricing client
+            boto3_client_mock.get_products.return_value = {
+                "PriceList": [
+                    '{"product": {"attributes": {"group": "AWS-Lambda-Duration-ARM"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000150000"}}}}}}}',
+                    '{"product": {"attributes": {"group": "AWS-Lambda-Duration"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000166667"}}}}}}}',
+                    '{"product": {"attributes": {"group": "AWS-Lambda-Requests-ARM"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000002000"}}}}}}}',
+                    '{"product": {"attributes": {"group": "AWS-Lambda-Requests"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": "0.0000002000"}}}}}}}',
+                ]
+            }
 
-        # Mock the response for get_function_configuration() from lambda client
-        calculator_with_mock_aws_session.aws_session.client(
-            "lambda"
-        ).get_function_configuration.return_value = {"Architectures": ["x86"]}
+            # Mock the response for get_function_configuration() from lambda client
+            calculator_with_mock_aws_session.aws_session.client(
+                "lambda"
+            ).get_function_configuration.return_value = {"Architectures": ["x86"]}
 
-        # Call the _get_pricing_units() method
-        pricing_units = calculator_with_mock_aws_session._get_pricing_units()
+            # Call the _get_pricing_units() method
+            pricing_units = calculator_with_mock_aws_session._get_pricing_units()
 
-        # Perform the assertion
-        assert pricing_units == {"compute": 0.0000166667, "request": 0.0000002}
+            # Perform the assertion
+            assert pricing_units == {"compute": 0.0000166667, "request": 0.0000002}
 
     def test_get_pricing_units_index_error(self, calculator_with_mock_aws_session):
-        # Mock the response for get_products() from pricing client
-        calculator_with_mock_aws_session.aws_session.client(
-            "pricing"
-        ).get_products.return_value = {
-            "PriceList": [
-                '{"product": {"attributes": {"group": "AWS-Lambda-Duration-ARM"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": }}}}}}',
-            ]
-        }
+        boto3_client_mock = mock.Mock()
+        with patch('boto3.client', return_value=boto3_client_mock):
+            # Mock the response for get_products() from pricing client
+            boto3_client_mock.get_products.return_value = {
+                "PriceList": [
+                    '{"product": {"attributes": {"group": "AWS-Lambda-Duration-ARM"}, "terms": {"OnDemand": {"offerTermCode": "JRTCKXETXF", "priceDimensions": {"JRTCKXETXF.6YS6EN2CT7": {"pricePerUnit": {"USD": }}}}}}',
+                ]
+            }
 
-        # Mock the response for get_function_configuration() from lambda client
-        calculator_with_mock_aws_session.aws_session.client(
-            "lambda"
-        ).get_function_configuration.return_value = {"Architectures": ["x86"]}
+            # Mock the response for get_function_configuration() from lambda client
+            calculator_with_mock_aws_session.aws_session.client(
+                "lambda"
+            ).get_function_configuration.return_value = {"Architectures": ["x86"]}
 
-        with pytest.raises(CostCalculationError) as e:
-            # Response parsing fails.
-            calculator_with_mock_aws_session._get_pricing_units()
+            with pytest.raises(CostCalculationError) as e:
+                # Response parsing fails.
+                calculator_with_mock_aws_session._get_pricing_units()
 
-        assert e.type == CostCalculationError
+            assert e.type == CostCalculationError
 
 
 class TestCalculator:
