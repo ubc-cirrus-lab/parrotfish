@@ -1,3 +1,10 @@
+## 1.0.0 (2023-11-16)
+
+### Fix
+
+- added grpcio-status to requirements (#162)
+- aws pricing api (#160)
+
 ## 0.3.1 (2023-10-26)
 
 ### Fix
