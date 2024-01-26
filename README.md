@@ -59,4 +59,4 @@ file.
 ## Acknowledgments
 
 This work was supported by the Natural Sciences and Engineering Research Council of Canada (NSERC), Mitacs, and The University of British Columbia (UBC).
-This work was enabled by cloud resources made available to us by the Digital Research Alliance of Canada, the Google Cloud Research Credits program, and the AWS Cloud Credit for Research program.
+This work was enabled by cloud resources made available to us by the Digital Research Alliance of Canada, Google Cloud, Amazon Web Services, and Oracle Cloud Infrastructure.
