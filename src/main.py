@@ -4,7 +4,7 @@ import os
 
 from src.configuration import Configuration
 from src.exception import OptimizationError
-from src.logging import logger
+from src.logger import logger
 from src.parrotfish import Parrotfish
 
 

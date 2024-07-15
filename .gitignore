@@ -10,6 +10,9 @@
 *.swp
 tags
 
+.vscode/
+.idea/
+
 __pycache__/
 *.py[cod]
 *$py.class
@@ -22,6 +25,7 @@ TODO.md
 src/benchmarks/*/workload.json
 
 spot-env/
+venv/
 
 #Unittest Logs
 .coverage

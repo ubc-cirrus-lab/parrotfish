@@ -4,7 +4,7 @@ from botocore.exceptions import *
 from src.exception import *
 from src.exploration.config_manager import ConfigManager
 from src.exploration.function_config import FunctionConfig
-from src.logging import logger
+from src.logger import logger
 
 
 class AWSConfigManager(ConfigManager):

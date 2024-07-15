@@ -2,7 +2,7 @@ import re
 
 from src.exception import *
 from src.exploration.log_parser import LogParser
-from src.logging import logger
+from src.logger import logger
 
 
 class AWSLogParser(LogParser):

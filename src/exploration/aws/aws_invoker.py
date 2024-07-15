@@ -6,7 +6,7 @@ from botocore.exceptions import *
 
 from src.exception import *
 from src.exploration.invoker import Invoker
-from src.logging import logger
+from src.logger import logger
 
 
 class AWSInvoker(Invoker):

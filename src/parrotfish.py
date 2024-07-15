@@ -3,7 +3,7 @@ import numpy as np
 from google.auth import default, exceptions
 
 from src.exploration import *
-from src.logging import logger
+from src.logger import logger
 from src.objective import *
 from src.recommendation import *
 from src.sampling import *
