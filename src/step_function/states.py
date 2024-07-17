@@ -1,20 +1,43 @@
-class State:
+from abc import ABC, abstractmethod
+
+import boto3
+
+
+class State(ABC):
     """Base class for Task and Parallel states."""
 
-    def __init__(self, name: str, execution_time: float = 0):
+    def __init__(self, name: str):
         self.name = name
-        self.execution_time = execution_time
 
+    @abstractmethod
     def get_execution_time(self) -> float:
-        return self.execution_time
+        pass
 
 
 class Task(State):
     """Task state in Step Function."""
 
-    def __init__(self, name: str, arn: str):
+    def __init__(self, name: str, function_name: str):
         super().__init__(name)
-        self.arn = arn
+        self.function_name = function_name
+
+    def set_input(self, input: str):
+        self.input = input
+
+    def get_output(self) -> str:
+        lambda_client = boto3.client("lambda", region_name="ca-west-1")
+        print("Start invocation, function_name: " + self.function_name + " , input: " + self.input)
+        response = lambda_client.invoke(
+            FunctionName=self.function_name,
+            InvocationType='RequestResponse',
+            Payload=self.input
+        )
+        print("Finish invocation, function_name: " + self.function_name + " , input: " + self.input)
+        output = response['Payload'].read().decode('utf-8')
+        return output
+
+    def get_execution_time(self) -> float:
+        return 1
 
 
 class Parallel(State):
@@ -22,7 +45,7 @@ class Parallel(State):
 
     def __init__(self, name: str):
         super().__init__(name)
-        self.branches = []
+        self.branches: list[Workflow] = []
 
     def add_branch(self, workflow: "Workflow"):
         self.branches.append(workflow)
@@ -31,7 +54,7 @@ class Parallel(State):
         """Returns the longest execution time among all branches."""
         max_time = 0
         for branch in self.branches:
-            branch_time = branch.get_total_execution_time()
+            branch_time = branch.get_execution_time()
             max_time = max(max_time, branch_time)
         return max_time
 
@@ -41,23 +64,25 @@ class Map(State):
 
     def __init__(self, name: str):
         super().__init__(name)
-        self.workflow = None
+        self.iterations: list[Workflow] = []
 
     def set_workflow(self, workflow: "Workflow"):
-        self.workflow = workflow
+        self.iterations.append(workflow)
 
     def get_execution_time(self) -> float:
-        """Returns the execution time of the single workflow."""
-        if self.workflow:
-            return self.workflow.get_execution_time()
-        return 0
+        """Returns the longest execution time among all branches."""
+        max_time = 0
+        for branch in self.iterations:
+            branch_time = branch.get_execution_time()
+            max_time = max(max_time, branch_time)
+        return max_time
 
 
 class Workflow:
     """A workflow, containing a sequence of states."""
 
     def __init__(self):
-        self.states = []
+        self.states: list[State] = []
 
     def add_state(self, state: State):
         self.states.append(state)

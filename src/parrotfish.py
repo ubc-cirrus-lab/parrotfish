@@ -56,7 +56,7 @@ class Parrotfish:
             max_total_sample_count=config.max_total_sample_count,
         )
 
-    def optimize(self, apply: bool = None) -> None:
+    def optimize(self, apply: bool = None) -> int:
         collective_costs = np.zeros(len(self.explorer.memory_space))
         min_memories = []
         i = 1
@@ -83,16 +83,19 @@ class Parrotfish:
         else:
             self.explorer.config_manager.reset_config()
 
+        return minimum_memory
+
     def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> int:
         self.explorer.payload = entry["payload"]
+        self.objective.reset()
         self.recommender.run()
         collective_costs += (
-            self.param_function(self.explorer.memory_space) * entry["weight"]
+                self.param_function(self.explorer.memory_space) * entry["weight"]
         )
         minimum_memory = self.param_function.minimize(
-            self.explorer.memory_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
+            self.explorer.memory_space, self.config.constraint_execution_time_threshold,
+            self.config.constraint_cost_tolerance_percent
         )
-        self.objective.reset()
         return minimum_memory
 
     def _apply_configuration(self, memory_mb: int):
