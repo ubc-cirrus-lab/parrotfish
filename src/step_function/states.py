@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 import boto3
 
+from src.exploration.aws.aws_invoker import AWSInvoker
+
 
 class State(ABC):
     """Base class for Task and Parallel states."""
@@ -25,15 +27,23 @@ class Task(State):
         self.input = input
 
     def get_output(self) -> str:
-        lambda_client = boto3.client("lambda", region_name="ca-west-1")
+        aws_session = boto3.Session(region_name="ca-west-1")
+        #
+        # # Set memory size of the function to maximum
+        # memory_size = 3008
+        # config_manager = AWSConfigManager(self.function_name, aws_session)
+        # config_manager.set_config(memory_size)
+        # print("Memory size: " + str(memory_size) + "MB")
+
+        # Invoke function to get output
         print("Start invocation, function_name: " + self.function_name + " , input: " + self.input)
-        response = lambda_client.invoke(
-            FunctionName=self.function_name,
-            InvocationType='RequestResponse',
-            Payload=self.input
+        invoker = AWSInvoker(
+            function_name=self.function_name,
+            max_invocation_attempts=5,
+            aws_session=aws_session,
         )
+        output = invoker.invoke_for_output(self.input)
         print("Finish invocation, function_name: " + self.function_name + " , input: " + self.input)
-        output = response['Payload'].read().decode('utf-8')
         return output
 
     def get_execution_time(self) -> float:
@@ -65,6 +75,8 @@ class Map(State):
     def __init__(self, name: str):
         super().__init__(name)
         self.iterations: list[Workflow] = []
+        self.workflow = None
+        self.items_path = ""
 
     def set_workflow(self, workflow: "Workflow"):
         self.iterations.append(workflow)

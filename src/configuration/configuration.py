@@ -1,6 +1,5 @@
 import json
-import os
-from typing import TextIO
+from typing import TextIO, Union
 
 import jsonschema
 
@@ -8,7 +7,7 @@ from .defaults import *
 
 
 class Configuration:
-    def __init__(self, config_file: TextIO):
+    def __init__(self, config_file: Union[TextIO, dict]):
         self._load_config_schema()
 
         # Setup default values
@@ -79,9 +78,12 @@ class Configuration:
             "additionalProperties": False,
         }
 
-    def _deserialize(self, config_file: TextIO):
+    def _deserialize(self, config_input: Union[TextIO, dict]):
         try:
-            j_dict = json.load(config_file)
+            if isinstance(config_input, TextIO):
+                j_dict = json.load(config_input)
+            else:
+                j_dict = config_input
             jsonschema.validate(instance=j_dict, schema=self._config_json_schema)
 
         except json.decoder.JSONDecodeError as e:
