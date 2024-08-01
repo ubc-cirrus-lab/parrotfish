@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import boto3
 
 from src.exploration.aws.aws_invoker import AWSInvoker
+from src.logger import logger
 
 
 class State(ABC):
@@ -22,28 +23,21 @@ class Task(State):
     def __init__(self, name: str, function_name: str):
         super().__init__(name)
         self.function_name = function_name
+        self.parrotfish = None
 
     def set_input(self, input: str):
         self.input = input
 
     def get_output(self) -> str:
-        aws_session = boto3.Session(region_name="ca-west-1")
-        #
-        # # Set memory size of the function to maximum
-        # memory_size = 3008
-        # config_manager = AWSConfigManager(self.function_name, aws_session)
-        # config_manager.set_config(memory_size)
-        # print("Memory size: " + str(memory_size) + "MB")
+        logger.debug(f"Invoking {self.function_name}, input: {self.input}")
 
-        # Invoke function to get output
-        print("Start invocation, function_name: " + self.function_name + " , input: " + self.input)
+        aws_session = boto3.Session(region_name="us-west-2")
         invoker = AWSInvoker(
             function_name=self.function_name,
             max_invocation_attempts=5,
             aws_session=aws_session,
         )
         output = invoker.invoke_for_output(self.input)
-        print("Finish invocation, function_name: " + self.function_name + " , input: " + self.input)
         return output
 
     def get_execution_time(self) -> float:

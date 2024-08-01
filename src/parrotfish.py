@@ -70,7 +70,7 @@ class Parrotfish:
 
         if len(min_memories) == 1:
             minimum_memory = min_memories[0]
-            print(f"Optimization result: {minimum_memory} MB")
+            print(f"Optimization result: {minimum_memory} MB", {self.config.function_name})
         else:
             for i in range(len(min_memories)):
                 print(f"Optimization result for payload {i}: {min_memories[i]} MB")

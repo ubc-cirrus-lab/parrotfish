@@ -14,7 +14,7 @@ from src.step_function.states import State, Task, Parallel, Map, Workflow
 
 class StepFunction:
     def __init__(self, arn: str, input: str):
-        self.function_tasks_dict = {}
+        self.function_task_dict = {}
         self.definition = self._load_definition(arn)
         self.workflow = self._create_workflow(self.definition)
         self._set_memory_for_all_functions()
@@ -42,9 +42,8 @@ class StepFunction:
                 function_name = state_def["Parameters"]["FunctionName"]
                 task = Task(name, function_name)
 
-                if function_name not in self.function_tasks_dict:
-                    self.function_tasks_dict[function_name] = []
-                self.function_tasks_dict[function_name].append(task)
+                ### TODO: Deal with different inputs to same function
+                self.function_task_dict[function_name] = task
 
                 return task
 
@@ -80,7 +79,6 @@ class StepFunction:
             else:
                 break  ## should throw an exception
 
-        print("Workflow created.")
         return workflow
 
     def _set_memory_for_all_functions(self):
@@ -88,28 +86,31 @@ class StepFunction:
 
         def set_memory_for_function(function_name):
             """Set memory size for one Lambda function"""
-            aws_session = boto3.Session(region_name="ca-west-1")
+            aws_session = boto3.Session(region_name="us-west-2")
             memory_size = 3008
             config_manager = AWSConfigManager(function_name, aws_session)
             config_manager.set_config(memory_size)
+
+        logger.info("Start setting all memory sizes to maximum")
 
         error = None
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [
                 executor.submit(set_memory_for_function, function_name)
-                for function_name in self.function_tasks_dict
+                for function_name in self.function_task_dict
             ]
 
             for future in as_completed(futures):
                 try:
                     config = future.result()
-                    print("Set memory size completed, config: " + str(config))
 
                 except Exception as e:
                     logger.debug(e)
                     if error is None:
                         error = e
                     continue
+
+        logger.info("Finish setting all memory sizes to maximum\n")
 
         if error:
             raise error
@@ -141,7 +142,7 @@ class StepFunction:
                         branch = futures[future]
                         try:
                             branch_output = future.result()
-                            outputs.append(branch_output)
+                            outputs.append(json.loads(branch_output))
                         except Exception as e:
                             logger.error(f"Error processing branch {branch}: {e}")
                             if error is None:
@@ -167,7 +168,7 @@ class StepFunction:
                         iteration_input = futures[future]
                         try:
                             iteration_output = future.result()
-                            outputs.append(iteration_output)
+                            outputs.append(json.loads(iteration_output))
                         except Exception as e:
                             logger.error(f"Error processing iteration with input {iteration_input}: {e}")
                             if error is None:
@@ -177,70 +178,53 @@ class StepFunction:
                     raise error
                 return json.dumps(outputs)
 
+        logger.info("Start setting workflow inputs")
         payload = workflow_input
         for state in workflow.states:
             # The output of one function is the input of next function
             payload = _set_state_input(state, payload)
+        logger.info("Finish setting workflow inputs\n")
         return payload
 
     def _invoke_lambdas_in_parallel(self) -> list:
-        def run_parrotfish(config):
+        # Run Parrotfish on one function
+        def run_parrotfish(task: Task):
+            config = {
+                "function_name": task.function_name,
+                "vendor": "AWS",
+                "region": "us-west-2",
+                "payload": json.loads(task.input),
+                "termination_threshold": 2,
+                "min_sample_per_config": 2,
+                "dynamic_sampling_params": {
+                    "max_sample_per_config": 5,
+                    "coefficient_of_variation_threshold": 0.1
+                },
+            }
             parrotfish = Parrotfish(Configuration(config))
-            print("Optimize function: ", parrotfish.config.function_name)
-
-            memory = parrotfish.optimize(apply=False)
-            param_function = parrotfish.param_function
-
-            print("Optimization finished: minimum memory= ", memory, ", function= ", parrotfish.config.function_name)
-            return {"memory": memory, "param_function": param_function}
+            min_memory = parrotfish.optimize(apply=False)
+            task.parrotfish = parrotfish
+            return task.function_name, min_memory
 
         error = None
-
-        def run_function_with_inputs(tasks) -> list:
-            results = []
-
-            # run Parrotfish on each task
-            for task in tasks:
-                try:
-                    config = {
-                        "function_name": task.function_name,
-                        "vendor": "AWS",
-                        "region": "ca-west-1",
-                        "payload": json.loads(task.input),
-                        "termination_threshold": 2,
-                        "min_sample_per_config": 3,
-                        "dynamic_sampling_params": {
-                            "max_sample_per_config": 3,
-                            "coefficient_of_variation_threshold": 0.1
-                        }
-                    }
-                    result = run_parrotfish(config)
-                    results.append(result)
-                except Exception as e:
-                    logger.debug(e)
-                    nonlocal error
-                    if error is None:
-                        error = e
-                    continue
-
-            return results
+        results = {}
+        logger.info("Start optimizing all functions")
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             # Run different functions in parallel
-            futures = [executor.submit(run_function_with_inputs, tasks)
-                       for tasks in self.function_tasks_dict.values()]
+            futures = [executor.submit(run_parrotfish, task)
+                       for task in self.function_task_dict.values()]
 
-            results = []
             for future in as_completed(futures):
                 try:
-                    results.append(future.result())
+                    function_name, min_memories = future.result()
+                    results[function_name] = min_memories
                 except Exception as e:
                     logger.debug(e)
                     if error is None:
                         error = e
                     continue
+        logger.info(f"Finish optimizing all functions, {results}")
 
         if error:
             raise error
-
-        return results

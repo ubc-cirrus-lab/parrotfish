@@ -30,7 +30,7 @@ class AWSConfigManager(ConfigManager):
         #     )
         #
         # return int(quota["Quota"]["Value"])
-        return 900
+        return 60
 
     def set_config(self, memory_mb: int, timeout: int = None) -> any:
         sleeping_interval = 1

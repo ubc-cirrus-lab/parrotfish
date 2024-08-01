@@ -20,15 +20,17 @@ class AWSInvoker(Invoker):
         self.client = aws_session.client("lambda")
 
     def _invoke_with_retry(self, payload: str) -> dict:
-        sleeping_interval = 5
-        for _ in range(10):
+        sleeping_interval = 1
+        for _ in range(self.max_invocation_attempts):
             try:
                 # Invoking the function and getting back the response log to parse.
-                memory_size = self.client.get_function_configuration(
+                config = self.client.get_function_configuration(
                     FunctionName=self.function_name
-                )["MemorySize"]
+                )
+                memory_size = config["MemorySize"]
+                timeout = config["Timeout"]
 
-                logger.debug("Invoking function: " + self.function_name + " , Memory size: " + str(memory_size))
+                logger.debug(f"Invoking {self.function_name}, {memory_size}MB, {timeout}s, payload: {payload}")
 
                 response = self.client.invoke(
                     FunctionName=self.function_name, LogType="Tail", Payload=payload
@@ -37,9 +39,9 @@ class AWSInvoker(Invoker):
 
             except ClientError as e:
                 if e.response["Error"]["Code"] == "TooManyRequestsException":
-                    # Handling the throttling imposed by AWS on the number of concurrent executions.
-                    logger.warning("Concurrent Invocation Limit Exceeded. Retrying ... Function: " + self.function_name
-                                   + " Memory size: " + str(memory_size))
+                    # Handling AWS concurrent execution limits.
+                    logger.warning(
+                        f"Concurrent Invocation Limit Exceeded. Retrying... {self.function_name}: {memory_size}MB")
 
                     time.sleep(sleeping_interval)
                     sleeping_interval *= 2
@@ -52,11 +54,8 @@ class AWSInvoker(Invoker):
                     )
 
             except ReadTimeoutError:
-                logger.warning(
-                    "Lambda exploration timed out. The API request to the AWS Lambda service, "
-                    "took longer than the specified timeout period. Retry ..."
-                )
-                return self._invoke_with_retry(payload)  # Retry again
+                logger.warning(f"Lambda exploration timed out. {self.function_name}: {memory_size}MB")
+                raise FunctionTimeoutError(duration_ms=timeout)
 
             except ParamValidationError as e:
                 raise InvocationError(e.args[0])
@@ -68,8 +67,8 @@ class AWSInvoker(Invoker):
                 time.sleep(sleeping_interval)
                 sleeping_interval *= 2
 
-        logger.warning("MaxInvocationAttemptsReachedError" + self.function_name + str(memory_size))
-        raise MaxInvocationAttemptsReachedError
+        logger.warning(f"MaxInvocationAttemptsReachedError. {self.function_name}: {memory_size}MB")
+        raise MaxInvocationAttemptsReachedError()
 
     def invoke(self, payload: str) -> str:
         response = self._invoke_with_retry(payload)
