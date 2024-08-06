@@ -74,8 +74,8 @@ class Parrotfish:
         else:
             for i in range(len(min_memories)):
                 print(f"Optimization result for payload {i}: {min_memories[i]} MB")
-            min_index = np.argmin(collective_costs)
-            minimum_memory = self.explorer.memory_space[min_index]
+            min_index = np.argmin(collective_costs[-self.sampler.memory_space:])
+            minimum_memory = self.sampler.memory_space[min_index]
             print(f"Optimization result of the average cost: {minimum_memory} MB")
 
         if apply:
@@ -93,7 +93,7 @@ class Parrotfish:
                 self.param_function(self.explorer.memory_space) * entry["weight"]
         )
         minimum_memory = self.param_function.minimize(
-            self.explorer.memory_space, self.config.constraint_execution_time_threshold,
+            self.sampler.memory_space, self.config.constraint_execution_time_threshold,
             self.config.constraint_cost_tolerance_percent
         )
         return minimum_memory
