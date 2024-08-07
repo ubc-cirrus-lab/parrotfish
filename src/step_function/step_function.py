@@ -13,19 +13,40 @@ from src.step_function.states import State, Task, Parallel, Map, Workflow
 
 
 class StepFunction:
-    def __init__(self, arn: str, input: str):
-        self.function_task_dict = {}
-        self.definition = self._load_definition(arn)
-        self.workflow = self._create_workflow(self.definition)
-        self._set_memory_for_all_functions()
-        self._set_workflow_inputs(self.workflow, input)
-        self._invoke_lambdas_in_parallel()
+    def __init__(self, arn: str, input: str, aws_session: boto3.Session):
+        """
+        Initializes the StepFunction instance by creating the workflow,
+        initializing workflow inputs, and optimizing functions in parallel.
+
+        Args:
+            arn (str): The Amazon Resource Name (ARN) of the Step Function.
+            input (str): The initial input for the workflow.
+            aws_session (boto3.Session): AWS session object.
+        """
+        self._aws_session = aws_session
+        self._function_task_dict = {}
+        self._definition = self._load_definition(arn)
+        self._workflow = self._create_workflow(self._definition)
+        self._allocate_max_memory_to_functions()
+        self._set_workflow_inputs(self._workflow, input)
+        self._optimize_functions_in_parallel()
         pass
 
     def _load_definition(self, arn: str) -> dict:
-        """Load a step function's definition."""
+        """
+        Loads a step function's definition from AWS Step Functions.
+
+        Args:
+            arn (str): The ARN of the Step Function.
+
+        Returns:
+            dict: The step function's definition.
+
+        Raises:
+            StepFunctionError: If an error occurred while loading the definition.
+        """
         try:
-            response = boto3.client("stepfunctions").describe_state_machine(stateMachineArn=arn)
+            response = self._aws_session.client("stepfunctions").describe_state_machine(stateMachineArn=arn)
             definition = json.loads(response["definition"])
             return definition
 
@@ -34,16 +55,39 @@ class StepFunction:
             raise StepFunctionError("Error loading definition.")
 
     def _create_workflow(self, workflow_def: dict) -> Workflow:
-        """Create a Workflow object from a workflow definition."""
+        """
+        Creates a Workflow object from a workflow definition.
+
+        Args:
+            workflow_def (dict): The definition of the workflow.
+
+        Returns:
+            Workflow: The created Workflow object.
+
+        Raises:
+            StepFunctionError: If an unsupported state type is encountered.
+        """
 
         def _create_state(name, state_def: dict) -> State:
-            """Create a State object from a state definition."""
+            """
+            Creates a State object from a state definition.
+
+            Args:
+                name (str): The name of the state.
+                state_def (dict): The definition of the state.
+
+            Returns:
+                State: The created State object.
+
+            Raises:
+                StepFunctionError: If an unsupported state type is encountered.
+            """
             if state_def["Type"] == "Task":
                 function_name = state_def["Parameters"]["FunctionName"]
                 task = Task(name, function_name)
 
                 ### TODO: Deal with different inputs to same function
-                self.function_task_dict[function_name] = task
+                self._function_task_dict[function_name] = task
 
                 return task
 
@@ -56,8 +100,7 @@ class StepFunction:
 
             elif state_def["Type"] == "Map":
                 map_state = Map(name)
-                workflow = self._create_workflow(state_def["Iterator"])
-                map_state.workflow = workflow
+                map_state.workflow = self._create_workflow(state_def["Iterator"])
                 map_state.items_path = state_def["ItemsPath"]
                 return map_state
 
@@ -81,28 +124,42 @@ class StepFunction:
 
         return workflow
 
-    def _set_memory_for_all_functions(self):
-        """Set maximum memory size for all functions."""
+    def _allocate_max_memory_to_functions(self):
+        """
+        Allocates the maximum memory size to all Lambda functions in the workflow.
 
-        def set_memory_for_function(function_name):
-            """Set memory size for one Lambda function"""
-            aws_session = boto3.Session(region_name="us-west-2")
-            memory_size = 3008
-            config_manager = AWSConfigManager(function_name, aws_session)
-            config_manager.set_config(memory_size)
+        Raises:
+            Exception: If an error occurs during memory allocation.
+        """
+
+        def _set_memory_for_function(function_name: str, memory_size: int):
+            """
+            Sets the memory size for a single Lambda function.
+
+            Args:
+                function_name (str): The name of the Lambda function.
+            """
+            try:
+                config_manager = AWSConfigManager(function_name, self._aws_session)
+                config_manager.set_config(memory_size)
+
+            except Exception as e:
+                logger.debug(e.args[0])
+                raise StepFunctionError("Error setting memory sizes.")
 
         logger.info("Start setting all memory sizes to maximum")
 
         error = None
+        # Set maximum memory sizes in parallel
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [
-                executor.submit(set_memory_for_function, function_name)
-                for function_name in self.function_task_dict
+                executor.submit(_set_memory_for_function, function_name, 3008)
+                for function_name in self._function_task_dict
             ]
 
             for future in as_completed(futures):
                 try:
-                    config = future.result()
+                    future.result()
 
                 except Exception as e:
                     logger.debug(e)
@@ -116,23 +173,53 @@ class StepFunction:
             raise error
 
     def _set_workflow_inputs(self, workflow: Workflow, workflow_input: str) -> str:
-        """Set inputs for the workflow states, chaining the output of each state to the input of the next."""
+        """
+        Sets inputs for states in a workflow, chaining the output of each state to the input of the next.
+
+        Args:
+            workflow (Workflow): The workflow to initialize inputs for.
+            workflow_input (str): The initial input for the workflow.
+
+        Returns:
+            str: The final output after initializing all workflow inputs.
+
+        Raises:
+            Exception: If an error occurs during the initialization of workflow inputs.
+        """
 
         def _extract_items(input_data: str, items_path: str) -> list[str]:
-            """Extract a list of inputs from input JSON file"""
             matches = parse(items_path).find(json.loads(input_data))[0]
             return [json.dumps(item_dict) for item_dict in matches.value]
 
         def _set_state_input(state: State, input: str) -> str:
+            """
+            Sets the input for a given state and returns its output.
+
+            Args:
+                state (State): The state to set the input for.
+                input (str): The input data for the state.
+
+            Returns:
+                str: The output of the state after processing the input.
+
+            Raises:
+                Exception: If an error occurs during the setting of state input.
+            """
+
             if isinstance(state, Task):
-                state.set_input(input)
-                output = state.get_output()
-                return output
+                try:
+                    state.set_input(input)
+                    output = state.get_output(self._aws_session)
+                    return output
+                except Exception as e:
+                    logger.error(f"Error setting input of {state.name}: {e}")
+                    raise StepFunctionError("Error creating state.")
 
             elif isinstance(state, Parallel):
                 error = None
 
                 outputs = []
+                # Parallel execution of branches in a Parallel state
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     futures = {
                         executor.submit(self._set_workflow_inputs, branch, input): branch
@@ -158,8 +245,8 @@ class StepFunction:
                 state.iterations = [state.workflow for _ in range(len(inputs))]
 
                 outputs = []
+                # Parallel execution of iterations in a Map state
                 with ThreadPoolExecutor(max_workers=10) as executor:
-                    # Submit tasks for each iteration
                     futures = {
                         executor.submit(self._set_workflow_inputs, iteration, iteration_input): iteration_input
                         for iteration, iteration_input in zip(state.iterations, inputs)
@@ -186,9 +273,24 @@ class StepFunction:
         logger.info("Finish setting workflow inputs\n")
         return payload
 
-    def _invoke_lambdas_in_parallel(self) -> list:
-        # Run Parrotfish on one function
-        def run_parrotfish(task: Task):
+    def _optimize_functions_in_parallel(self):
+        """
+        Optimizes all Lambda functions in the workflow in parallel.
+        """
+
+        def _optimize_function(task: Task):
+            """
+            Optimizes a single Lambda function.
+
+            Args:
+                task (Task): The task representing the Lambda function to optimize.
+
+            Returns:
+                tuple: The function name and its minimum memory configuration.
+
+            Raises:
+                Exception: If an error occurs during the optimization of the function.
+            """
             config = {
                 "function_name": task.function_name,
                 "vendor": "AWS",
@@ -210,10 +312,10 @@ class StepFunction:
         results = {}
         logger.info("Start optimizing all functions")
 
+        # Execute Parrotfish on functions in parallel
         with ThreadPoolExecutor(max_workers=10) as executor:
-            # Run different functions in parallel
-            futures = [executor.submit(run_parrotfish, task)
-                       for task in self.function_task_dict.values()]
+            futures = [executor.submit(_optimize_function, task)
+                       for task in self._function_task_dict.values()]
 
             for future in as_completed(futures):
                 try:

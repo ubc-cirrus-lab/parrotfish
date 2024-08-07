@@ -92,6 +92,7 @@ class Parrotfish:
         collective_costs += (
                 self.param_function(self.explorer.memory_space) * entry["weight"]
         )
+        # suggest optimized memory size on valid memory space: self.sampler.memory_space
         minimum_memory = self.param_function.minimize(
             self.sampler.memory_space, self.config.constraint_execution_time_threshold,
             self.config.constraint_cost_tolerance_percent

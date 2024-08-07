@@ -78,7 +78,7 @@ class AWSConfigManager(ConfigManager):
         except ClientError as e:
             logger.debug(e.args[0])
 
-            # Retry if function is being updated now
+            # Wait and retry if function configuration is being updated now
             if e.response['Error']['Code'] == 'ResourceConflictException':
                 logger.warning("Concurrent Update Function Error. Retrying ...")
 

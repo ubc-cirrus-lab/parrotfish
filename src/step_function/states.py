@@ -7,7 +7,7 @@ from src.logger import logger
 
 
 class State(ABC):
-    """Base class for Task and Parallel states."""
+    """Base class for Task, Parallel and Map states."""
 
     def __init__(self, name: str):
         self.name = name
@@ -18,7 +18,7 @@ class State(ABC):
 
 
 class Task(State):
-    """Task state in Step Function."""
+    """Task: a single Lambda function """
 
     def __init__(self, name: str, function_name: str):
         super().__init__(name)
@@ -28,16 +28,17 @@ class Task(State):
     def set_input(self, input: str):
         self.input = input
 
-    def get_output(self) -> str:
+    def get_output(self, aws_session: boto3.Session) -> str:
         logger.debug(f"Invoking {self.function_name}, input: {self.input}")
 
-        aws_session = boto3.Session(region_name="us-west-2")
         invoker = AWSInvoker(
             function_name=self.function_name,
             max_invocation_attempts=5,
             aws_session=aws_session,
         )
         output = invoker.invoke_for_output(self.input)
+
+        logger.debug(f"Finish invoking {self.function_name}, output: {output}")
         return output
 
     def get_execution_time(self) -> float:
@@ -45,7 +46,7 @@ class Task(State):
 
 
 class Parallel(State):
-    """Parallel state, holding multiple parallel workflows."""
+    """Parallel: parallel workflows (branches) with same input."""
 
     def __init__(self, name: str):
         super().__init__(name)
@@ -64,7 +65,7 @@ class Parallel(State):
 
 
 class Map(State):
-    """Map state, holding a single workflow to be iterated."""
+    """Map: multiple same workflows with different inputs"""
 
     def __init__(self, name: str):
         super().__init__(name)
