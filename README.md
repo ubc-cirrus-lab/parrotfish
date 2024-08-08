@@ -43,7 +43,8 @@ export PACKAGE_VERSION="0.0.0"
 pip install -e .
 ```
 
-3. Create and optimize your Parrotfish configuration file. Check [here](src/configuration/README.md) to learn more about options and see some examples.
+3. Create and optimize your Parrotfish configuration file. Check [here](src/configuration/README.md) to learn more about
+   options and see some examples.
 
 4. Run Parrotfish!
 
