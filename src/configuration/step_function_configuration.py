@@ -1,13 +1,13 @@
 import json
-from typing import TextIO, Union
+from typing import TextIO
 
 import jsonschema
 
-from .defaults import *
+from src.configuration.defaults import *
 
 
-class Configuration:
-    def __init__(self, config_file: Union[TextIO, dict]):
+class StepFunctionConfiguration:
+    def __init__(self, config_file: TextIO):
         self._load_config_schema()
 
         # Setup default values
@@ -16,9 +16,6 @@ class Configuration:
         self.max_total_sample_count = MAX_TOTAL_SAMPLE_COUNT
         self.min_sample_per_config = MIN_SAMPLE_PER_CONFIG
         self.max_number_of_invocation_attempts = MAX_NUMBER_OF_INVOCATION_ATTEMPTS
-        self.constraint_execution_time_threshold = None
-        self.constraint_cost_tolerance_percent = None
-        self.memory_bounds = None
 
         # Parse the configuration file
         self._deserialize(config_file)
@@ -26,12 +23,11 @@ class Configuration:
     def _load_config_schema(self):
         self._config_json_schema = {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "title": "Parrotfish Configuration Schema",
+            "title": "Parrotfish for Step Function Configuration Schema",
             "description": "The configuration input's schema.",
             "type": "object",
             "properties": {
-                "function_name": {"type": "string"},
-                "vendor": {"type": "string", "enum": ["AWS", "GCP"]},
+                "arn": {"type": "string"},
                 "region": {"type": "string"},
                 "payload": {"anyOf": [{"type": "object"}, {"type": "array"}]},
                 "payloads": {
@@ -48,12 +44,6 @@ class Configuration:
                     },
                     "minItems": 1,
                 },
-                "memory_bounds": {
-                    "type": "array",
-                    "items": {"type": "integer"},
-                    "minItems": 2,
-                    "maxItems": 2,
-                },
                 "termination_threshold": {"type": "number", "minimum": 0},
                 "max_total_sample_count": {"type": "integer", "minimum": 0},
                 "min_sample_per_config": {"type": "integer", "minimum": 2},
@@ -68,22 +58,17 @@ class Configuration:
                     },
                 },
                 "max_number_of_invocation_attempts": {"type": "integer", "minimum": 0},
-                "constraint_execution_time_threshold": {"type": "integer", "minimum": 1},
-                "constraint_cost_tolerance_percent": {"type": "integer", "minimum": 1},
             },
-            "required": ["function_name", "vendor", "region"],
+            "required": ["arn", "region", "payload"],
             "if": {"not": {"required": ["payload"]}},
             "then": {"required": ["payloads"]},
             "else": {"required": ["payload"]},
             "additionalProperties": False,
         }
 
-    def _deserialize(self, config_file: Union[TextIO, dict]):
+    def _deserialize(self, config_file: TextIO):
         try:
-            if isinstance(config_file, dict):
-                j_dict = config_file
-            else:
-                j_dict = json.load(config_file)
+            j_dict = json.load(config_file)
             jsonschema.validate(instance=j_dict, schema=self._config_json_schema)
 
         except json.decoder.JSONDecodeError as e:
@@ -97,19 +82,5 @@ class Configuration:
             )
 
         else:
-            if "payloads" in j_dict:
-                for entry in j_dict["payloads"]:
-                    entry["payload"] = json.dumps(entry["payload"])
-                # Validate that sum of weights is 1.
-                if sum([entry["weight"] for entry in j_dict["payloads"]]) != 1:
-                    raise ValueError(
-                        f"Please make sure that the weights in {config_file.name} are in [0,1] interval "
-                        f"and that their sum is 1"
-                    )
-
-            if "payload" in j_dict:
-                payload_str = json.dumps(j_dict["payload"])
-                j_dict["payloads"] = [{"payload": payload_str, "weight": 1}]
-                del j_dict["payload"]
-
+            j_dict["payload"] = json.dumps(j_dict["payload"])
             self.__dict__.update(**j_dict)

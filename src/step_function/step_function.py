@@ -9,27 +9,29 @@ from src.exception.step_function_error import StepFunctionError
 from src.exploration.aws.aws_config_manager import AWSConfigManager
 from src.logger import logger
 from src.parrotfish import Parrotfish
-from src.step_function.states import State, Task, Parallel, Map, Workflow
+from .states import State, Task, Parallel, Map, Workflow
 
 
 class StepFunction:
-    def __init__(self, arn: str, input: str, aws_session: boto3.Session):
+    def __init__(self, config: any):
         """
         Initializes the StepFunction instance by creating the workflow,
-        initializing workflow inputs, and optimizing functions in parallel.
+        initializing workflow inputs, and run Parrotfish in parallel.
 
         Args:
             arn (str): The Amazon Resource Name (ARN) of the Step Function.
             input (str): The initial input for the workflow.
-            aws_session (boto3.Session): AWS session object.
+            aws_region (str): AWS region name.
         """
-        self._aws_session = aws_session
-        self._function_task_dict = {}
-        self._definition = self._load_definition(arn)
-        self._workflow = self._create_workflow(self._definition)
-        self._allocate_max_memory_to_functions()
-        self._set_workflow_inputs(self._workflow, input)
-        self._optimize_functions_in_parallel()
+        self.config = config
+        self.function_task_dict = {}
+
+        self.aws_session = boto3.Session(region_name=config.region)
+        self.definition = self._load_definition(config.arn)
+        self.workflow = self._create_workflow(self.definition)
+        self.allocate_max_memory_to_functions()
+        self.set_workflow_inputs(self.workflow, config.payload)
+        self.run_parrotfish_in_parallel()
         pass
 
     def _load_definition(self, arn: str) -> dict:
@@ -46,7 +48,7 @@ class StepFunction:
             StepFunctionError: If an error occurred while loading the definition.
         """
         try:
-            response = self._aws_session.client("stepfunctions").describe_state_machine(stateMachineArn=arn)
+            response = self.aws_session.client("stepfunctions").describe_state_machine(stateMachineArn=arn)
             definition = json.loads(response["definition"])
             return definition
 
@@ -87,7 +89,7 @@ class StepFunction:
                 task = Task(name, function_name)
 
                 ### TODO: Deal with different inputs to same function
-                self._function_task_dict[function_name] = task
+                self.function_task_dict[function_name] = task
 
                 return task
 
@@ -124,7 +126,7 @@ class StepFunction:
 
         return workflow
 
-    def _allocate_max_memory_to_functions(self):
+    def allocate_max_memory_to_functions(self):
         """
         Allocates the maximum memory size to all Lambda functions in the workflow.
 
@@ -140,7 +142,7 @@ class StepFunction:
                 function_name (str): The name of the Lambda function.
             """
             try:
-                config_manager = AWSConfigManager(function_name, self._aws_session)
+                config_manager = AWSConfigManager(function_name, self.aws_session)
                 config_manager.set_config(memory_size)
 
             except Exception as e:
@@ -154,7 +156,7 @@ class StepFunction:
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [
                 executor.submit(_set_memory_for_function, function_name, 3008)
-                for function_name in self._function_task_dict
+                for function_name in self.function_task_dict
             ]
 
             for future in as_completed(futures):
@@ -172,7 +174,7 @@ class StepFunction:
         if error:
             raise error
 
-    def _set_workflow_inputs(self, workflow: Workflow, workflow_input: str) -> str:
+    def set_workflow_inputs(self, workflow: Workflow, workflow_input: str) -> str:
         """
         Sets inputs for states in a workflow, chaining the output of each state to the input of the next.
 
@@ -209,7 +211,7 @@ class StepFunction:
             if isinstance(state, Task):
                 try:
                     state.set_input(input)
-                    output = state.get_output(self._aws_session)
+                    output = state.get_output(self.aws_session)
                     return output
                 except Exception as e:
                     logger.error(f"Error setting input of {state.name}: {e}")
@@ -222,7 +224,7 @@ class StepFunction:
                 # Parallel execution of branches in a Parallel state
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     futures = {
-                        executor.submit(self._set_workflow_inputs, branch, input): branch
+                        executor.submit(self.set_workflow_inputs, branch, input): branch
                         for branch in state.branches
                     }
                     for future in as_completed(futures):
@@ -248,7 +250,7 @@ class StepFunction:
                 # Parallel execution of iterations in a Map state
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     futures = {
-                        executor.submit(self._set_workflow_inputs, iteration, iteration_input): iteration_input
+                        executor.submit(self.set_workflow_inputs, iteration, iteration_input): iteration_input
                         for iteration, iteration_input in zip(state.iterations, inputs)
                     }
                     for future in as_completed(futures):
@@ -273,14 +275,14 @@ class StepFunction:
         logger.info("Finish setting workflow inputs\n")
         return payload
 
-    def _optimize_functions_in_parallel(self):
+    def run_parrotfish_in_parallel(self):
         """
-        Optimizes all Lambda functions in the workflow in parallel.
+        Optimizes all Lambda functions using Parrotfish in parallel.
         """
 
         def _optimize_function(task: Task):
             """
-            Optimizes a single Lambda function.
+            Optimizes a single Lambda function using Parrotfish.
 
             Args:
                 task (Task): The task representing the Lambda function to optimize.
@@ -294,14 +296,13 @@ class StepFunction:
             config = {
                 "function_name": task.function_name,
                 "vendor": "AWS",
-                "region": "us-west-2",
+                "region": self.config.region,
                 "payload": json.loads(task.input),
-                "termination_threshold": 2,
-                "min_sample_per_config": 2,
-                "dynamic_sampling_params": {
-                    "max_sample_per_config": 5,
-                    "coefficient_of_variation_threshold": 0.1
-                },
+                "termination_threshold": self.config.termination_threshold,
+                "max_total_sample_count": self.config.max_total_sample_count,
+                "min_sample_per_config": self.config.min_sample_per_config,
+                "dynamic_sampling_params": self.config.dynamic_sampling_params,
+                "max_number_of_invocation_attempts": self.config.max_number_of_invocation_attempts,
             }
             parrotfish = Parrotfish(Configuration(config))
             min_memory = parrotfish.optimize(apply=False)
@@ -315,7 +316,7 @@ class StepFunction:
         # Execute Parrotfish on functions in parallel
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(_optimize_function, task)
-                       for task in self._function_task_dict.values()]
+                       for task in self.function_task_dict.values()]
 
             for future in as_completed(futures):
                 try:
