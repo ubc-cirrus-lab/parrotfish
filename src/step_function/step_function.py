@@ -327,7 +327,8 @@ class StepFunction:
                     if error is None:
                         error = e
                     continue
-        logger.info(f"Finish optimizing all functions, {results}")
+        logger.info("Finish optimizing all functions")
+        print(f"Finish optimizing all functions, {results}")
 
         if error:
             raise error
