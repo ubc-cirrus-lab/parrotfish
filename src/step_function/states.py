@@ -55,7 +55,7 @@ class Map(State):
     def __init__(self, name: str):
         super().__init__(name)
         self.iterations: list[Workflow] = []
-        self.workflow = None
+        self.workflow_def = None
         self.items_path = ""
 
     def add_iteration(self, workflow: "Workflow"):

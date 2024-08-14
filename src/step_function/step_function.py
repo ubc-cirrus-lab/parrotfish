@@ -21,10 +21,9 @@ class StepFunction:
 
         self.definition = self._load_definition(config.arn)
         self.workflow = self._create_workflow(self.definition)
-        self._set_function_memories_to_max(self.function_tasks_dict)
 
     def optimize(self):
-        self._set_workflow_payload(self.workflow, self.config.payload)
+        self._set_workflow_payloads(self.workflow, self.config.payload)
         self._optimize_functions(self.function_tasks_dict)
 
     def _load_definition(self, arn: str) -> dict:
@@ -83,6 +82,8 @@ class StepFunction:
 
                 if function_name not in self.function_tasks_dict:
                     self.function_tasks_dict[function_name] = []
+                    config_manager = AWSConfigManager(function_name, self.aws_session)
+                    config_manager.set_config(3008)  # set memory size to maximum
                 self.function_tasks_dict[function_name].append(task)
 
                 return task
@@ -96,7 +97,7 @@ class StepFunction:
 
             elif state_def["Type"] == "Map":
                 map_state = Map(name)
-                map_state.workflow = self._create_workflow(state_def["Iterator"])
+                map_state.workflow_def = state_def["Iterator"]
                 map_state.items_path = state_def["ItemsPath"]
                 return map_state
 
@@ -120,55 +121,7 @@ class StepFunction:
 
         return workflow
 
-    def _set_function_memories_to_max(self, function_tasks_dict: dict):
-        """
-        Allocates the maximum memory size to all Lambda functions in the workflow.
-
-        Raises:
-            Exception: If an error occurs during memory allocation.
-        """
-
-        def _set_memory_for_function(function_name: str, memory_size: int):
-            """
-            Sets the memory size for a single Lambda function.
-
-            Args:
-                function_name (str): The name of the Lambda function.
-            """
-            try:
-                config_manager = AWSConfigManager(function_name, self.aws_session)
-                config_manager.set_config(memory_size)
-
-            except Exception as e:
-                logger.debug(e.args[0])
-                raise StepFunctionError("Error setting memory sizes.")
-
-        logger.info("Start setting all memory sizes to maximum")
-
-        error = None
-        # Set maximum memory sizes in parallel
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [
-                executor.submit(_set_memory_for_function, function_name, 3008)
-                for function_name in function_tasks_dict
-            ]
-
-            for future in as_completed(futures):
-                try:
-                    future.result()
-
-                except Exception as e:
-                    logger.debug(e)
-                    if error is None:
-                        error = e
-                    continue
-
-        logger.info("Finish setting all memory sizes to maximum\n")
-
-        if error:
-            raise error
-
-    def _set_workflow_payload(self, workflow: Workflow, workflow_input: str) -> str:
+    def _set_workflow_payloads(self, workflow: Workflow, workflow_input: str) -> str:
         """
         Sets inputs for states in a workflow, chaining the output of each state to the input of the next.
 
@@ -218,7 +171,7 @@ class StepFunction:
                 # Parallel execution of branches in a Parallel state
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     futures = {
-                        executor.submit(self._set_workflow_payload, branch, input): branch
+                        executor.submit(self._set_workflow_payloads, branch, input): branch
                         for branch in state.branches
                     }
                     for future in as_completed(futures):
@@ -238,13 +191,13 @@ class StepFunction:
             elif isinstance(state, Map):
                 error = None
                 inputs = _extract_items(input, state.items_path)
-                state.iterations = [state.workflow for _ in range(len(inputs))]
+                state.iterations = [self._create_workflow(state.workflow_def) for _ in range(len(inputs))]
 
                 outputs = []
                 # Parallel execution of iterations in a Map state
                 with ThreadPoolExecutor(max_workers=10) as executor:
                     futures = {
-                        executor.submit(self._set_workflow_payload, iteration, iteration_input): iteration_input
+                        executor.submit(self._set_workflow_payloads, iteration, iteration_input): iteration_input
                         for iteration, iteration_input in zip(state.iterations, inputs)
                     }
                     for future in as_completed(futures):
