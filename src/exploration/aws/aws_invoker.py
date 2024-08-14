@@ -21,6 +21,9 @@ class AWSInvoker(Invoker):
 
     def _invoke_with_retry(self, payload: str) -> dict:
         sleeping_interval = 1
+        memory_size = None
+        timeout = None
+       
         for _ in range(self.max_invocation_attempts):
             try:
                 # Invoking the function and getting back the response log to parse.

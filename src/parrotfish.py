@@ -1,3 +1,5 @@
+import copy
+
 import boto3
 import numpy as np
 from google.auth import default, exceptions
@@ -66,7 +68,8 @@ class Parrotfish:
                 print(f"Explorations for payload {i}:")
                 i += 1
             # Run recommender for the specific payload
-            min_memories.append(self._optimize_one_payload(entry, collective_costs))
+            min_memory, _ = self.optimize_one_payload(entry, collective_costs)
+            min_memories.append(min_memory)
 
         if len(min_memories) == 1:
             minimum_memory = min_memories[0]
@@ -85,7 +88,7 @@ class Parrotfish:
 
         return minimum_memory
 
-    def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> int:
+    def optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[int, any]:
         self.explorer.payload = entry["payload"]
         self.objective.reset()
         self.recommender.run()
@@ -97,7 +100,7 @@ class Parrotfish:
             self.sampler.memory_space, self.config.constraint_execution_time_threshold,
             self.config.constraint_cost_tolerance_percent
         )
-        return minimum_memory
+        return minimum_memory, copy.copy(self.param_function)
 
     def _apply_configuration(self, memory_mb: int):
         self.explorer.config_manager.set_config(

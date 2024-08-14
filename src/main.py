@@ -30,7 +30,7 @@ def main():
     args = parser.parse_args()
 
     if args.verbose:
-        logger.setLevel(level=logging.INFO)
+        logger.setLevel(level=logging.DEBUG)
 
     # Retrieve configuration for the file
     config_file_path = os.path.join(os.getcwd(), "parrotfish.json")
@@ -53,7 +53,9 @@ def main():
         exit(1)
 
     if args.step_function:
-        StepFunction(configuration)
+        step_function = StepFunction(configuration)
+        step_function.optimize()
+        pass
 
     else:
         parrotfish = Parrotfish(configuration)

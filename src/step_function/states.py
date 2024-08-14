@@ -19,7 +19,7 @@ class Task(State):
     def __init__(self, name: str, function_name: str):
         super().__init__(name)
         self.function_name = function_name
-        self.parrotfish = None
+        self.param_function = None
 
     def set_input(self, input: str):
         self.input = input
