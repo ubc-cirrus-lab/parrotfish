@@ -92,8 +92,9 @@ class Parrotfish:
         self.explorer.payload = entry["payload"]
         self.objective.reset()
         self.recommender.run()
+        memory_space = self.explorer.memory_space
         collective_costs += (
-                self.param_function(self.explorer.memory_space) * entry["weight"]
+                self.param_function(memory_space) * memory_space * entry["weight"]
         )
         # suggest optimized memory size on valid memory space: self.sampler.memory_space
         minimum_memory = self.param_function.minimize(
