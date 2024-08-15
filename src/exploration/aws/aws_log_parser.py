@@ -38,7 +38,7 @@ class AWSLogParser(LogParser):
             raise FunctionTimeoutError(duration_ms=execution_time_ms)
 
         # check for ENOMEM
-        if results["Max Memory Used"] >= results["Memory Size"]:
+        if results["Max Memory Used"] > results["Memory Size"]:
             raise FunctionENOMEM(duration_ms=execution_time_ms)
 
         # check for errors

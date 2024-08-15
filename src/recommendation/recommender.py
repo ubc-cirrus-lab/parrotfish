@@ -8,10 +8,10 @@ from ..logger import logger
 
 class Recommender:
     def __init__(
-        self,
-        objective: Objective,
-        sampler: Sampler,
-        max_total_sample_count: int,
+            self,
+            objective: Objective,
+            sampler: Sampler,
+            max_total_sample_count: int,
     ):
         self.objective = objective
         self.sampler = sampler
@@ -27,8 +27,8 @@ class Recommender:
         sample_count = len(self.sampler.sample)
         termination_value = self.objective.termination_value
         return (
-            sample_count > self._max_total_sample_count
-            or termination_value > self.objective.termination_threshold
+                sample_count > self._max_total_sample_count
+                or termination_value > self.objective.termination_threshold
         )
 
     def run(self):
@@ -79,7 +79,21 @@ class Recommender:
         This method updates the sample by exploring with the given memory value and then update the sample with the new
         datapoints, then it updates the knowledge values for the given memory, and fits the parametric function.
         """
-        self.sampler.update_sample(memory_mb)
+        try:
+            self.sampler.update_sample(memory_mb)
+        except FunctionENOMEM:
+            logger.info(
+                f"ENOMEM: trying with new memories. {self.sampler.explorer.invoker.function_name}: {self.sampler.memory_space[0]}MB")
+            self.memory_space = np.array(
+                [
+                    mem
+                    for mem in self.sampler.memory_space
+                    if mem >= self.sampler.memory_space[0] + 128
+                ],
+                dtype=int,
+            )
+            return
+
         self.objective.update_knowledge(memory_mb)
         try:
             self.objective.param_function.fit(self.sampler.sample)

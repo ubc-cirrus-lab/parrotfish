@@ -45,8 +45,8 @@ class StepFunction:
             return definition
 
         except Exception as e:
-            logger.debug(e.args[0])
-            raise StepFunctionError("Error loading definition.")
+            logger.debug(f"Error loading definition: {e.args[0]}")
+            raise e
 
     def _create_workflow(self, workflow_def: dict) -> Workflow:
         """
@@ -161,12 +161,10 @@ class StepFunction:
                     output = state.get_output(self.aws_session)
                     return output
                 except Exception as e:
-                    logger.error(f"Error setting input of {state.name}: {e}")
-                    raise StepFunctionError("Error creating state.")
+                    logger.error(f"Error setting input of {state.name}: {e.args[0]}")
+                    raise e
 
             elif isinstance(state, Parallel):
-                error = None
-
                 outputs = []
                 # Parallel execution of branches in a Parallel state
                 with ThreadPoolExecutor(max_workers=10) as executor:
@@ -180,16 +178,11 @@ class StepFunction:
                             branch_output = future.result()
                             outputs.append(json.loads(branch_output))
                         except Exception as e:
-                            logger.error(f"Error processing branch {branch}: {e}")
-                            if error is None:
-                                error = e
-                            continue
-                if error:
-                    raise error
+                            logger.error(f"Error processing branch {branch}: {e.args[0]}")
+                            raise e
                 return json.dumps(outputs)
 
             elif isinstance(state, Map):
-                error = None
                 inputs = _extract_items(input, state.items_path)
                 state.iterations = [self._create_workflow(state.workflow_def) for _ in range(len(inputs))]
 
@@ -206,12 +199,8 @@ class StepFunction:
                             iteration_output = future.result()
                             outputs.append(json.loads(iteration_output))
                         except Exception as e:
-                            logger.error(f"Error processing iteration with input {iteration_input}: {e}")
-                            if error is None:
-                                error = e
-                            continue
-                if error:
-                    raise error
+                            logger.error(f"Error processing iteration with input {iteration_input}: {e.args[0]}")
+                            raise e
                 return json.dumps(outputs)
 
         logger.info("Start setting workflow inputs")
@@ -239,34 +228,38 @@ class StepFunction:
             """
 
             function_name = tasks[0].function_name
-            config = {
-                "function_name": function_name,
-                "vendor": "AWS",
-                "region": self.config.region,
-                "payload": {},
-                "termination_threshold": self.config.termination_threshold,
-                "max_total_sample_count": self.config.max_total_sample_count,
-                "min_sample_per_config": self.config.min_sample_per_config,
-                "dynamic_sampling_params": self.config.dynamic_sampling_params,
-                "max_number_of_invocation_attempts": self.config.max_number_of_invocation_attempts,
-            }
-            parrotfish = Parrotfish(Configuration(config))
-            collective_costs = np.zeros(len(parrotfish.explorer.memory_space))  # weighted sum of cost models
+            try:
+                config = {
+                    "function_name": function_name,
+                    "vendor": "AWS",
+                    "region": self.config.region,
+                    "payload": {},
+                    "termination_threshold": self.config.termination_threshold,
+                    "max_total_sample_count": self.config.max_total_sample_count,
+                    "min_sample_per_config": self.config.min_sample_per_config,
+                    "dynamic_sampling_params": self.config.dynamic_sampling_params,
+                    "max_number_of_invocation_attempts": self.config.max_number_of_invocation_attempts,
+                }
+                parrotfish = Parrotfish(Configuration(config))
+                collective_costs = np.zeros(len(parrotfish.explorer.memory_space))  # weighted sum of cost models
 
-            # optimize each input of the function
-            for task in tasks:
-                payload = {"payload": task.input, "weight": 1.0 / len(tasks)}
-                min_memory, param_function = parrotfish.optimize_one_payload(payload, collective_costs)
-                task.param_function = param_function
-                print(f"Optimized memory: {min_memory}MB, {task.name}, {task.input}")
+                # optimize each input of the function
+                for task in tasks:
+                    payload = {"payload": task.input, "weight": 1.0 / len(tasks)}
+                    min_memory, param_function = parrotfish.optimize_one_payload(payload, collective_costs)
+                    task.param_function = param_function
+                    print(f"Optimized memory: {min_memory}MB, {task.name}. Input: {task.input}")
 
-            # get the optimized memory size for the function
-            memory_space = parrotfish.sampler.memory_space
-            min_index = np.argmin(collective_costs[-len(memory_space):])
-            min_memory = memory_space[min_index]
-            return function_name, min_memory, memory_space
+                # get the optimized memory size for the function
+                memory_space = parrotfish.sampler.memory_space
+                min_index = np.argmin(collective_costs[-len(memory_space):])
+                min_memory = memory_space[min_index]
+                return function_name, min_memory, memory_space
 
-        error = None
+            except Exception as e:
+                logger.debug(f"Error optimizing function {function_name}: {e.args[0]}")
+                raise e
+
         min_memories = {}
         memory_spaces = {}
         logger.info("Start optimizing all functions")
@@ -277,20 +270,10 @@ class StepFunction:
                        for tasks in function_tasks_dict.values()]
 
             for future in as_completed(futures):
-                try:
-                    function_name, min_memory, memory_spcae = future.result()
-                    min_memories[function_name] = min_memory
-                    memory_spaces[function_name] = memory_spcae
-                except Exception as e:
-                    logger.debug(e)
-                    if error is None:
-                        error = e
-                    # continue
+                function_name, min_memory, memory_space = future.result()
+                min_memories[function_name] = min_memory
+                memory_spaces[function_name] = memory_space
 
         logger.info("Finish optimizing all functions")
         print(f"Finish optimizing all functions, {min_memories}")
-
-        if error:
-            raise error
-
         return min_memories, memory_spaces
