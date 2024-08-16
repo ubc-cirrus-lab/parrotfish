@@ -14,13 +14,14 @@ from .states import State, Task, Parallel, Map, Workflow
 
 
 class StepFunction:
-    def __init__(self, config: any):
-        self.config = config
-        self.function_tasks_dict = {}
-        self.aws_session = boto3.Session(region_name=config.region)
+    def __init__(self, config: any = None):
+        if config is not None:
+            self.config = config
+            self.function_tasks_dict = {}
+            self.aws_session = boto3.Session(region_name=config.region)
 
-        self.definition = self._load_definition(config.arn)
-        self.workflow = self._create_workflow(self.definition)
+            self.definition = self._load_definition(config.arn)
+            self.workflow = self._create_workflow(self.definition)
 
     def optimize(self):
         for entry in self.config.payloads:
@@ -255,6 +256,8 @@ class StepFunction:
                 memory_space = parrotfish.sampler.memory_space
                 min_index = np.argmin(collective_costs[-len(memory_space):])
                 min_memory = memory_space[min_index]
+                for task in tasks:
+                    task.memory_size = min_memory
                 return function_name, min_memory, memory_space
 
             except Exception as e:

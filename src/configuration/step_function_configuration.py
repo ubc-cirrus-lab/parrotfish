@@ -7,7 +7,7 @@ from src.configuration.defaults import *
 
 
 class StepFunctionConfiguration:
-    def __init__(self, config_file: TextIO):
+    def __init__(self, config_file: Union[TextIO, dict]):
         self._load_config_schema()
 
         # Setup default values
