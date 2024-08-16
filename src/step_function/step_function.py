@@ -23,8 +23,9 @@ class StepFunction:
         self.workflow = self._create_workflow(self.definition)
 
     def optimize(self):
-        self._set_workflow_payloads(self.workflow, self.config.payload)
-        self._optimize_functions(self.function_tasks_dict)
+        for entry in self.config.payloads:
+            self._set_workflow_payloads(self.workflow, entry["payload"])
+            self._optimize_functions(self.function_tasks_dict)
 
     def _load_definition(self, arn: str) -> dict:
         """
@@ -209,7 +210,7 @@ class StepFunction:
             # The output of one function is the input of next function
             payload = _set_state_input(state, payload)
         logger.info("Finish setting workflow inputs\n")
-        return payload
+            return payload
 
     def _optimize_functions(self, function_tasks_dict: dict) -> tuple[dict, dict]:
         """

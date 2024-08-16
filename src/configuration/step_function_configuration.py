@@ -1,5 +1,5 @@
 import json
-from typing import TextIO
+from typing import TextIO, Union
 
 import jsonschema
 
@@ -66,9 +66,12 @@ class StepFunctionConfiguration:
             "additionalProperties": False,
         }
 
-    def _deserialize(self, config_file: TextIO):
+    def _deserialize(self, config_file: Union[TextIO, dict]):
         try:
-            j_dict = json.load(config_file)
+            if isinstance(config_file, dict):
+                j_dict = config_file
+            else:
+                j_dict = json.load(config_file)
             jsonschema.validate(instance=j_dict, schema=self._config_json_schema)
 
         except json.decoder.JSONDecodeError as e:
@@ -82,5 +85,19 @@ class StepFunctionConfiguration:
             )
 
         else:
-            j_dict["payload"] = json.dumps(j_dict["payload"])
+            if "payloads" in j_dict:
+                for entry in j_dict["payloads"]:
+                    entry["payload"] = json.dumps(entry["payload"])
+                # Validate that sum of weights is 1.
+                if sum([entry["weight"] for entry in j_dict["payloads"]]) != 1:
+                    raise ValueError(
+                        f"Please make sure that the weights in {config_file.name} are in [0,1] interval "
+                        f"and that their sum is 1"
+                    )
+
+            if "payload" in j_dict:
+                payload_str = json.dumps(j_dict["payload"])
+                j_dict["payloads"] = [{"payload": payload_str, "weight": 1}]
+                del j_dict["payload"]
+
             self.__dict__.update(**j_dict)
