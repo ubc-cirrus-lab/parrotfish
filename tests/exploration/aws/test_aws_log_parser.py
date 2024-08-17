@@ -44,7 +44,7 @@ class TestAWSLogParser:
     def test_lambda_enomem(self, log_parser):
         result_log = (
             "REPORT RequestId: 03d92713-a4b2-4b07-a07a-653087817262\\tDuration: 18179.84 ms\\tBilled "
-            "Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 512 MB\\t\\n'"
+            "Duration: 18180 ms\\tMemory Size: 512 MB\\tMax Memory Used: 513 MB\\t\\n'"
         )
 
         try:

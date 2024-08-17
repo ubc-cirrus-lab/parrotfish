@@ -210,7 +210,7 @@ class StepFunction:
             # The output of one function is the input of next function
             payload = _set_state_input(state, payload)
         logger.info("Finish setting workflow inputs\n")
-            return payload
+        return payload
 
     def _optimize_functions(self, function_tasks_dict: dict) -> tuple[dict, dict]:
         """
