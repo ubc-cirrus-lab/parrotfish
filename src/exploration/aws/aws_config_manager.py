@@ -17,20 +17,19 @@ class AWSConfigManager(ConfigManager):
 
     @property
     def max_timeout_quota(self) -> int:
-        # try:
-        #     # Get the account's timeout quota if configured by the user.
-        #     quota = self._quotas_client.get_service_quota(
-        #         ServiceCode="lambda", QuotaCode="L-9FEEFFC0"
-        #     )
-        #
-        # except ClientError:
-        #     # Get the default timeout quota.
-        #     quota = self._quotas_client.get_aws_default_service_quota(
-        #         ServiceCode="lambda", QuotaCode="L-9FEEFFC0"
-        #     )
-        #
-        # return int(quota["Quota"]["Value"])
-        return 60
+        try:
+            # Get the account's timeout quota if configured by the user.
+            quota = self._quotas_client.get_service_quota(
+                ServiceCode="lambda", QuotaCode="L-9FEEFFC0"
+            )
+
+        except ClientError:
+            # Get the default timeout quota.
+            quota = self._quotas_client.get_aws_default_service_quota(
+                ServiceCode="lambda", QuotaCode="L-9FEEFFC0"
+            )
+
+        return int(quota["Quota"]["Value"])
 
     def set_config(self, memory_mb: int, timeout: int = None) -> any:
         sleeping_interval = 1
