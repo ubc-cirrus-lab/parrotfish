@@ -17,7 +17,7 @@ class StepFunction:
     def __init__(self, config: any = None):
         if config is not None:
             self.config = config
-            self.function_tasks_dict = {}
+            self.function_tasks_dict = {}  # tasks for each function
             self.aws_session = boto3.Session(region_name=config.region)
 
             self.definition = self._load_definition(config.arn)
