@@ -10,12 +10,13 @@ class StepFunctionOptimization():
     def __init__(self):
         pass
 
-    def optimize_memory_allocation(self, workflow: Workflow, function_tasks_dict: dict, memory_increment: int,
-                                   constraint_execution_time_threshold: int):
-        critical_path_tasks, time = workflow.get_critical_path()
+    def optimize_step_function(self, workflow: Workflow, function_tasks_dict: dict, memory_increment: int,
+                               constraint_execution_time_threshold: int):
+        critical_path_tasks, critical_path_time = workflow.get_critical_path()
         logger.info(
-            f"Start optimizing for execution time, time: {time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
+            f"Start optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
 
+        # Initialize cost increase dict
         cost_increases = {}
         for function in function_tasks_dict:
             cost_increases[function] = 0.0
@@ -25,7 +26,7 @@ class StepFunctionOptimization():
                 cost_increases[function] += new_cost - original_cost
 
         # Update memory sizes until execution time threshold is reached
-        while time > constraint_execution_time_threshold:
+        while critical_path_time > constraint_execution_time_threshold:
             time_reductions = {}
 
             # Iterate over tasks on critical path and calculate time reductions for each function
@@ -62,16 +63,44 @@ class StepFunctionOptimization():
                     new_cost = task.get_cost(task.memory_size + memory_increment)
                     cost_increases[best_function] += new_cost - original_cost
             else:
-                print("Execution time threshold too low.")
-                raise StepFunctionError("Error: No function to optimize.")
+                raise StepFunctionError("Execution time threshold too low.")
 
             # Update critical path and time
-            critical_path_tasks, time = workflow.get_critical_path()
+            critical_path_tasks, critical_path_time = workflow.get_critical_path()
             logger.debug(
-                f"Optimized function {best_function}, {task.memory_size}MB, time: {time}ms, cost: {workflow.get_cost()}.\n")
+                f"Optimized function {best_function}, {task.memory_size}MB, time: {critical_path_time}ms, cost: {workflow.get_cost()}.\n")
 
         logger.info(
-            f"Finish optimizing for execution time, time: {time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.")
+            f"Finish optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
+
+    def optimize_individual_function(self, workflow: Workflow, function_tasks_dict: dict, memory_increment: int,
+                                     constraint_execution_time_threshold: int):
+        _, critical_path_time = workflow.get_critical_path()
+
+        if critical_path_time > constraint_execution_time_threshold:
+            logger.info(
+                f"Start optimizing individual tasks for execution time. time: {critical_path_time}, threshold: {constraint_execution_time_threshold}, cost: {workflow.get_cost()}.\n")
+            percent = critical_path_time / constraint_execution_time_threshold
+            for function in function_tasks_dict:
+                for task in function_tasks_dict[function]:
+                    original_time = task.get_execution_time()
+                    logger.debug(f"{task.function_name}, original time: {original_time}")
+
+                    while (task.get_execution_time() > original_time / percent
+                           and task.memory_size + memory_increment <= 3008):
+                        #     logger.debug(f"{task.function_name} exceeds maximum memory size.")
+                        #     raise StepFunctionError("Execution time threshold too low.")
+                        # else:
+                        task.increase_memory_size(memory_increment)
+
+                    logger.debug(
+                        f"{task.function_name}, final time: {task.get_execution_time()}, target: {original_time / percent}, cost: {task.get_cost()}")
+        else:
+            logger.warning("Execution time is already below threshold.")
+
+        _, critical_path_time = workflow.get_critical_path()
+        logger.info(
+            f"Finish optimizing individual tasks for execution time. time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
 
     def _create_workflow(self) -> Tuple[Workflow, dict]:
         workflow = Workflow()
@@ -146,5 +175,10 @@ class StepFunctionOptimization():
 if __name__ == "__main__":
     stepFunctionOptimization = StepFunctionOptimization()
     workflow, function_tasks_dict = stepFunctionOptimization._create_workflow()
-    stepFunctionOptimization.optimize_memory_allocation(workflow, function_tasks_dict,
-                                                        memory_increment=10, constraint_execution_time_threshold=4500)
+    stepFunctionOptimization.optimize_step_function(workflow, function_tasks_dict,
+                                                    memory_increment=10, constraint_execution_time_threshold=6000)
+
+    stepFunctionOptimization = StepFunctionOptimization()
+    workflow, function_tasks_dict = stepFunctionOptimization._create_workflow()
+    stepFunctionOptimization.optimize_individual_function(workflow, function_tasks_dict, memory_increment=10,
+                                                          constraint_execution_time_threshold=6000)
