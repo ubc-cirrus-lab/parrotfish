@@ -53,7 +53,10 @@ def main():
         exit(1)
 
     if args.step_function:
+        # Create step function
         step_function = StepFunction(configuration)
+
+        # Run Parrotfish and execution time optimization to get cost optimized memories
         step_function.optimize()
 
     else:

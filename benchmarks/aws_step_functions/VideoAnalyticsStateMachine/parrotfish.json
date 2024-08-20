@@ -4,5 +4,11 @@
   "payload": {
     "videoName": "sample.mp4",
     "fanoutNum": 3
+  },
+  "constraint_execution_time_threshold": 6000,
+  "termination_threshold": 2,
+  "dynamic_sampling_params": {
+    "max_sample_per_config": 4,
+    "coefficient_of_variation_threshold": 0.2
   }
 }

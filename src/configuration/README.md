@@ -1,7 +1,5 @@
 # Parrotfish configuration file:
-
 ## Required Configurations Attributes:
-
 ```
 {
     "function_name": The serverless function's name,
@@ -16,9 +14,7 @@
     ] (Required if "payload" attribute is not provided. Sum of weights must be equal to 1),
 }
 ```
-
 ## Optional Configuration Attributes:
-
 ```
 {
     ...
@@ -38,52 +34,42 @@
                              increasing the cost by at most X%, where X is the cost tolerance window . (Optional, Default is 0)
 }
 ```
-
 ## Example single payload:
-
 ```json
 {
-    "function_name": "example_function",
-    "vendor": "AWS",
-    "region": "example_region",
-    "payload": "payload"
+  "function_name": "example_function",
+  "vendor": "AWS",
+  "region": "example_region",
+  "payload": "payload"
 }
 ```
-
 ## Example multiple payloads:
-
 ```json
 {
-    "function_name": "example_function",
-    "vendor": "AWS",
-    "region": "example_region",
-    "payloads": [
-      {
-        "payload": "payload",
-        "weight": 0.3
-      },
-      {
-        "payload": "payload",
-        "weight": 0.7
-      }
-    ]
+  "function_name": "example_function",
+  "vendor": "AWS",
+  "region": "example_region",
+  "payloads": [
+    {
+      "payload": "payload",
+      "weight": 0.3
+    },
+    {
+      "payload": "payload",
+      "weight": 0.7
+    }
+  ]
 }
 ```
-
 ### Replicating the results in the paper
-
 To generate the results in the paper, we used these parameters:
-
 ```
 termination_threshold=2
 min_invocations=2
 dynamic_sampling_params.max_sample_count=5
 ```
-
 # Parrotfish for AWS Step Function Configuration Schema
-
 ## Required Configuration Attributes:
-
 ```
 {
     "arn": The Amazon Resource Name (ARN) of the Step Function,
@@ -97,9 +83,7 @@ dynamic_sampling_params.max_sample_count=5
     ] (Required if "payload" attribute is not provided. Sum of weights must be equal to 1),
 }
 ```
-
 ## Optional Configuration Attributes:
-
 ```
 {
     ...
@@ -112,16 +96,18 @@ dynamic_sampling_params.max_sample_count=5
                                               and when the calculated coefficient of variation reaches this threshold we terminate the dynamic sampling (Default is 0.05),
     } (Optional),
     "max_number_of_invocation_attempts": The maximum number of attempts per invocation when this number is reached an error is raised. (Optional, Default is 5)
+    "constraint_execution_time_threshold": The step function execution time threshold constraint. We leverages the execution time model and step function workflow structure 
+                                to recommend a configuration that minimizes cost while adhering to the specified execution time constraint. (Optional, Default is +infinity)
+    "memory_size_increment": The step size by which memory size is increased to meet execution time threshold. (Optional, Default is 10)
 }
 ```
-
 ## Example:
-
 ```json
 {
   "arn": "example_step_function_arn",
   "region": "example_region",
-  "payload": "payload"
+  "payload": "payload",
+  "constraint_execution_time_threshold": 5000
 }
 ```
 

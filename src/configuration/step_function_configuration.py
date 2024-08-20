@@ -16,6 +16,8 @@ class StepFunctionConfiguration:
         self.max_total_sample_count = MAX_TOTAL_SAMPLE_COUNT
         self.min_sample_per_config = MIN_SAMPLE_PER_CONFIG
         self.max_number_of_invocation_attempts = MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+        self.memory_size_increment = MEMORY_SIZE_INCREMENT
+        self.constraint_execution_time_threshold = None
 
         # Parse the configuration file
         self._deserialize(config_file)
@@ -58,6 +60,8 @@ class StepFunctionConfiguration:
                     },
                 },
                 "max_number_of_invocation_attempts": {"type": "integer", "minimum": 0},
+                "constraint_execution_time_threshold": {"type": "integer", "minimum": 1},
+                "memory_size_increment": {"type": "integer", "minimum": 1},
             },
             "required": ["arn", "region", "payload"],
             "if": {"not": {"required": ["payload"]}},

@@ -1,5 +1,11 @@
 {
-    "arn": "arn:aws:states:us-west-2:898429789601:stateMachine:ImageProcessing",
-    "region": "us-west-2",
-    "payload": {}
+  "arn": "arn:aws:states:us-west-2:898429789601:stateMachine:ImageProcessing",
+  "region": "us-west-2",
+  "payload": {},
+  "constraint_execution_time_threshold": 6000,
+  "termination_threshold": 2,
+  "dynamic_sampling_params": {
+    "max_sample_per_config": 4,
+    "coefficient_of_variation_threshold": 0.2
+  }
 }

@@ -27,6 +27,8 @@ class Task(State):
         self.input = None
         self.param_function = None
         self.memory_size = None
+        self.initial_memory_size = None
+        self.max_memory_size = None
 
     def set_input(self, input: str):
         self.input = input
@@ -49,6 +51,9 @@ class Task(State):
 
     def decrease_memory_size(self, decrement: int):
         self.memory_size -= decrement
+
+    def reset_memory_size(self):
+        self.memory_size = self.initial_memory_size
 
     def get_execution_time(self, memory_size: int = None):
         if memory_size is not None:
