@@ -355,6 +355,10 @@ class StepFunction:
         logger.info(
             f"Finish optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
 
+        print("Finish optimizing step function for execution time, optimized memory sizes:\n")
+        for function in function_tasks_dict:
+            print(f"{function}: {function_tasks_dict[function][0].memory_size}MB")
+
     def optimize_individual_functions(self):
         workflow = self.workflow
         function_tasks_dict = self.function_tasks_dict
@@ -388,3 +392,7 @@ class StepFunction:
         _, critical_path_time = workflow.get_critical_path()
         logger.info(
             f"Finish optimizing individual tasks for execution time. time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
+
+        print("Finish optimizing individual tasks for execution time, optimized memory sizes:\n")
+        for function in function_tasks_dict:
+            print(f"{function}: {function_tasks_dict[function][0].memory_size}MB")
