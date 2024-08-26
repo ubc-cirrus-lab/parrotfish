@@ -1,0 +1,8 @@
+{
+  "arn": "arn:aws:states:us-west-2:898429789601:stateMachine:VideoAnalyticsStateMachine",
+  "region": "us-west-2",
+  "payload": {
+    "videoName": "sample.mp4",
+    "fanoutNum": 3
+  }
+}

@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 from src.exception import UnfeasibleConstraintError
-from src.logging import logger
+from src.logger import logger
 from src.sampling import Sample
 
 

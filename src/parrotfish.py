@@ -1,9 +1,11 @@
+import copy
+
 import boto3
 import numpy as np
 from google.auth import default, exceptions
 
 from src.exploration import *
-from src.logging import logger
+from src.logger import logger
 from src.objective import *
 from src.recommendation import *
 from src.sampling import *
@@ -56,7 +58,7 @@ class Parrotfish:
             max_total_sample_count=config.max_total_sample_count,
         )
 
-    def optimize(self, apply: bool = None) -> None:
+    def optimize(self, apply: bool = None) -> int:
         collective_costs = np.zeros(len(self.explorer.memory_space))
         min_memories = []
         i = 1
@@ -66,16 +68,17 @@ class Parrotfish:
                 print(f"Explorations for payload {i}:")
                 i += 1
             # Run recommender for the specific payload
-            min_memories.append(self._optimize_one_payload(entry, collective_costs))
+            min_memory, _ = self.optimize_one_payload(entry, collective_costs)
+            min_memories.append(min_memory)
 
         if len(min_memories) == 1:
             minimum_memory = min_memories[0]
-            print(f"Optimization result: {minimum_memory} MB")
+            print(f"Optimization result: {minimum_memory} MB", {self.config.function_name})
         else:
             for i in range(len(min_memories)):
                 print(f"Optimization result for payload {i}: {min_memories[i]} MB")
-            min_index = np.argmin(collective_costs)
-            minimum_memory = self.explorer.memory_space[min_index]
+            min_index = np.argmin(collective_costs[-self.sampler.memory_space:])
+            minimum_memory = self.sampler.memory_space[min_index]
             print(f"Optimization result of the average cost: {minimum_memory} MB")
 
         if apply:
@@ -83,17 +86,22 @@ class Parrotfish:
         else:
             self.explorer.config_manager.reset_config()
 
-    def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> int:
-        self.explorer.payload = entry["payload"]
-        self.recommender.run()
-        collective_costs += (
-            self.param_function(self.explorer.memory_space) * entry["weight"]
-        )
-        minimum_memory = self.param_function.minimize(
-            self.explorer.memory_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
-        )
-        self.objective.reset()
         return minimum_memory
+
+    def optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[int, ParametricFunction]:
+        self.explorer.payload = entry["payload"]
+        self.objective.reset()
+        self.recommender.run()
+        memory_space = self.explorer.memory_space
+        collective_costs += (
+                self.param_function(memory_space) * memory_space * entry["weight"]
+        )
+        # suggest optimized memory size on valid memory space: self.sampler.memory_space
+        minimum_memory = self.param_function.minimize(
+            self.sampler.memory_space, self.config.constraint_execution_time_threshold,
+            self.config.constraint_cost_tolerance_percent
+        )
+        return minimum_memory, copy.copy(self.param_function)
 
     def _apply_configuration(self, memory_mb: int):
         self.explorer.config_manager.set_config(

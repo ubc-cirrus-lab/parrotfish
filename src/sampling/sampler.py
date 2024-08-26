@@ -4,17 +4,17 @@ import numpy as np
 
 from src.exception import *
 from src.exploration import *
-from src.logging import logger
+from src.logger import logger
 from .data_point import DataPoint
 from .sample import Sample
 
 
 class Sampler:
     def __init__(
-        self,
-        explorer: Explorer,
-        explorations_count: int,
-        dynamic_sampling_params: dict,
+            self,
+            explorer: Explorer,
+            explorations_count: int,
+            dynamic_sampling_params: dict,
     ):
         self.sample = None
         self.explorer = explorer
@@ -49,7 +49,8 @@ class Sampler:
                 self.update_sample(int(self.memory_space[0]))
 
             except FunctionENOMEM:
-                logger.info(f"ENOMEM: trying with new memories")
+                logger.info(
+                    f"ENOMEM: trying with new memories. {self.explorer.invoker.function_name}: {self.memory_space[0]}MB")
                 self.memory_space = np.array(
                     [
                         mem
@@ -79,7 +80,7 @@ class Sampler:
         Raises:
             SamplingError: If an error occurred while sampling.
         """
-        logger.info(f"Sampling: {memory_mb} MB.")
+        logger.info(f"Start sampling {self.explorer.invoker.function_name}: {memory_mb} MB")
         try:
             subsample_durations = self.explorer.explore_parallel(
                 nbr_invocations=self._explorations_count,
@@ -96,8 +97,7 @@ class Sampler:
         self.sample.update(subsample)
 
         logger.info(
-            f"Finished sampling {memory_mb} with billed duration results: {subsample_durations} in ms."
-        )
+            f"Finish sampling {self.explorer.invoker.function_name}, {memory_mb} MB, {subsample_durations} ms")
 
     def _explore_dynamically(self, durations: list) -> list:
         """Samples dynamically until the invocations results are consistent enough. Consistency is measured by the
@@ -123,9 +123,9 @@ class Sampler:
         min_cv = np.std(durations, ddof=1) / np.mean(durations)
 
         while (
-            dynamic_sample_count < self._dynamic_sampling_params["max_sample_per_config"]
-            and min_cv
-            > self._dynamic_sampling_params["coefficient_of_variation_threshold"]
+                dynamic_sample_count < self._dynamic_sampling_params["max_sample_per_config"]
+                and min_cv
+                > self._dynamic_sampling_params["coefficient_of_variation_threshold"]
         ):
             try:
                 result = self.explorer.explore()

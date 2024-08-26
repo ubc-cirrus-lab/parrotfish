@@ -6,7 +6,7 @@ from google.cloud import functions_v1
 from src.exception import FunctionConfigError
 from src.exploration.config_manager import ConfigManager
 from src.exploration.function_config import FunctionConfig
-from src.logging import logger
+from src.logger import logger
 
 
 class GCPConfigManager(ConfigManager):
