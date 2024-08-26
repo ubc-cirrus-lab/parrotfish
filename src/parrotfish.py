@@ -88,7 +88,7 @@ class Parrotfish:
 
         return minimum_memory
 
-    def optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[int, any]:
+    def optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[int, ParametricFunction]:
         self.explorer.payload = entry["payload"]
         self.objective.reset()
         self.recommender.run()
