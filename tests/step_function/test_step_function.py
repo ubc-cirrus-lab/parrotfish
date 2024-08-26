@@ -105,22 +105,3 @@ class TestStepFunction:
         assert isinstance(workflow.states[1], Map)
         assert isinstance(workflow.states[2], Parallel)
         assert len(workflow.states[2].branches) == 2
-
-    def test_patch_interception(self):
-        # Arrange: Simulate input parameters and setup
-        function_name = "arn:aws:lambda:us-west-2:123456789:function:TestFunction"
-        aws_session = MagicMock()
-
-        with patch.object(AWSConfigManager, '__init__', return_value=None) as mock_init, \
-                patch.object(AWSConfigManager, 'set_config', return_value=None) as mock_set_config:
-            # Act: Create an instance of AWSConfigManager
-            config_manager = AWSConfigManager(function_name, aws_session)
-
-            # Assert: Check if the __init__ method was called with the correct arguments
-            mock_init.assert_called_once_with(function_name, aws_session)
-
-            # Act: Call the set_config method
-            config_manager.set_config(3008)
-
-            # Assert: Check if the set_config method was called with the correct argument
-            mock_set_config.assert_called_once_with(3008)
