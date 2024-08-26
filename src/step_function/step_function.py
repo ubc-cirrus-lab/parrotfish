@@ -28,10 +28,10 @@ class StepFunction:
             self._set_workflow_payloads(self.workflow, entry["payload"])
 
             # optimize for cost using Parrotfish
-            self._optimize_functions(self.function_tasks_dict)
+            self._optimize_functions_in_parallel(self.function_tasks_dict)
 
             # optimize for execution time constraint
-            self.optimize_whole_step_function()
+            self._optimize_for_execution_time_constraint()
 
     def _load_definition(self, arn: str) -> dict:
         """
@@ -222,7 +222,7 @@ class StepFunction:
         logger.info("Finish setting workflow inputs\n")
         return payload
 
-    def _optimize_functions(self, function_tasks_dict: dict):
+    def _optimize_functions_in_parallel(self, function_tasks_dict: dict):
         """
         Optimizes all Lambda functions using Parrotfish in parallel.
         """
@@ -283,12 +283,7 @@ class StepFunction:
 
         logger.info("Finish optimizing all functions\n\n")
 
-    def reset_memory_sizes(self):
-        for function in self.function_tasks_dict:
-            for task in self.function_tasks_dict[function]:
-                task.memory_size = task.initial_memory_size
-
-    def optimize_whole_step_function(self):
+    def _optimize_for_execution_time_constraint(self):
         workflow = self.workflow
         function_tasks_dict = self.function_tasks_dict
         memory_increment = self.config.memory_size_increment
