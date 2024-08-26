@@ -25,9 +25,6 @@ class ParametricFunction:
     def __call__(self, x: int or np.ndarray):
         return self.function(x, *self.params)
 
-    def set_params(self, params: any):
-        self.params = params
-
     def fit(self, sample: Sample) -> None:
         """Use non-linear least squares to fit a function to the sample.
         Optimize the parameters values so that the sum of the squared residuals is minimized.

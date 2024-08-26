@@ -47,8 +47,10 @@ class StepFunction:
             StepFunctionError: If an error occurred while loading the definition.
         """
         try:
+            logger.info("Start loading step function definition.")
             response = self.aws_session.client("stepfunctions").describe_state_machine(stateMachineArn=arn)
             definition = json.loads(response["definition"])
+            logger.info("Finish loading step function definition.")
             return definition
 
         except Exception as e:
@@ -113,6 +115,7 @@ class StepFunction:
 
         workflow = Workflow()
         state_name = workflow_def["StartAt"]  # starting state
+        logger.info("Start creating workflow.")
         while 1:
             # add state to workflow
             state_def = workflow_def["States"][state_name]
@@ -126,6 +129,7 @@ class StepFunction:
             else:
                 break  ## should throw an exception
 
+        logger.info("Finish creating workflow.")
         return workflow
 
     def _set_workflow_payloads(self, workflow: Workflow, workflow_input: str) -> str:
@@ -251,7 +255,7 @@ class StepFunction:
                     payload = {"payload": task.input, "weight": 1.0 / len(tasks)}
                     min_memory, param_function = parrotfish.optimize_one_payload(payload, collective_costs)
                     task.param_function = param_function
-                    print(f"Optimized memory: {min_memory}MB, {task.name}. Input: {task.input}")
+                    logger.info(f"Optimized memory: {min_memory}MB, {task.name}. Input: {task.input}")
 
                 # get the optimized memory size for the function
                 memory_space = parrotfish.sampler.memory_space
@@ -355,6 +359,6 @@ class StepFunction:
         logger.info(
             f"Finish optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
 
-        print("Finish optimizing step function for execution time, optimized memory sizes:\n")
+        print("Finish optimizing step function for execution time, optimized memory sizes:")
         for function in function_tasks_dict:
             print(f"{function}: {function_tasks_dict[function][0].memory_size}MB")
