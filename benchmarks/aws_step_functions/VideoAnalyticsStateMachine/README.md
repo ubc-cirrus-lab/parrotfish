@@ -13,5 +13,4 @@ in your AWS account.
 
 Finally, the figure below illustrates the high-level pattern of the state machine.
 
-<img src="stepfunctions_graph-2.png"
-style="float: center;" />
+![Step Functions Graph](stepfunctions_graph.png)

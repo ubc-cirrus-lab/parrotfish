@@ -7,9 +7,6 @@ from src.step_function.states import Task, Parallel, Map, Workflow
 from src.step_function.step_function import StepFunction
 
 
-# from src.exploration.aws.aws_config_manager import AWSConfigManager
-
-
 @pytest.fixture
 def step_function():
     step_function = MagicMock(spec=StepFunction)
