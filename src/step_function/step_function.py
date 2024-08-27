@@ -10,6 +10,7 @@ from src.exception.step_function_error import StepFunctionError
 from src.exploration.aws.aws_config_manager import AWSConfigManager
 from src.logger import logger
 from src.parrotfish import Parrotfish
+from .execution_time_optimizer import ExecutionTimeOptimizer
 from .states import State, Task, Parallel, Map, Workflow
 
 
@@ -31,7 +32,8 @@ class StepFunction:
             self._optimize_functions_in_parallel(self.function_tasks_dict)
 
             # optimize for execution time constraint
-            self._optimize_for_execution_time_constraint()
+            execution_time_optimizer = ExecutionTimeOptimizer(self.workflow, self.function_tasks_dict, self.config)
+            execution_time_optimizer.optimize_for_execution_time_constraint()
 
     def _load_definition(self, arn: str) -> dict:
         """
@@ -283,77 +285,77 @@ class StepFunction:
 
         logger.info("Finish optimizing all functions\n\n")
 
-    def _optimize_for_execution_time_constraint(self):
-        workflow = self.workflow
-        function_tasks_dict = self.function_tasks_dict
-        memory_increment = self.config.memory_size_increment
-        constraint_execution_time_threshold = self.config.constraint_execution_time_threshold
-
-        if constraint_execution_time_threshold is None:
-            logger.warning("No execution time threshold.")
-            return
-
-        critical_path_tasks, critical_path_time = workflow.get_critical_path()
-        logger.info(
-            f"Start optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.")
-
-        # Initialize cost increase dict
-        cost_increases = {}
-        for function in function_tasks_dict:
-            cost_increases[function] = 0.0
-            for task in function_tasks_dict[function]:
-                original_cost = task.get_cost(task.memory_size)
-                new_cost = task.get_cost(task.memory_size + memory_increment)
-                cost_increases[function] += new_cost - original_cost
-
-        # Update memory sizes until execution time threshold is reached
-        while critical_path_time > constraint_execution_time_threshold:
-            time_reductions = {}
-
-            # Iterate over tasks on critical path and calculate time reductions for each function
-            for task in critical_path_tasks:
-                if task.memory_size + memory_increment > task.max_memory_size:
-                    continue
-
-                original_time = task.get_execution_time()
-                new_time = task.get_execution_time(task.memory_size + memory_increment)
-
-                if task.function_name not in time_reductions:
-                    time_reductions[task.function_name] = 0.0
-                time_reductions[task.function_name] += original_time - new_time
-
-            # Find the function with the lowest cost to time reduction ratio
-            best_function = None
-            lowest_ratio = float('inf')
-            for function_name in time_reductions:
-                if time_reductions[function_name] > 0:
-                    ratio = cost_increases[function_name] / time_reductions[function_name]
-                    logger.debug(
-                        f"ratio: {ratio}, {function_name}, {function_tasks_dict[function_name][0].memory_size}MB, {cost_increases[function_name]}, {time_reductions[function_name]}")
-
-                    if ratio < lowest_ratio:
-                        lowest_ratio = ratio
-                        best_function = function_name
-
-            # Increase memory size of best function, update cost increases
-            if best_function:
-                cost_increases[best_function] = 0.0
-                for task in function_tasks_dict[best_function]:
-                    task.increase_memory_size(memory_increment)
-                    original_cost = task.get_cost()
-                    new_cost = task.get_cost(task.memory_size + memory_increment)
-                    cost_increases[best_function] += new_cost - original_cost
-            else:
-                raise StepFunctionError("Execution time threshold too low.")
-
-            # Update critical path and time
-            critical_path_tasks, critical_path_time = workflow.get_critical_path()
-            logger.debug(
-                f"Optimized function {best_function}, {task.memory_size}MB, time: {critical_path_time}ms, cost: {workflow.get_cost()}.\n")
-
-        logger.info(
-            f"Finish optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
-
-        print("Finish optimizing step function for execution time, optimized memory sizes:")
-        for function in function_tasks_dict:
-            print(f"{function}: {function_tasks_dict[function][0].memory_size}MB")
+    # def _optimize_for_execution_time_constraint(self):
+    #     workflow = self.workflow
+    #     function_tasks_dict = self.function_tasks_dict
+    #     memory_increment = self.config.memory_size_increment
+    #     constraint_execution_time_threshold = self.config.constraint_execution_time_threshold
+    #
+    #     if constraint_execution_time_threshold is None:
+    #         logger.warning("No execution time threshold.")
+    #         return
+    #
+    #     critical_path_tasks, critical_path_time = workflow.get_critical_path()
+    #     logger.info(
+    #         f"Start optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.")
+    #
+    #     # Initialize cost increase dict
+    #     cost_increases = {}
+    #     for function in function_tasks_dict:
+    #         cost_increases[function] = 0.0
+    #         for task in function_tasks_dict[function]:
+    #             original_cost = task.get_cost(task.memory_size)
+    #             new_cost = task.get_cost(task.memory_size + memory_increment)
+    #             cost_increases[function] += new_cost - original_cost
+    #
+    #     # Update memory sizes until execution time threshold is reached
+    #     while critical_path_time > constraint_execution_time_threshold:
+    #         time_reductions = {}
+    #
+    #         # Iterate over tasks on critical path and calculate time reductions for each function
+    #         for task in critical_path_tasks:
+    #             if task.memory_size + memory_increment > task.max_memory_size:
+    #                 continue
+    #
+    #             original_time = task.get_execution_time()
+    #             new_time = task.get_execution_time(task.memory_size + memory_increment)
+    #
+    #             if task.function_name not in time_reductions:
+    #                 time_reductions[task.function_name] = 0.0
+    #             time_reductions[task.function_name] += original_time - new_time
+    #
+    #         # Find the function with the lowest cost to time reduction ratio
+    #         best_function = None
+    #         lowest_ratio = float('inf')
+    #         for function_name in time_reductions:
+    #             if time_reductions[function_name] > 0:
+    #                 ratio = cost_increases[function_name] / time_reductions[function_name]
+    #                 logger.debug(
+    #                     f"ratio: {ratio}, {function_name}, {function_tasks_dict[function_name][0].memory_size}MB, {cost_increases[function_name]}, {time_reductions[function_name]}")
+    #
+    #                 if ratio < lowest_ratio:
+    #                     lowest_ratio = ratio
+    #                     best_function = function_name
+    #
+    #         # Increase memory size of best function, update cost increases
+    #         if best_function:
+    #             cost_increases[best_function] = 0.0
+    #             for task in function_tasks_dict[best_function]:
+    #                 task.increase_memory_size(memory_increment)
+    #                 original_cost = task.get_cost()
+    #                 new_cost = task.get_cost(task.memory_size + memory_increment)
+    #                 cost_increases[best_function] += new_cost - original_cost
+    #         else:
+    #             raise StepFunctionError("Execution time threshold too low.")
+    #
+    #         # Update critical path and time
+    #         critical_path_tasks, critical_path_time = workflow.get_critical_path()
+    #         logger.debug(
+    #             f"Optimized function {best_function}, {task.memory_size}MB, time: {critical_path_time}ms, cost: {workflow.get_cost()}.\n")
+    #
+    #     logger.info(
+    #         f"Finish optimizing step function for execution time, time: {critical_path_time}ms, threshold: {constraint_execution_time_threshold}ms, cost: {workflow.get_cost()}.\n")
+    #
+    #     print("Finish optimizing step function for execution time, optimized memory sizes:")
+    #     for function in function_tasks_dict:
+    #         print(f"{function}: {function_tasks_dict[function][0].memory_size}MB")
