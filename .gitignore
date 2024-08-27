@@ -10,6 +10,9 @@
 *.swp
 tags
 
+.vscode/
+.idea/
+
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,9 +22,9 @@ eggs/
 *.egg-info/
 *.egg
 TODO.md
-src/benchmarks/*/workload.json
 
 spot-env/
+venv/
 
 #Unittest Logs
 .coverage
@@ -29,3 +32,4 @@ spot-env/
 dump/
 
 src-env/
+src/step_function/test.py

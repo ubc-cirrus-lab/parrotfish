@@ -1,10 +1,12 @@
+import time
+
 import boto3
 from botocore.exceptions import *
 
 from src.exception import *
 from src.exploration.config_manager import ConfigManager
 from src.exploration.function_config import FunctionConfig
-from src.logging import logger
+from src.logger import logger
 
 
 class AWSConfigManager(ConfigManager):
@@ -30,6 +32,7 @@ class AWSConfigManager(ConfigManager):
         return int(quota["Quota"]["Value"])
 
     def set_config(self, memory_mb: int, timeout: int = None) -> any:
+        sleeping_interval = 1
         try:
             config = self._lambda_client.get_function_configuration(
                 FunctionName=self.function_name
@@ -56,8 +59,8 @@ class AWSConfigManager(ConfigManager):
 
             # Wait until configuration is propagated to all worker instances.
             while (
-                config["MemorySize"] != memory_mb
-                or config["LastUpdateStatus"] == "InProgress"
+                    config["MemorySize"] != memory_mb
+                    or config["LastUpdateStatus"] == "InProgress"
             ):
                 # Wait for the lambda function's status has changed to "UPDATED".
                 waiter = self._lambda_client.get_waiter("function_updated")
@@ -73,7 +76,19 @@ class AWSConfigManager(ConfigManager):
 
         except ClientError as e:
             logger.debug(e.args[0])
-            raise FunctionConfigError(e.args[0])
+
+            # Wait and retry if function configuration is being updated now
+            if e.response['Error']['Code'] == 'ResourceConflictException':
+                logger.warning("Concurrent Update Function Error. Retrying ...")
+
+                # Exponential retry interval
+                time.sleep(sleeping_interval)
+                sleeping_interval *= 2
+
+                self.set_config(memory_mb, timeout)
+
+            else:
+                raise FunctionConfigError(e.args[0])
 
         else:
             return config

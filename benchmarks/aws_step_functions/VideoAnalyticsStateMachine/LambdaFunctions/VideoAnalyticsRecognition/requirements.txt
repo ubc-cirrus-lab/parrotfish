@@ -1,0 +1,6 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
+numpy>=1.16.3,<2.0.0
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
+pillow

@@ -1,10 +1,12 @@
 from typing import Union
+import copy
+
 import boto3
 import numpy as np
 from google.auth import default, exceptions
 
 from src.exploration import *
-from src.logging import logger
+from src.logger import logger
 from src.objective import *
 from src.recommendation import *
 from src.sampling import *
@@ -86,7 +88,7 @@ class Parrotfish:
             max_total_sample_count=config.max_total_sample_count,
         )
 
-    def optimize(self, apply: bool = None) -> None:
+    def optimize(self, apply: bool = None) -> int:
         collective_costs = np.zeros(len(self.explorer.memory_space)) if self.config.vendor != 'GCPv2' else np.zeros(len(self.explorer.cpu_mem_space))
         min_configs = []
         i = 1
@@ -96,41 +98,43 @@ class Parrotfish:
                 print(f"Explorations for payload {i}:")
                 i += 1
             # Run recommender for the specific payload
-            min_configs.append(self._optimize_one_payload(entry, collective_costs))
+            min_config, _ = self.optimize_one_payload(entry, collective_costs)
+            min_configs.append(min_config)
 
         if len(min_configs) == 1:
-            min_config = min_configs[0]
-            print(f"Optimization result: {min_config} MB" if self.config.vendor != 'GCPv2' else f"Optimization result: {min_config[0]} vCPU, {min_config[1]} MB")
+            minimum_config = min_configs[0]
+            print(f"Optimization result: {minimum_config} MB" if self.config.vendor != 'GCPv2' else f"Optimization result: {minimum_config[0]} vCPU, {minimum_config[1]} MB")
         else:
             for i in range(len(min_configs)):
                 print(f"Optimization result for payload {i}: {min_configs[i]} MB" if self.config.vendor != 'GCPv2' else f"Optimization result for payload {i}: {min_configs[i][0]} vCPU, {min_configs[i][1]} MB")
             min_index = np.argmin(collective_costs)
-            min_config = self.explorer.memory_space[min_index] if self.config.vendor != 'GCPv2' else self.explorer.cpu_mem_space[min_index]
-            print(f"Optimization result of the average cost: {min_config} MB" if self.config.vendor != 'GCPv2' else f"Optimization result of the average cost: {min_config[0]} vCPU, {min_config[1]} MB")
+            minimum_config = self.explorer.memory_space[min_index] if self.config.vendor != 'GCPv2' else self.explorer.cpu_mem_space[min_index]
+            print(f"Optimization result of the average cost: {minimum_config} MB" if self.config.vendor != 'GCPv2' else f"Optimization result of the average cost: {minimum_config[0]} vCPU, {minimum_config[1]} MB")
 
         if apply:
-            self._apply_configuration(min_config)
+            self._apply_configuration(minimum_config)
         else:
             self.explorer.config_manager.reset_config()
 
-    def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> any:
+    def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[Union[int, list], Union[ParametricFunction, CpuMemDurationFunction]]:
         self.explorer.payload = entry["payload"]
+        self.objective.reset()
         self.recommender.run()
         collective_costs += (
-            self.param_function(self.explorer.memory_space) * entry["weight"]
+            self.param_function(self.explorer.memory_space) * self.explorer.memory_space * entry["weight"]
         ) if self.config.vendor != 'GCPv2' else (
-            self.cpu_mem_duration_function((self.explorer.cpu_mem_space[:, 0], self.explorer.cpu_mem_space[:, 1])) * entry["weight"]
+            self.cpu_mem_duration_function((self.explorer.cpu_mem_space[:, 0], self.explorer.cpu_mem_space[:, 1])) * (self.explorer.cpu_mem_space[:, 0] * 0.00002400 + self.explorer.cpu_mem_space[:, 1] * 0.00000250 / 1024) * entry["weight"]
         )
         if self.config.vendor != 'GCPv2':
             minimum_memory = self.param_function.minimize(
-                self.explorer.memory_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
+                self.sampler.memory_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
             )
         else:
             [min_cpu, min_mem] = self.cpu_mem_duration_function.minimize(
                 self.explorer.cpu_mem_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
             )
         self.objective.reset()
-        return minimum_memory if self.config.vendor != 'GCPv2' else [min_cpu, min_mem]
+        return minimum_memory, copy.copy(self.param_function) if self.config.vendor != 'GCPv2' else [min_cpu, min_mem], copy.copy(self.cpu_mem_duration_function)
 
     def _apply_configuration(self, configuration: Union[int, list]):
         if self.config.vendor != 'GCPv2':

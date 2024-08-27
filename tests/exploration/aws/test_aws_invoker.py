@@ -15,7 +15,10 @@ def invoker():
     mock_aws_session = mock.Mock()
     mock_aws_session.client().invoke.return_value = {
         "LogResult": "XHREdXJhdGlvbjogMTcwLjI0IG1zXHRCaWxsZWQgRHVyYXRpb246IDE3MSBtc1x0TWVtb3J5IFNpemU6IDEyOCBNQlx0TWF4I"
-        "E1lbW9yeSBVc2VkOiA0MCBNQlx0SW5pdCBEdXJhdGlvbjogMTM0LjcwIG1zXHRcbiI="
+                     "E1lbW9yeSBVc2VkOiA0MCBNQlx0SW5pdCBEdXJhdGlvbjogMTM0LjcwIG1zXHRcbiI="
+    }
+    mock_aws_session.client().get_function_configuration.return_value = {
+        "MemorySize": 1024, "Timeout": 60
     }
     return AWSInvoker(
         function_name="example_function",
@@ -62,8 +65,8 @@ class TestInvoke:
 
         assert error.type == MaxInvocationAttemptsReachedError
         assert (
-            invoker.client.invoke.call_count
-            == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
+                invoker.client.invoke.call_count
+                == defaults.MAX_NUMBER_OF_INVOCATION_ATTEMPTS
         )
 
     @mock.patch("src.exploration.aws.aws_invoker.time.sleep")
@@ -87,7 +90,8 @@ class TestInvoke:
         )
 
         # Action
-        invoker.invoke(payload="payload")
+        with pytest.raises(FunctionTimeoutError):
+            invoker.invoke(payload="payload")
 
         # Assert
-        assert invoker.client.invoke.call_count == 2
+        assert invoker.client.invoke.call_count == 1

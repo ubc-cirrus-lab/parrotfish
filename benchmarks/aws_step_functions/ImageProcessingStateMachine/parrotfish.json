@@ -1,0 +1,5 @@
+{
+    "arn": "arn:aws:states:us-west-2:898429789601:stateMachine:ImageProcessing",
+    "region": "us-west-2",
+    "payload": {}
+}

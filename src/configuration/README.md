@@ -18,6 +18,7 @@
 ```
 
 ## Optional Configuration Attributes:
+
 ```
 {
     ...
@@ -38,8 +39,8 @@
 }
 ```
 
-
 ## Example single payload:
+
 ```json
 {
     "function_name": "example_function",
@@ -50,6 +51,7 @@
 ```
 
 ## Example multiple payloads:
+
 ```json
 {
     "function_name": "example_function",
@@ -68,11 +70,58 @@
 }
 ```
 
-
 ### Replicating the results in the paper
+
 To generate the results in the paper, we used these parameters:
+
 ```
 termination_threshold=2
 min_invocations=2
 dynamic_sampling_params.max_sample_count=5
 ```
+
+# Parrotfish for AWS Step Function Configuration Schema
+
+## Required Configuration Attributes:
+
+```
+{
+    "arn": The Amazon Resource Name (ARN) of the Step Function,
+    "region": The AWS region where the Step Function is deployed,
+    "payload": The input payload used to invoke the Step Function
+    "payloads": [
+        {
+            "payload": Payload to invoke the serverless function with (Required),
+            "weight": Impact of the exploration with this payload over the weighted average cost. (Required and Should be in [0, 1]),
+        }...
+    ] (Required if "payload" attribute is not provided. Sum of weights must be equal to 1),
+}
+```
+
+## Optional Configuration Attributes:
+
+```
+{
+    ...
+    "termination_threshold": When the knowledge value for the optimal memory configuration reaches this threshold the recommendation algorithm terminates. (Optional, Default is 3),
+    "max_total_sample_count": The maximum size of the sample. (Optional, Default is 20),
+    "min_sample_per_config": The minimum number of invocations per iteration. (Optional, Default is 4, minimum is 2),
+    "dynamic_sampling_params": {
+        "max_sample_per_config": The maximum number of samples we gather through dynamically (Default is 8),
+        "coefficient_of_variation_threshold": When sample dynamically until we find a consistant enough. Consistency is measured by the coefficient of variation, 
+                                              and when the calculated coefficient of variation reaches this threshold we terminate the dynamic sampling (Default is 0.05),
+    } (Optional),
+    "max_number_of_invocation_attempts": The maximum number of attempts per invocation when this number is reached an error is raised. (Optional, Default is 5)
+}
+```
+
+## Example:
+
+```json
+{
+  "arn": "example_step_function_arn",
+  "region": "example_region",
+  "payload": "payload"
+}
+```
+

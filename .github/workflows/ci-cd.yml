@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: "Checkout repository"
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
 
       - name: "Install Dependencies"
         run: |
@@ -54,13 +52,11 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
-        python-version: [ '3.8', '3.9', '3.10' ]
+        python-version: [ '3.9', '3.10' ]
 
     steps:
     - name: "Checkout repository"
       uses: actions/checkout@v3
-      with:
-        ref: ${{ github.head_ref }}
 
     - name: "Set up Python"
       uses: actions/setup-python@v4
