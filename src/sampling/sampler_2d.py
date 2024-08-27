@@ -4,7 +4,7 @@ import numpy as np
 
 from src.exception import *
 from src.exploration import *
-from src.logging import logger
+from src.logger import logger
 from .data_point_2d import DataPoint2D
 from .sample_2d import Sample2D
 

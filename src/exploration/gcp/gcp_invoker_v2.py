@@ -7,7 +7,7 @@ import requests
 import json
 from src.exception import *
 from src.exploration.invoker import Invoker
-from src.logging import logger
+from src.logger import logger
 
 
 class GCPInvokerV2(Invoker):

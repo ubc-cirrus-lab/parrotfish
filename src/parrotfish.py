@@ -116,7 +116,7 @@ class Parrotfish:
         else:
             self.explorer.config_manager.reset_config()
 
-    def _optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[Union[int, list], Union[ParametricFunction, CpuMemDurationFunction]]:
+    def optimize_one_payload(self, entry: dict, collective_costs: np.ndarray) -> tuple[Union[int, list], Union[ParametricFunction, CpuMemDurationFunction]]:
         self.explorer.payload = entry["payload"]
         self.objective.reset()
         self.recommender.run()
@@ -134,7 +134,7 @@ class Parrotfish:
                 self.explorer.cpu_mem_space, self.config.constraint_execution_time_threshold, self.config.constraint_cost_tolerance_percent
             )
         self.objective.reset()
-        return minimum_memory, copy.copy(self.param_function) if self.config.vendor != 'GCPv2' else [min_cpu, min_mem], copy.copy(self.cpu_mem_duration_function)
+        return (minimum_memory, copy.copy(self.param_function)) if self.config.vendor != 'GCPv2' else ([min_cpu, min_mem], copy.copy(self.cpu_mem_duration_function))
 
     def _apply_configuration(self, configuration: Union[int, list]):
         if self.config.vendor != 'GCPv2':

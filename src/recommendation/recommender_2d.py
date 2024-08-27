@@ -3,7 +3,7 @@ import numpy as np
 from src.objective import Objective2D
 from src.sampling import Sampler2D
 from ..exception import *
-from ..logging import logger
+from ..logger import logger
 
 
 class Recommender2D:

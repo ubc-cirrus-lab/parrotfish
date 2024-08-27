@@ -7,7 +7,7 @@ from .config_manager import ConfigManager
 from .cost_calculator import CostCalculator
 from .invoker import Invoker
 from ..exception import InvocationError
-from ..logging import logger
+from ..logger import logger
 
 
 class Explorer2D(ABC):
