@@ -27,3 +27,5 @@ spot-env/
 .coverage
 
 dump/
+
+src-env/

@@ -21,7 +21,7 @@ class AWSCostCalculator(CostCalculator):
         self.aws_session = aws_session
 
     def calculate_price(
-        self, memory_mb: int, duration_ms: float or np.ndarray
+        self, memory_mb: int, duration_ms: float or np.ndarray, *args
     ) -> float or np.ndarray:
         # if pricing units cache is empty we should retrieve pricing units.
         if self.pricing_units is None:

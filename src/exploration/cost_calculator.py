@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from typing import Union
 
 class CostCalculator(ABC):
     def __init__(self, function_name):
@@ -10,8 +11,8 @@ class CostCalculator(ABC):
 
     @abstractmethod
     def calculate_price(
-        self, memory_mb: int, duration_ms: float or np.ndarray
-    ) -> float or np.ndarray:
+        self, memory_mb: int, duration_ms: Union[float, np.ndarray], cpu: float = None
+    ) -> Union[float, np.ndarray]:
         """Calculates the exploration price based on the memory and execution time.
 
         Args:

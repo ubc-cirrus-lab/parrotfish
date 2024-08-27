@@ -2,7 +2,7 @@ import os
 
 from setuptools import setup, find_packages
 
-version = os.environ["PACKAGE_VERSION"]
+version = os.getenv("PACKAGE_VERSION", "0.0.0")
 
 with open("README.md", "r") as f:
     long_description = f.read()

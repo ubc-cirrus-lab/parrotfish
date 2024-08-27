@@ -25,7 +25,7 @@ class GCPConfigManager(ConfigManager):
         # TODO: Retrieve the timeout quota from the Google Cloud API.
         return 540
 
-    def set_config(self, memory_mb: int, timeout: int = None) -> any:
+    def set_config(self, memory_mb: int, timeout: int = None, *args) -> any:
         try:
             function = self._function_client.get_function(name=self.function_url)
 

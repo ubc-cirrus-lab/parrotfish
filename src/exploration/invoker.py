@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 
 class Invoker(ABC):
@@ -9,7 +10,7 @@ class Invoker(ABC):
         self.max_invocation_attempts = max_invocation_attempts
 
     @abstractmethod
-    def invoke(self, payload: str) -> str:
+    def invoke(self, payload: str) -> Union[str, int]:
         """Invokes the serverless function with the payload @payload and returns the response.
 
         Args:

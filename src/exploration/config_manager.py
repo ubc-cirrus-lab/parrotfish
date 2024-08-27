@@ -15,7 +15,7 @@ class ConfigManager(ABC):
         pass
 
     @abstractmethod
-    def set_config(self, memory_mb: int, timeout: int = None) -> any:
+    def set_config(self, memory_mb: int, timeout: int = None, cpu: float = None) -> any:
         """Updates the serverless function's configuration by setting the memory value to @memory_mb.
 
         Args:
@@ -29,4 +29,4 @@ class ConfigManager(ABC):
 
     def reset_config(self) -> None:
         """Resets the function's configuration to it's initial state."""
-        self.set_config(self.initial_config.memory_mb, self.initial_config.timeout)
+        self.set_config(self.initial_config.memory_mb, self.initial_config.timeout, self.initial_config.cpu)

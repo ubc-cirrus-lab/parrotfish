@@ -1,0 +1,8 @@
+{
+    "function_name": "floatoperation2",
+    "region": "us-west1",
+    "vendor": "GCPv2",
+    "payload": {
+        "N": 1000000
+    }
+}
