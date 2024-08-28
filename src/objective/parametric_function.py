@@ -18,7 +18,7 @@ class ParametricFunction:
         bounds (tuple): Lower and upper bounds on parameters.
     """
 
-    function: callable = lambda x, a0, a1, a2: a0 + a1 * np.exp(-x / a2)
+    function: callable = lambda x, a0, a1, a2: (a0 + a1 * np.exp(-x / a2)) if a2 != 0 else a0
     bounds: tuple = ([-np.inf, -np.inf, -np.inf], [np.inf, np.inf, np.inf])
     params: any = None
 

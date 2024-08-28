@@ -10,22 +10,30 @@ from src.exception.step_function_error import StepFunctionError
 from src.exploration.aws.aws_config_manager import AWSConfigManager
 from src.logger import logger
 from src.parrotfish import Parrotfish
+from .execution_time_optimizer import ExecutionTimeOptimizer
 from .states import State, Task, Parallel, Map, Workflow
 
 
 class StepFunction:
-    def __init__(self, config: any):
-        self.config = config
-        self.function_tasks_dict = {}
-        self.aws_session = boto3.Session(region_name=config.region)
-
-        self.definition = self._load_definition(config.arn)
-        self.workflow = self._create_workflow(self.definition)
+    def __init__(self, config: any = None):
+        if config is not None:
+            self.config = config
+            self.function_tasks_dict = {}
+            self.aws_session = boto3.Session(region_name=config.region)
+            self.definition = self._load_definition(config.arn)
 
     def optimize(self):
         for entry in self.config.payloads:
+            self.function_tasks_dict = {}
+            self.workflow = self._create_workflow(self.definition)
             self._set_workflow_payloads(self.workflow, entry["payload"])
-            self._optimize_functions(self.function_tasks_dict)
+
+            # optimize for cost using Parrotfish
+            self._optimize_functions_in_parallel(self.function_tasks_dict)
+
+            # optimize for execution time constraint
+            execution_time_optimizer = ExecutionTimeOptimizer(self.workflow, self.function_tasks_dict, self.config)
+            execution_time_optimizer.optimize_for_execution_time_constraint()
 
     def _load_definition(self, arn: str) -> dict:
         """
@@ -41,8 +49,10 @@ class StepFunction:
             StepFunctionError: If an error occurred while loading the definition.
         """
         try:
+            logger.info("Start loading step function definition.")
             response = self.aws_session.client("stepfunctions").describe_state_machine(stateMachineArn=arn)
             definition = json.loads(response["definition"])
+            logger.info("Finish loading step function definition.")
             return definition
 
         except Exception as e:
@@ -107,6 +117,7 @@ class StepFunction:
 
         workflow = Workflow()
         state_name = workflow_def["StartAt"]  # starting state
+        logger.info("Start creating workflow.")
         while 1:
             # add state to workflow
             state_def = workflow_def["States"][state_name]
@@ -120,6 +131,7 @@ class StepFunction:
             else:
                 break  ## should throw an exception
 
+        logger.info("Finish creating workflow.")
         return workflow
 
     def _set_workflow_payloads(self, workflow: Workflow, workflow_input: str) -> str:
@@ -212,23 +224,19 @@ class StepFunction:
         logger.info("Finish setting workflow inputs\n")
         return payload
 
-    def _optimize_functions(self, function_tasks_dict: dict) -> tuple[dict, dict]:
+    def _optimize_functions_in_parallel(self, function_tasks_dict: dict):
         """
         Optimizes all Lambda functions using Parrotfish in parallel.
         """
 
-        def _optimize_one_function(tasks: list[Task]) -> tuple:
+        def _optimize_one_function(function_name: str, tasks: list[Task]) -> int:
             """
             Optimizes a single Lambda function using Parrotfish.
 
-            Args:
-                tasks: The tasks corresponding to the Lambda function to optimize.
-
             Returns:
-                The minimum memory and memory space of the optimized function
+                The memory size that optimizes the cost of the function
             """
 
-            function_name = tasks[0].function_name
             try:
                 config = {
                     "function_name": function_name,
@@ -242,39 +250,37 @@ class StepFunction:
                     "max_number_of_invocation_attempts": self.config.max_number_of_invocation_attempts,
                 }
                 parrotfish = Parrotfish(Configuration(config))
-                collective_costs = np.zeros(len(parrotfish.explorer.memory_space))  # weighted sum of cost models
+                collective_costs = np.zeros(len(parrotfish.explorer.memory_space))  # combined cost of all inputs
 
                 # optimize each input of the function
                 for task in tasks:
                     payload = {"payload": task.input, "weight": 1.0 / len(tasks)}
                     min_memory, param_function = parrotfish.optimize_one_payload(payload, collective_costs)
                     task.param_function = param_function
-                    print(f"Optimized memory: {min_memory}MB, {task.name}. Input: {task.input}")
+                    logger.info(f"Optimized memory: {min_memory}MB, {task.name}. Input: {task.input}")
 
                 # get the optimized memory size for the function
                 memory_space = parrotfish.sampler.memory_space
                 min_index = np.argmin(collective_costs[-len(memory_space):])
                 min_memory = memory_space[min_index]
-                return function_name, min_memory, memory_space
+                for task in tasks:
+                    # set optimized memory size for tasks
+                    task.memory_size = min_memory
+                    task.initial_memory_size = min_memory
+                    task.max_memory_size = memory_space[-1]
 
             except Exception as e:
                 logger.debug(f"Error optimizing function {function_name}: {e.args[0]}")
                 raise e
 
-        min_memories = {}
-        memory_spaces = {}
         logger.info("Start optimizing all functions")
 
         # Run Parrotfish on all functions in parallel
         with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = [executor.submit(_optimize_one_function, tasks)
-                       for tasks in function_tasks_dict.values()]
+            futures = [executor.submit(_optimize_one_function, function, tasks)
+                       for function, tasks in function_tasks_dict.items()]
 
             for future in as_completed(futures):
-                function_name, min_memory, memory_space = future.result()
-                min_memories[function_name] = min_memory
-                memory_spaces[function_name] = memory_space
+                future.result()
 
-        logger.info("Finish optimizing all functions")
-        print(f"Finish optimizing all functions, {min_memories}")
-        return min_memories, memory_spaces
+        logger.info("Finish optimizing all functions\n\n")

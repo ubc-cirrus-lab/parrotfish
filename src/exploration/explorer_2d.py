@@ -92,21 +92,11 @@ class Explorer2D(ABC):
                     logger.debug(e)
                     if error is None:
                         error = e
-                    # self.cost += self.price_calculator.calculate_price(
-                    #     self._memory_config_mb, e.duration_ms, self._cpu_config
-                    # )
                     continue
 
         # If one thread raises an invocation error we raise it.
         if error:
             raise error
-
-        # Calculate the cost
-        # self.cost += np.sum(
-        #     self.price_calculator.calculate_price(
-        #         self._memory_config_mb, np.array(results), self._cpu_config
-        #     )
-        # )
 
         return results
 

@@ -31,7 +31,6 @@ class Explorer(ABC):
         self.payload = payload
 
         self.memory_space = np.array(list(memory_space), dtype=int)
-        # self.cpu_memory_space = np.array()
         if memory_bounds:
             self.memory_space = np.array(
                 list(

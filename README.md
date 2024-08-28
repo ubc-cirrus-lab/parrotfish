@@ -79,6 +79,11 @@ Currently, the `--step-function` mode is designed to optimize step functions tha
 2. `src/step_function/step_function.py`: Update the `_create_state` function to parse the configuration files and create the state types.
 
 
+## Support for 2D optimization for both CPU and memory configurations in GCP Cloud Functions V2
+
+GCP Cloud Functions V2 allows decoupled configuration for CPU and memory allocations. Parrotfish can optimize the CPU and memory configuration of the V2 functions. To enable this feature, use `GCPv2` as the vendor in the config file.
+
+
 ## Acknowledgments
 
 This work was supported by the Natural Sciences and Engineering Research Council of Canada (NSERC), Mitacs, and The
