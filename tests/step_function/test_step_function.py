@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from src.exception.step_function_error import StepFunctionError
 from src.exploration.aws.aws_config_manager import AWSConfigManager
 from src.step_function.states import Task, Parallel, Map, Workflow
 from src.step_function.step_function import StepFunction
@@ -13,6 +14,7 @@ def step_function():
     step_function.config = Mock()
     step_function.function_tasks_dict = {}
     step_function.aws_session = Mock()
+    step_function.workflow = MagicMock()
 
     step_function._load_definition = StepFunction._load_definition.__get__(step_function, StepFunction)
     return step_function
@@ -105,3 +107,5 @@ class TestStepFunction:
         assert isinstance(workflow.states[1], Map)
         assert isinstance(workflow.states[2], Parallel)
         assert len(workflow.states[2].branches) == 2
+
+

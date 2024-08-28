@@ -1,4 +1,5 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Tuple
 
 import boto3
 
@@ -12,6 +13,10 @@ class State(ABC):
     def __init__(self, name: str):
         self.name = name
 
+    @abstractmethod
+    def get_cost(self) -> float:
+        pass
+
 
 class Task(State):
     """Task: a single Lambda function """
@@ -19,7 +24,11 @@ class Task(State):
     def __init__(self, name: str, function_name: str):
         super().__init__(name)
         self.function_name = function_name
+        self.input = None
         self.param_function = None
+        self.memory_size = None
+        self.initial_memory_size = None
+        self.max_memory_size = None
 
     def set_input(self, input: str):
         self.input = input
@@ -37,6 +46,29 @@ class Task(State):
         logger.debug(f"Finish invoking {self.function_name}, output: {output}")
         return output
 
+    def increase_memory_size(self, increment: int):
+        self.memory_size += increment
+
+    def decrease_memory_size(self, decrement: int):
+        self.memory_size -= decrement
+
+    def reset_memory_size(self):
+        self.memory_size = self.initial_memory_size
+
+    def get_execution_time(self, memory_size: int = None):
+        if memory_size is not None:
+            execution_time = self.param_function(memory_size)
+        else:
+            execution_time = self.param_function(self.memory_size)
+        return execution_time
+
+    def get_cost(self, memory_size: int = None):
+        if memory_size is not None:
+            execution_time = memory_size * self.param_function(memory_size)
+        else:
+            execution_time = self.memory_size * self.param_function(self.memory_size)
+        return execution_time
+
 
 class Parallel(State):
     """Parallel: parallel workflows (branches) with same input."""
@@ -48,18 +80,45 @@ class Parallel(State):
     def add_branch(self, workflow: "Workflow"):
         self.branches.append(workflow)
 
+    def get_critical_path(self) -> Tuple[list[Task], float]:
+        """Get tasks on critical path and execution time."""
+        max_time = 0.0
+        critical_path = None
+        for workflow in self.branches:
+            states, time = workflow.get_critical_path()
+            if time > max_time:
+                max_time = time
+                critical_path = states
+        return critical_path, max_time
+
+    def get_cost(self) -> float:
+        return sum(workflow.get_cost() for workflow in self.branches)
+
 
 class Map(State):
-    """Map: multiple same workflows with different inputs"""
+    """Map: multiple same workflows with different inputs."""
 
     def __init__(self, name: str):
         super().__init__(name)
-        self.iterations: list[Workflow] = []
+        self.items_path = None
         self.workflow_def = None
-        self.items_path = ""
+        self.iterations: list[Workflow] = []
 
     def add_iteration(self, workflow: "Workflow"):
         self.iterations.append(workflow)
+
+    def get_critical_path(self) -> Tuple[list[Task], float]:
+        max_time = 0.0
+        critical_path = None
+        for workflow in self.iterations:
+            states, time = workflow.get_critical_path()
+            if time > max_time:
+                max_time = time
+                critical_path = states
+        return critical_path, max_time
+
+    def get_cost(self) -> float:
+        return sum(workflow.get_cost() for workflow in self.iterations)
 
 
 class Workflow:
@@ -70,3 +129,22 @@ class Workflow:
 
     def add_state(self, state: State):
         self.states.append(state)
+
+    def get_critical_path(self) -> Tuple[list[Task], float]:
+        critical_path: list[Task] = []
+        total_time = 0.0
+
+        for state in self.states:
+            if isinstance(state, Task):
+                critical_path.append(state)
+                time = state.get_execution_time()
+                total_time += time
+            elif isinstance(state, (Parallel, Map)):
+                states, time = state.get_critical_path()
+                critical_path.extend(states)
+                total_time += time
+
+        return critical_path, total_time
+
+    def get_cost(self) -> float:
+        return sum(state.get_cost() for state in self.states)

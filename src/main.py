@@ -53,7 +53,10 @@ def main():
         exit(1)
 
     if args.step_function:
+        # Create step function
         step_function = StepFunction(configuration)
+
+        # Run cost and execution time optimization
         step_function.optimize()
 
     else:

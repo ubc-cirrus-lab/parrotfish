@@ -112,6 +112,9 @@ dynamic_sampling_params.max_sample_count=5
                                               and when the calculated coefficient of variation reaches this threshold we terminate the dynamic sampling (Default is 0.05),
     } (Optional),
     "max_number_of_invocation_attempts": The maximum number of attempts per invocation when this number is reached an error is raised. (Optional, Default is 5)
+    "constraint_execution_time_threshold": The step function execution time threshold constraint. We leverages the execution time model and step function workflow structure 
+                                to recommend a configuration that minimizes cost while adhering to the specified execution time constraint. (Optional, Default is +infinity)
+    "memory_size_increment": The step size by which memory size is increased to meet execution time threshold. (Optional, Default is 10)
 }
 ```
 
@@ -121,7 +124,8 @@ dynamic_sampling_params.max_sample_count=5
 {
   "arn": "example_step_function_arn",
   "region": "example_region",
-  "payload": "payload"
+  "payload": "payload",
+  "constraint_execution_time_threshold": 5000
 }
 ```
 
