@@ -1,0 +1,9 @@
+{
+    "function_name": "pyaes2",
+    "region": "us-west1",
+    "vendor": "GCPv2",
+    "payload": {
+        "length_of_message": 1024,
+        "num_of_iterations": 200
+    }
+}

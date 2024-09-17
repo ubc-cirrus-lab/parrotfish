@@ -30,3 +30,6 @@ venv/
 .coverage
 
 dump/
+
+src-env/
+src/step_function/test.py

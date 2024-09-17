@@ -5,7 +5,7 @@
 ```
 {
     "function_name": The serverless function's name,
-    "vendor": The cloud provider ("AWS" or "GCP"),
+    "vendor": The cloud provider ("AWS" or "GCP" or "GCPv2"),
     "region": The serverless function's region,
     "payload": Payload to invoke the serverless function with (Required if "payloads" attribute is not provided),
     "payloads": [
@@ -129,3 +129,17 @@ dynamic_sampling_params.max_sample_count=5
 }
 ```
 
+# Parrotfish for GCP Cloud Functions V2
+
+Parrotfish now supports optimization for both CPU and memory configurations in GCP Cloud Functions V2. To enable this feature, use `GCPv2` as vendor.
+
+## Example:
+
+```json
+{
+    "function_name": "example_function_name",
+    "region": "example_region",
+    "vendor": "GCPv2",
+    "payload": "example_payload"
+}
+```

@@ -19,6 +19,7 @@ class Configuration:
         self.constraint_execution_time_threshold = None
         self.constraint_cost_tolerance_percent = None
         self.memory_bounds = None
+        self.cpu_bounds = None
 
         # Parse the configuration file
         self._deserialize(config_file)
@@ -31,7 +32,7 @@ class Configuration:
             "type": "object",
             "properties": {
                 "function_name": {"type": "string"},
-                "vendor": {"type": "string", "enum": ["AWS", "GCP"]},
+                "vendor": {"type": "string", "enum": ["AWS", "GCP", "GCPv2"]},
                 "region": {"type": "string"},
                 "payload": {"anyOf": [{"type": "object"}, {"type": "array"}]},
                 "payloads": {
@@ -51,6 +52,12 @@ class Configuration:
                 "memory_bounds": {
                     "type": "array",
                     "items": {"type": "integer"},
+                    "minItems": 2,
+                    "maxItems": 2,
+                },
+                "cpu_bounds": {
+                    "type": "array",
+                    "items": {"type": "number"},
                     "minItems": 2,
                     "maxItems": 2,
                 },

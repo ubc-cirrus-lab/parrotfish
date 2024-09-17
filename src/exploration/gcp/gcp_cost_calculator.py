@@ -5,7 +5,7 @@ from google.type.money_pb2 import Money
 
 from src.exception import CostCalculationError
 from src.exploration.cost_calculator import CostCalculator
-
+from typing import Union
 
 class GCPCostCalculator(CostCalculator):
     def __init__(self, function_name: str, region: str):
@@ -14,17 +14,15 @@ class GCPCostCalculator(CostCalculator):
         self.client = billing.CloudCatalogClient()
 
     def calculate_price(
-        self, memory_mb: int, duration_ms: float or np.ndarray
-    ) -> float or np.ndarray:
+        self, memory_mb: int, duration_ms: Union[float, np.ndarray], cpu: float = None
+    ) -> Union[float, np.ndarray]:
         # if pricing units cache is empty we should retrieve pricing units.
         if self.pricing_units is None:
             self.pricing_units = self._get_pricing_units()  # fetch the pricing units
             # The invocation's request price is not provided by the GCP Billing API.
             self.pricing_units["request"] = 4 * 10 ** (-7)
 
-        cpu_usage_mhz = (
-            memory_mb / 128
-        ) * 200  # The CPU usage in Mhz, this is proportional to the memory config
+        cpu_usage_mhz = cpu * 2400 if cpu is not None else (memory_mb / 128) * 200
 
         allocated_memory = 1.0 / 1024 * memory_mb  # convert MB to GB
         allocated_cpu = cpu_usage_mhz / 1000  # convert Mhz to Ghz
