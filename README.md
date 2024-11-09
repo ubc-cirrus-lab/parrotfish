@@ -83,6 +83,11 @@ Currently, the `--step-function` mode is designed to optimize step functions tha
 
 GCP Cloud Functions V2 allows decoupled configuration for CPU and memory allocations. Parrotfish can optimize the CPU and memory configuration of the V2 functions. To enable this feature, use `GCPv2` as the vendor in the config file.
 
+## Related Papers, Articles, and Presentations
+
+- [Parrotfish: Parametric Regression for Optimizing Serverless Functions](https://cirrus.ece.ubc.ca/papers/socc23_parrotfish.pdf) - Peer-reviewed research paper on Parrotfish presented at and published in the proceedings of the 2023 ACM Symposium on Cloud Computing (SoCC '23). [ACM Digital Library page](https://dl.acm.org/doi/10.1145/3620678.3624654).
+- [Parrotfish-SF: Cost Optimization for AWS Step Functions](https://medium.com/@school.ziyiyang/parrotfish-sf-cost-optimization-of-aws-step-functions-9f73afd4e273) - An article written by Ziyi Yang on how he extended Parrotfish to support AWS Step Functions.
+- [Parrotfish: An Advanced Multi-Objective Serverless Rightsizing Tool](https://www.serverlesscomputing.org/woscx3/presentations/6-ArshiaMoghimi-Parrotfish.pdf) - Arshia Moghimi's presentation on Parrotfish at the Third International Workshop on Serverless Computing Experience 2024 (WOSCx3).
 
 ## Acknowledgments
 
