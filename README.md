@@ -10,7 +10,7 @@ You can learn more about the architecture and performance of Parrotfish in our r
 
 ### Requirements
 
-- Python >= 3.8
+- Python 3.12
 
 #### Requirement to run Parrotfish for AWS Lambda Function:
 
