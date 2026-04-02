@@ -3,4 +3,4 @@ pytest-cov~=4.1.0
 black~=23.7.0
 wheel~=0.40.0
 commitizen~=3.6.0
-setuptools~=65.5.1
+setuptools~=82.0.1
