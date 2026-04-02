@@ -14,7 +14,7 @@ You can learn more about the architecture and performance of Parrotfish in our r
 
 #### Requirement to run Parrotfish for AWS Lambda Function:
 
-- AWS CLI (Configured with `aws configure`)
+- AWS CLI (Configured with `aws configure`, for example).
 
 #### Requirement to run Parrotfish for Google Cloud Function:
 
@@ -40,6 +40,7 @@ pip install ${path to parrotfish-version.whl}
 
 ```bash
 export PACKAGE_VERSION="0.0.0"
+pip install --upgrade pip setuptools wheel
 pip install -e .
 ```
 
