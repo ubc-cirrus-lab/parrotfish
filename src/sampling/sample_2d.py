@@ -18,7 +18,7 @@ class Sample2D:
     @property
     def durations(self):
         return np.array(
-            [datapoint.duration_ms / 1000 for datapoint in self._datapoints], dtype=np.float
+            [datapoint.duration_ms / 1000 for datapoint in self._datapoints], dtype=float
         )
 
     @property
