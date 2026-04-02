@@ -79,9 +79,9 @@ class AWSCostCalculator(CostCalculator):
                 # Loop over the price list and get the pricing units.
                 for price in response["PriceList"]:
                     # Filter by the group attribute.
-                    if re.search(f'"group"\s*:\s*"{group}"', price):
+                    if re.search(rf'"group"\s*:\s*"{group}"', price):
                         # Get all match PricePerUnit.
-                        all_match = re.findall('\{"USD"\s*:\s*"[.\d]*"}', price)
+                        all_match = re.findall(r'\{"USD"\s*:\s*"[.\d]*"}', price)
                         if all_match:
                             prices_per_tier = map(
                                 lambda element: float(json.loads(element)["USD"]),
