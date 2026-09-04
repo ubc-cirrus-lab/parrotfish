@@ -1,0 +1,53 @@
+cff-version: 1.2.0
+message: "If you use Parrotfish in your research, please cite the SoCC '23 paper below (see preferred-citation)."
+title: "Parrotfish"
+abstract: "Parrotfish uses parametric regression to optimize the memory configuration of serverless functions, balancing cost and execution time."
+type: software
+authors:
+  - family-names: Moghimi
+    given-names: Arshia
+  - family-names: Hattori
+    given-names: Joe
+  - family-names: Li
+    given-names: Alexander
+  - family-names: Ben Chikha
+    given-names: Mehdi
+  - family-names: Shahrad
+    given-names: Mohammad
+repository-code: "https://github.com/ubc-cirrus-lab/parrotfish"
+license: Apache-2.0
+keywords:
+  - serverless computing
+  - performance modeling
+  - parametric regression
+preferred-citation:
+  type: conference-paper
+  title: "Parrotfish: Parametric Regression for Optimizing Serverless Functions"
+  authors:
+    - family-names: Moghimi
+      given-names: Arshia
+    - family-names: Hattori
+      given-names: Joe
+    - family-names: Li
+      given-names: Alexander
+    - family-names: Ben Chikha
+      given-names: Mehdi
+    - family-names: Shahrad
+      given-names: Mohammad
+  year: 2023
+  collection-title: "Proceedings of the 2023 ACM Symposium on Cloud Computing"
+  conference:
+    name: "SoCC '23"
+    city: "Santa Cruz"
+    region: "CA"
+    country: US
+  publisher:
+    name: "Association for Computing Machinery"
+    city: "New York"
+    region: "NY"
+    country: US
+  start: 177
+  end: 192
+  isbn: "9798400703874"
+  doi: 10.1145/3620678.3624654
+  url: "https://doi.org/10.1145/3620678.3624654"
